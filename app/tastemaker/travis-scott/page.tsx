@@ -11,12 +11,14 @@ import { inspiredMixes, onRepeatTracks, recentlyDiscoveredTracks, travis } from 
 import { recordTrackOpen } from "@/lib/prototype-events";
 import { useFollowingTaste } from "@/lib/use-following-taste";
 import type { TrackSignal } from "@/types/taste";
+import { useI18n } from "@/lib/i18n";
 
 const tabs = ["Music", "Events", "Merch", "Taste"] as const;
 
 function TrackSignalRow({ item, index }: { item: TrackSignal; index: number }) {
   const router = useRouter();
   const { showToast } = useToast();
+  const { locale } = useI18n();
 
   function openTrack() {
     recordTrackOpen(travis.id, item.track.id);
@@ -37,8 +39,8 @@ function TrackSignalRow({ item, index }: { item: TrackSignal; index: number }) {
         <span className="trackTitle">{item.track.title}</span>
         <span className="trackArtist">{item.track.artist}</span>
       </span>
-      <span className="signalPill">{item.metric}</span>
-      <span className="btn btnSubtle">Open</span>
+      <span className="signalPill">{locale === "ru" ? item.metric.replace("plays this week", "прослушиваний за неделю").replace("fans also there", "подписчиков рядом").replace("new saves", "новых сохранений") : item.metric}</span>
+      <span className="btn btnSubtle">{locale === "ru" ? "Открыть" : "Open"}</span>
     </button>
   );
 }
@@ -48,6 +50,8 @@ export default function TravisTastePage() {
   const { showToast } = useToast();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]>("Taste");
+  const { locale } = useI18n();
+  const ru = locale === "ru";
 
   function toggleFollow() {
     toggle();
@@ -69,22 +73,22 @@ export default function TravisTastePage() {
             />
           </div>
           <div>
-            <DemoBadge>Spotify artist entity</DemoBadge>
+            <DemoBadge>{ru ? "Карточка артиста Spotify" : "Spotify artist entity"}</DemoBadge>
             <h1 className="profileTitle">
               {travis.name}
               <span className="verifiedDot" title="Verified profile">
                 <Icon name="check" size={15} />
               </span>
             </h1>
-            <p className="muted">64.7M monthly listeners - {travis.role}</p>
+            <p className="muted">{ru ? "64,7 млн слушателей в месяц · артист и культурный тейстмейкер" : `64.7M monthly listeners · ${travis.role}`}</p>
           </div>
         </div>
 
         <article className="followCard">
           <div className="sectionHeader" style={{ marginBottom: 14 }}>
             <div>
-              <h2>Follow Travis's Taste</h2>
-              <p className="muted">See what Travis is listening to and discover music through his opt-in listening activity.</p>
+              <h2>{ru ? "Подписаться на Taste Трэвиса" : "Follow Travis's Taste"}</h2>
+              <p className="muted">{ru ? "Узнавайте, что слушает Трэвис, и открывайте музыку через его добровольно опубликованную активность." : "See what Travis is listening to and discover music through his opt-in listening activity."}</p>
             </div>
             <div className="followVisual">
               <img
@@ -100,12 +104,12 @@ export default function TravisTastePage() {
           <div className="buttonRow">
             <button className={`btn ${following ? "btnGhost" : "btnPrimary"}`} type="button" onClick={toggleFollow}>
               <Icon name={following ? "check" : "taste"} />
-              {following ? "Following Taste" : "Follow Taste"}
+              {following ? (ru ? "Вы подписаны" : "Following Taste") : (ru ? "Подписаться на Taste" : "Follow Taste")}
             </button>
             {travis.spotifyUrl ? (
               <a className="btn btnSubtle" href={travis.spotifyUrl} target="_blank" rel="noreferrer">
                 <Icon name="external" />
-                Open artist
+                {ru ? "Открыть артиста" : "Open artist"}
               </a>
             ) : null}
           </div>
@@ -124,15 +128,15 @@ export default function TravisTastePage() {
               showToast(`${tab} tab selected`);
             }}
           >
-            {tab}
+            {ru ? ({ Music: "Музыка", Events: "События", Merch: "Мерч", Taste: "Taste" } as const)[tab] : tab}
           </button>
         ))}
       </nav>
 
       <section className="section">
         <div className="sectionHeader">
-          <h2>On Repeat This Week</h2>
-          <DemoBadge>Illustrative activity</DemoBadge>
+          <h2>{ru ? "На повторе на этой неделе" : "On Repeat This Week"}</h2>
+          <DemoBadge>{ru ? "Иллюстративная активность" : "Illustrative activity"}</DemoBadge>
         </div>
         <div className="trackList">
           {onRepeatTracks.map((item, index) => (
@@ -143,9 +147,9 @@ export default function TravisTastePage() {
 
       <section className="section">
         <div className="sectionHeader">
-          <h2>Recently Discovered</h2>
+          <h2>{ru ? "Недавно открыто" : "Recently Discovered"}</h2>
           <button className="textButton" type="button" onClick={() => showToast("Full discovery history opened.")}>
-            See all
+            {ru ? "Показать всё" : "See all"}
           </button>
         </div>
         <div className="shelf">
@@ -175,8 +179,8 @@ export default function TravisTastePage() {
 
       <section className="section">
         <div className="sectionHeader">
-          <h2>Inspired by Travis</h2>
-          <span className="muted">Living mixes</span>
+          <h2>{ru ? "Вдохновлено Трэвисом" : "Inspired by Travis"}</h2>
+          <span className="muted">{ru ? "Живые миксы" : "Living mixes"}</span>
         </div>
         <div className="mixGrid">
           {inspiredMixes.map(mix => (
@@ -188,9 +192,9 @@ export default function TravisTastePage() {
                 className="mixArtwork"
               />
               <div className="mixContent">
-                <DemoBadge>Illustrative mix</DemoBadge>
+                <DemoBadge>{ru ? "Иллюстративный микс" : "Illustrative mix"}</DemoBadge>
                 <h3>{mix.title}</h3>
-                <p className="muted">{mix.subtitle}</p>
+                <p className="muted">{ru ? (mix.id === "rodeo-radio" ? "Живой микс из добровольно опубликованного Taste-сигнала Трэвиса" : "Мелодичный рэп, Хьюстон и неожиданные музыкальные открытия") : mix.subtitle}</p>
               </div>
             </Link>
           ))}

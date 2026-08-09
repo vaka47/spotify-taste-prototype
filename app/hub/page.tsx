@@ -10,6 +10,7 @@ import { useToast } from "@/components/ToastProvider";
 import { hubMetrics, privacyControls, topInfluencedTracks } from "@/lib/mock-data";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import { usePrototypeEventCount } from "@/lib/use-prototype-event-count";
+import { useI18n } from "@/lib/i18n";
 
 const experiments = [
   "Spotify-funded Tastemaker Pool",
@@ -22,6 +23,14 @@ export default function HubPage() {
   const router = useRouter();
   const { showToast } = useToast();
   const [activeExperiment, setActiveExperiment] = useState<(typeof experiments)[number]>("Spotify-funded Tastemaker Pool");
+  const { locale } = useI18n();
+  const ru = locale === "ru";
+  const privacyRu: Record<string, { title: string; description: string }> = {
+    "hide-track": { title: "Скрыть трек", description: "Исключить отдельный трек из публичной истории." },
+    "hide-artist": { title: "Скрыть артиста", description: "Не публиковать прослушивания выбранного артиста." },
+    delay: { title: "Задержка 24 часа", description: "Не показывать активность в реальном времени." },
+    selected: { title: "Только выбранные сессии", description: "Публиковать только явно выбранные прослушивания." },
+  };
 
   function openInfluencedTrack(trackId: string, trackSlug: string, title: string) {
     recordTrackOpen("spotify_artist_0Y5tJX1MQlPlqiwlOH1tJY", trackId);
@@ -33,26 +42,26 @@ export default function HubPage() {
     <main className="page">
       <div className="sectionHeader">
         <div>
-          <div className="eyebrow">Tastemaker Hub</div>
-          <h1 className="pageTitle">Influence, made measurable.</h1>
-          <p className="lead">For artists and verified cultural profiles. All economics here are a proposed product model.</p>
+          <div className="eyebrow">{ru ? "Аналитика тейстмейкера" : "Tastemaker Hub"}</div>
+          <h1 className="pageTitle">{ru ? "Влияние, которое можно измерить." : "Influence, made measurable."}</h1>
+          <p className="lead">{ru ? "Для артистов и верифицированных культурных профилей. Вся экономика на экране является предлагаемой продуктовой моделью." : "For artists and verified cultural profiles. All economics here are a proposed product model."}</p>
         </div>
-        <DemoBadge>Illustrative economics - not Spotify data</DemoBadge>
+        <DemoBadge>{ru ? "Иллюстративная экономика · не данные Spotify" : "Illustrative economics · not Spotify data"}</DemoBadge>
       </div>
 
       <section className="panel">
         <div className="sectionHeader" style={{ marginBottom: 0 }}>
           <div>
             <div className="metricLabel">
-              Taste followers
+              {ru ? "Подписчики Taste" : "Taste followers"}
               <button className="inlineIconButton" type="button" aria-label="Taste followers details" onClick={() => showToast("Followers of the proposed Taste surface.")}>
                 <Icon name="info" size={17} />
               </button>
             </div>
             <div className="metricNumber">{hubMetrics.tasteFollowers}</div>
-            <div className="metricDelta">{hubMetrics.tasteFollowersDelta}</div>
+            <div className="metricDelta">{ru ? "+380 тыс. за 90 дней" : hubMetrics.tasteFollowersDelta}</div>
           </div>
-          <DemoBadge>Illustrative profile metric</DemoBadge>
+          <DemoBadge>{ru ? "Иллюстративная метрика профиля" : "Illustrative profile metric"}</DemoBadge>
         </div>
         <div className="hubChart" aria-label="Illustrative Taste followers growth chart">
           <div className="chartFrame">
@@ -76,11 +85,11 @@ export default function HubPage() {
               />
             </svg>
             <div className="chartMonths">
-              <span>Apr 1</span>
-              <span>Apr 15</span>
-              <span>May 1</span>
-              <span>May 15</span>
-              <span>May 31</span>
+              <span>{ru ? "1 апр" : "Apr 1"}</span>
+              <span>{ru ? "15 апр" : "Apr 15"}</span>
+              <span>{ru ? "1 мая" : "May 1"}</span>
+              <span>{ru ? "15 мая" : "May 15"}</span>
+              <span>{ru ? "31 мая" : "May 31"}</span>
             </div>
           </div>
           <div className="chartAxis">
@@ -100,45 +109,45 @@ export default function HubPage() {
             </button>
           </div>
           <div className="metricNumber">{hubMetrics.influenceStreams}</div>
-          <div className="metricDelta">{hubMetrics.influenceStreamsDelta}</div>
+          <div className="metricDelta">{ru ? "+18% к прошлому месяцу" : hubMetrics.influenceStreamsDelta}</div>
         </article>
         <article className="metricCard">
           <div className="metricLabel">
-            Discovery saves
+            {ru ? "Сохранения после открытия" : "Discovery saves"}
             <button className="inlineIconButton" type="button" aria-label="Discovery saves details" onClick={() => showToast("High-intent saves after a Taste-sourced first listen.")}>
               <Icon name="save" size={17} />
             </button>
           </div>
           <div className="metricNumber">{hubMetrics.discoverySaves}</div>
-          <div className="metricDelta">{hubMetrics.discoverySavesNote}</div>
+          <div className="metricDelta">{ru ? "после первого прослушивания из Taste" : hubMetrics.discoverySavesNote}</div>
         </article>
         <article className="metricCard">
           <div className="metricLabel">
-            Browser-local events
+            {ru ? "Локальные события браузера" : "Browser-local events"}
             <button className="inlineIconButton" type="button" aria-label="Browser-local event details" onClick={() => showToast("Local events prove the click path only.")}>
               <Icon name="feed" size={17} />
             </button>
           </div>
           <div className="metricNumber">{eventCount}</div>
-          <div className="metricDelta">Recorded in this browser</div>
+          <div className="metricDelta">{ru ? "Записано в этом браузере" : "Recorded in this browser"}</div>
         </article>
         <article className="metricCard">
           <div className="metricLabel">
-            Official Spotify data
+            {ru ? "Официальные данные Spotify" : "Official Spotify data"}
             <button className="inlineIconButton" type="button" aria-label="Official Spotify data details" onClick={() => showToast("Tracks and embeds are real; hub metrics are proposed.")}>
               <Icon name="info" size={17} />
             </button>
           </div>
           <div className="metricNumber">0</div>
-          <div className="metricDelta">public hub metrics are mock</div>
+          <div className="metricDelta">{ru ? "публичные метрики являются макетом" : "public hub metrics are mock"}</div>
         </article>
       </section>
 
       <section className="grid2 section">
         <article className="panel">
           <div className="sectionHeader">
-            <h2>Top tracks influenced</h2>
-            <DemoBadge>Proposed Influence Streams metric</DemoBadge>
+            <h2>{ru ? "Треки с наибольшим влиянием" : "Top tracks influenced"}</h2>
+            <DemoBadge>{ru ? "Предлагаемая метрика Influence Streams" : "Proposed Influence Streams metric"}</DemoBadge>
           </div>
           <div className="influencedList">
             {topInfluencedTracks.map(item => (
@@ -169,33 +178,32 @@ export default function HubPage() {
         </article>
 
         <article className="earningsCard">
-          <DemoBadge>Illustrative economics - not Spotify data</DemoBadge>
-          <div className="eyebrow" style={{ marginTop: 16 }}>Estimated Taste Earnings</div>
+          <DemoBadge>{ru ? "Иллюстративная экономика · не данные Spotify" : "Illustrative economics · not Spotify data"}</DemoBadge>
+          <div className="eyebrow" style={{ marginTop: 16 }}>{ru ? "Оценка дохода Taste" : "Estimated Taste Earnings"}</div>
           <div className="earningsNumber">{hubMetrics.estimatedEarnings}</div>
           <p className="muted">
-            Hypothetical monthly share from a Spotify-funded Tastemaker Pool. This does not take money from the
-            rights-holder royalty assigned to the discovered track.
+            {ru ? "Гипотетическая месячная доля из фонда тейстмейкеров Spotify. Модель не уменьшает роялти правообладателя найденного трека." : "Hypothetical monthly share from a Spotify-funded Tastemaker Pool. This does not take money from the rights-holder royalty assigned to the discovered track."}
           </p>
           <div className="modelSteps">
             <div className="modelStep">
               <span className="stepNumber">1</span>
               <div>
-                <strong>Spotify funds a Tastemaker Pool</strong>
-                <p className="finePrint">A separate pool, outside artist royalty accounting.</p>
+                <strong>{ru ? "Spotify финансирует фонд тейстмейкеров" : "Spotify funds a Tastemaker Pool"}</strong>
+                <p className="finePrint">{ru ? "Отдельный фонд вне расчёта роялти артистов." : "A separate pool, outside artist royalty accounting."}</p>
               </div>
             </div>
             <div className="modelStep">
               <span className="stepNumber">2</span>
               <div>
-                <strong>Verified influence creates a pool share</strong>
-                <p className="finePrint">Qualified discovery can include first play, save, repeat and artist follow.</p>
+                <strong>{ru ? "Подтверждённое влияние создаёт долю" : "Verified influence creates a pool share"}</strong>
+                <p className="finePrint">{ru ? "Учитываются первое прослушивание, сохранение, повтор и подписка на артиста." : "Qualified discovery can include first play, save, repeat and artist follow."}</p>
               </div>
             </div>
             <div className="modelStep">
               <span className="stepNumber">3</span>
               <div>
-                <strong>Tastemaker receives earnings</strong>
-                <p className="finePrint">Only as a proposed pilot with fraud controls and disclosure rules.</p>
+                <strong>{ru ? "Тейстмейкер получает доход" : "Tastemaker receives earnings"}</strong>
+                <p className="finePrint">{ru ? "Только в рамках пилота с защитой от фрода и правилами прозрачности." : "Only as a proposed pilot with fraud controls and disclosure rules."}</p>
               </div>
             </div>
           </div>
@@ -205,8 +213,8 @@ export default function HubPage() {
       <section className="grid2 section">
         <article className="panel">
           <div className="sectionHeader">
-            <h2>Monetization experiments</h2>
-            <DemoBadge>Secondary tests</DemoBadge>
+            <h2>{ru ? "Эксперименты монетизации" : "Monetization experiments"}</h2>
+            <DemoBadge>{ru ? "Вторичные тесты" : "Secondary tests"}</DemoBadge>
           </div>
           <div className="experimentList">
             <button
@@ -220,8 +228,8 @@ export default function HubPage() {
             >
               <span className={`radioDot ${activeExperiment === experiments[0] ? "active" : ""}`} />
               <div>
-                <strong>Spotify-funded Tastemaker Pool</strong>
-                <p className="finePrint">Recommended first model: reward verified influence while keeping Taste broadly accessible.</p>
+                <strong>{ru ? "Фонд тейстмейкеров Spotify" : "Spotify-funded Tastemaker Pool"}</strong>
+                <p className="finePrint">{ru ? "Рекомендуемая первая модель: вознаграждать подтверждённое влияние, сохраняя Taste доступным." : "Recommended first model: reward verified influence while keeping Taste broadly accessible."}</p>
               </div>
             </button>
             <button
@@ -235,8 +243,8 @@ export default function HubPage() {
             >
               <span className={`radioDot ${activeExperiment === experiments[1] ? "active" : ""}`} />
               <div>
-                <strong>Taste+ add-on</strong>
-                <p className="finePrint">Optional paid tier for deeper social discovery, living mixes and richer Taste history.</p>
+                <strong>{ru ? "Дополнение Taste+" : "Taste+ add-on"}</strong>
+                <p className="finePrint">{ru ? "Необязательный платный уровень для глубокой социальной выдачи, живых миксов и расширенной истории." : "Optional paid tier for deeper social discovery, living mixes and richer Taste history."}</p>
               </div>
             </button>
             <button
@@ -250,8 +258,8 @@ export default function HubPage() {
             >
               <span className={`radioDot ${activeExperiment === experiments[2] ? "active" : ""}`} />
               <div>
-                <strong>Premium Tastemaker subscription</strong>
-                <p className="finePrint">High upside, but stronger authenticity risk. Keep as a later experiment.</p>
+                <strong>{ru ? "Премиум-подписка на тейстмейкера" : "Premium Tastemaker subscription"}</strong>
+                <p className="finePrint">{ru ? "Высокий потенциал, но больший риск для доверия. Оставить на поздний эксперимент." : "High upside, but stronger authenticity risk. Keep as a later experiment."}</p>
               </div>
             </button>
           </div>
@@ -259,8 +267,8 @@ export default function HubPage() {
 
         <article className="panel">
           <div className="sectionHeader">
-            <h2>Controls</h2>
-            <DemoBadge>Trust guardrails</DemoBadge>
+            <h2>{ru ? "Настройки" : "Controls"}</h2>
+            <DemoBadge>{ru ? "Защита доверия" : "Trust guardrails"}</DemoBadge>
           </div>
           <div className="trackList">
             {privacyControls.slice(1, 5).map(control => (
@@ -269,15 +277,15 @@ export default function HubPage() {
                   <Icon name={control.id === "delay" ? "clock" : control.id === "selected" ? "external" : "hide"} />
                 </span>
                 <div>
-                  <strong>{control.title}</strong>
-                  <p className="finePrint">{control.description}</p>
+                  <strong>{ru ? privacyRu[control.id]?.title || control.title : control.title}</strong>
+                  <p className="finePrint">{ru ? privacyRu[control.id]?.description || control.description : control.description}</p>
                 </div>
                 <span className="muted">&gt;</span>
               </Link>
             ))}
           </div>
           <p className="finePrint" style={{ marginTop: 18, textAlign: "center" }}>
-            Paid or promoted Taste placements must be labeled.
+            {ru ? "Оплаченные и промо-размещения Taste всегда должны быть помечены." : "Paid or promoted Taste placements must be labeled."}
           </p>
         </article>
       </section>

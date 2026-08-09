@@ -5,17 +5,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/Icons";
 import { ToastProvider } from "@/components/ToastProvider";
+import { useI18n } from "@/lib/i18n";
 
 const navItems = [
-  { href: "/", label: "Overview", mobileLabel: "Home", icon: "home" },
-  { href: "/feed", label: "Taste Feed", mobileLabel: "Feed", icon: "feed" },
-  { href: "/taste/ivan", label: "Public Taste", mobileLabel: "Public", icon: "spark" },
-  { href: "/tastemaker/travis-scott", label: "Tastemaker", mobileLabel: "Taste", icon: "taste" },
-  { href: "/player/euphoria", label: "Player", mobileLabel: "Player", icon: "player" },
-  { href: "/hub", label: "Hub", mobileLabel: "Hub", icon: "hub" },
-  { href: "/notifications", label: "Taste Inbox", mobileLabel: "Inbox", icon: "info" },
-  { href: "/my-taste", label: "My Taste", mobileLabel: "My", icon: "user" },
-  { href: "/privacy", label: "Privacy", mobileLabel: "Privacy", icon: "privacy" },
+  { href: "/", labelKey: "nav.overview", mobileKey: "nav.home", icon: "home" },
+  { href: "/feed", labelKey: "nav.feed", mobileKey: "nav.feed", icon: "feed" },
+  { href: "/taste/ivan", labelKey: "nav.public", mobileKey: "nav.public", icon: "spark" },
+  { href: "/tastemaker/travis-scott", labelKey: "nav.tastemaker", mobileKey: "nav.tastemaker", icon: "taste" },
+  { href: "/player/euphoria", labelKey: "nav.player", mobileKey: "nav.player", icon: "player" },
+  { href: "/hub", labelKey: "nav.hub", mobileKey: "nav.hub", icon: "hub" },
+  { href: "/notifications", labelKey: "nav.inbox", mobileKey: "nav.inbox", icon: "info" },
+  { href: "/my-taste", labelKey: "nav.my", mobileKey: "nav.my", icon: "user" },
+  { href: "/privacy", labelKey: "nav.privacy", mobileKey: "nav.privacy", icon: "privacy" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -25,6 +26,7 @@ function isActive(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { locale, setLocale, t } = useI18n();
   const current = navItems.find(item => isActive(pathname, item.href)) ?? navItems[0];
 
   return (
@@ -35,43 +37,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="brandDisc" aria-hidden="true" />
             <span>
               <strong>Taste</strong>
-              <small>Product concept</small>
+              <small>{t("shell.concept")}</small>
             </span>
           </Link>
           <nav className="desktopNav">
             {navItems.map(item => (
               <Link key={item.href} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} />
-                <span>{item.label}</span>
+                <span>{t(item.labelKey)}</span>
               </Link>
             ))}
           </nav>
           <div className="sidebarFooter">
-            <p>Independent product concept. Not affiliated with, endorsed by, or sponsored by Spotify.</p>
+            <p>{t("shell.independent")}</p>
           </div>
         </aside>
         <div className="mainColumn">
           <header className="topBar">
             <div>
               <span className="topContext">Spotify Taste</span>
-              <strong>{current.label}</strong>
+              <strong>{t(current.labelKey)}</strong>
             </div>
-            <div className="modePill">
-              <span />
-              Prototype mode
+            <div className="topActions">
+              <div className="languageSwitch" aria-label="Language">
+                <button type="button" className={locale === "en" ? "active" : ""} onClick={() => setLocale("en")} aria-pressed={locale === "en"}>EN</button>
+                <button type="button" className={locale === "ru" ? "active" : ""} onClick={() => setLocale("ru")} aria-pressed={locale === "ru"}>RU</button>
+              </div>
+              <div className="modePill">
+                <span />
+                {t("shell.prototype")}
+              </div>
             </div>
           </header>
           {children}
           <footer className="footerNote">
-            Independent product concept for Spotify social discovery. All public celebrity activity, Influence Streams,
-            Discovery Saves and earnings are illustrative unless explicitly marked as authorized Spotify data.
+            {t("shell.disclaimer")}
           </footer>
         </div>
         <nav className="mobileNav" aria-label="Mobile navigation">
           {navItems.filter(item => ["/", "/feed", "/taste/ivan", "/hub", "/my-taste"].includes(item.href)).map(item => (
             <Link key={item.href} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
               <Icon name={item.icon} size={21} />
-              <span>{item.mobileLabel}</span>
+              <span>{t(item.mobileKey)}</span>
             </Link>
           ))}
         </nav>

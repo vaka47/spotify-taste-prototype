@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AvatarImage } from "@/components/AvatarImage";
 import { DemoBadge } from "@/components/DemoBadge";
@@ -9,6 +9,7 @@ import { Icon } from "@/components/Icons";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
+import { useI18n } from "@/lib/i18n";
 import {
   SOCIAL_COMMENTS_KEY,
   decodeSnapshot,
@@ -22,235 +23,326 @@ import {
   type PublicTasteProfile,
 } from "@/lib/social-taste";
 
-type LocalComment = {
+type ServerComment = {
   id: string;
-  eventId: string;
-  profileHandle: string;
-  author: string;
-  text: string;
-  createdAt: string;
+  event_id?: string;
+  eventId?: string;
+  body: string;
+  created_at?: string;
+  createdAt?: string;
+  author_handle?: string;
+  authorHandle?: string;
+  author_name?: string;
+  authorName?: string;
+  author_avatar?: string | null;
+  authorAvatar?: string | null;
 };
 
-function fallbackProfile(handle: string): PublicTasteProfile {
-  return {
-    ...seededTasteProfiles.ivan,
-    handle,
-    name: "Shared Taste profile",
-    source: "seeded",
+type ServerEvent = {
+  id: string;
+  playedAt: string;
+  authorNote: string | null;
+  isPublic: boolean;
+  repeatCount: number;
+  commentCount: number;
+  comments: ServerComment[];
+  track: {
+    id: string;
+    title: string;
+    artist: string;
+    albumName: string | null;
+    coverUrl: string | null;
+    spotifyUrl: string;
+    spotifyEmbedUrl: string;
+    durationMs: number;
   };
+};
+
+type ServerProfile = {
+  id: string;
+  handle: string;
+  name: string;
+  avatarUrl: string | null;
+  role: string;
+  bio: string;
+  verified: boolean;
+  followers: number;
+  following: number;
+  totalEvents: number;
+  durationMs7d: number;
+  uniqueTracks30d: number;
+  lastSyncedAt: string | null;
+  viewerFollows: boolean;
+  isOwner: boolean;
+  source: "spotify_authorized";
+};
+
+type ServerProfileResponse = { profile: ServerProfile; events: ServerEvent[] };
+type LocalComment = { id: string; eventId: string; profileHandle: string; author: string; text: string; createdAt: string };
+type LoadState = "loading" | "ready" | "not_found" | "private" | "error";
+
+function fallbackProfile(handle: string): PublicTasteProfile {
+  return { ...seededTasteProfiles.ivan, handle, name: "Shared Taste profile", source: "seeded" };
+}
+
+function formatPlayedAt(value: string, locale: "en" | "ru") {
+  const date = new Date(value);
+  const deltaMinutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60_000));
+  if (deltaMinutes < 1) return locale === "ru" ? "только что" : "just now";
+  if (deltaMinutes < 60) return locale === "ru" ? `${deltaMinutes} мин назад` : `${deltaMinutes} min ago`;
+  if (deltaMinutes < 1440) return locale === "ru" ? `${Math.round(deltaMinutes / 60)} ч назад` : `${Math.round(deltaMinutes / 60)}h ago`;
+  return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "short" }).format(date);
 }
 
 export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const searchParams = useSearchParams();
+  const { locale, t } = useI18n();
   const { showToast } = useToast();
   const snapshot = useMemo(() => decodeSnapshot(searchParams.get("snapshot")), [searchParams]);
-  const profile = useMemo(() => {
-    if (snapshot) return profileFromSnapshot(snapshot);
-    return seededTasteProfiles[handle] ?? fallbackProfile(handle);
-  }, [handle, snapshot]);
-  const [selectedId, setSelectedId] = useState(profile.events[0]?.id ?? "");
+  const requestedEventId = searchParams.get("event");
+  const demoProfile = useMemo(() => snapshot ? profileFromSnapshot(snapshot) : (seededTasteProfiles[handle] ?? fallbackProfile(handle)), [handle, snapshot]);
+  const hasKnownDemo = Boolean(snapshot || seededTasteProfiles[handle]);
+  const [state, setState] = useState<LoadState>("loading");
+  const [serverProfile, setServerProfile] = useState<ServerProfile | null>(null);
+  const [serverEvents, setServerEvents] = useState<ServerEvent[]>([]);
+  const [selectedId, setSelectedId] = useState("");
   const [following, setFollowing] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const [comments, setComments] = useState<LocalComment[]>([]);
+  const [localComments, setLocalComments] = useState<LocalComment[]>([]);
+  const [connected, setConnected] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    setFollowing(readFollowingProfiles().includes(profile.handle));
-    setComments(readJson<LocalComment[]>(SOCIAL_COMMENTS_KEY, []));
-  }, [profile.handle]);
-
-  const selectedEvent = profile.events.find(event => event.id === selectedId) ?? profile.events[0];
-  const profileComments = comments.filter(comment => comment.profileHandle === profile.handle && comment.eventId === selectedEvent?.id);
-
-  function toggleFollow() {
-    const current = readFollowingProfiles();
-    const nextFollowing = !following;
-    const next = nextFollowing ? Array.from(new Set([...current, profile.handle])) : current.filter(item => item !== profile.handle);
-    writeFollowingProfiles(next);
-    setFollowing(nextFollowing);
-    showToast(nextFollowing ? `Following ${profile.name}'s Taste` : `Unfollowed ${profile.name}'s Taste`);
-    if (nextFollowing) {
-      pushNotification({
-        title: `Following ${profile.name}`,
-        body: "New public listens and track notes will appear in your Taste inbox.",
-        href: `/taste/${profile.handle}`,
-      });
+  const load = useCallback(async () => {
+    setState("loading");
+    try {
+      const [profileResponse, sessionResponse] = await Promise.all([
+        fetch(`/api/profiles/${encodeURIComponent(handle)}`, { cache: "no-store" }),
+        fetch("/api/auth/session", { cache: "no-store" }),
+      ]);
+      if (sessionResponse.ok) {
+        const session = await sessionResponse.json() as { user?: unknown };
+        setConnected(Boolean(session.user));
+      }
+      if (profileResponse.ok) {
+        const data = await profileResponse.json() as ServerProfileResponse;
+        setServerProfile(data.profile);
+        setServerEvents(data.events);
+        setSelectedId(current => data.events.some(event => event.id === requestedEventId) ? requestedEventId! : data.events.some(event => event.id === current) ? current : data.events[0]?.id || "");
+        setFollowing(data.profile.viewerFollows);
+        setState("ready");
+        return;
+      }
+      if (hasKnownDemo) {
+        setServerProfile(null);
+        setServerEvents([]);
+        setSelectedId(current => demoProfile.events.some(event => event.id === current) ? current : demoProfile.events[0]?.id || "");
+        setFollowing(readFollowingProfiles().includes(demoProfile.handle));
+        setLocalComments(readJson<LocalComment[]>(SOCIAL_COMMENTS_KEY, []));
+        setState("ready");
+        return;
+      }
+      setState(profileResponse.status === 403 ? "private" : profileResponse.status === 404 ? "not_found" : "error");
+    } catch {
+      if (hasKnownDemo) {
+        setServerProfile(null);
+        setSelectedId(demoProfile.events[0]?.id || "");
+        setState("ready");
+      } else setState("error");
     }
-  }
+  }, [demoProfile, handle, hasKnownDemo, requestedEventId]);
 
-  function addComment() {
-    if (!selectedEvent || commentText.trim().length < 2) {
-      showToast("Write a short comment first.");
+  useEffect(() => { void load(); }, [load]);
+
+  const isReal = Boolean(serverProfile);
+  const selectedServerEvent = serverEvents.find(event => event.id === selectedId) || serverEvents[0];
+  const selectedDemoEvent = demoProfile.events.find(event => event.id === selectedId) || demoProfile.events[0];
+  const profileName = serverProfile?.name || demoProfile.name;
+  const profileHandle = serverProfile?.handle || demoProfile.handle;
+  const selectedTrack = selectedServerEvent?.track || selectedDemoEvent?.track;
+  const demoRu = locale === "ru" ? {
+    role: handle === "maya" ? "Диджей и селектор" : "Продуктовый куратор вкуса",
+    bio: handle === "maya"
+      ? "Второй демонстрационный профиль показывает, как независимые тейстмейкеры могут превращать влияние в отдельный актив."
+      : "Добровольный музыкальный сигнал для концепта Spotify Taste. Подписчики следят за музыкой, контекстом и графом влияния.",
+    signals: {
+      ivan_ev_euphoria: "Живой Taste-сигнал",
+      ivan_ev_chamber: "Недавнее открытие",
+      ivan_ev_lvbag: "Сохранено после первого прослушивания",
+      ivan_ev_fein: "На повторе",
+      maya_ev_nissan: "После клубного сета",
+      maya_ev_likehim: "Опубликовано из приватной сессии",
+    } as Record<string, string>,
+    notes: {
+      ivan_ev_euphoria: "Пример трека, где контекст так же важен, как само прослушивание.",
+      ivan_ev_chamber: "Мягкий поворот после рэп-секции. Хороший пример расширения вкуса.",
+      ivan_ev_lvbag: "Идеальный момент для уведомления: короткий комментарий и мгновенный переход к треку.",
+      ivan_ev_fein: "Даже массовый трек может быть полезной опорной точкой в графе вкуса.",
+      maya_ev_nissan: "В треке достаточно энергии для позднего сета, но он не звучит очевидно.",
+      maya_ev_likehim: "Тихое сохранение: не отдельный плейлист, а естественный Taste-сигнал.",
+    } as Record<string, string>,
+    times: {
+      ivan_ev_euphoria: "4 мин назад",
+      ivan_ev_chamber: "28 мин назад",
+      ivan_ev_lvbag: "1 ч назад",
+      ivan_ev_fein: "вчера",
+      maya_ev_nissan: "7 мин назад",
+      maya_ev_likehim: "52 мин назад",
+    } as Record<string, string>,
+  } : null;
+
+  async function toggleFollow() {
+    if (serverProfile) {
+      if (serverProfile.isOwner) return;
+      if (!connected) {
+        window.location.href = `/api/auth/spotify/start?returnTo=/taste/${encodeURIComponent(handle)}`;
+        return;
+      }
+      const response = await fetch(`/api/follows/${encodeURIComponent(handle)}`, { method: "POST" });
+      if (!response.ok) {
+        showToast(t("profile.loginToFollow"));
+        return;
+      }
+      const payload = await response.json() as { following: boolean };
+      setFollowing(payload.following);
+      showToast(payload.following
+        ? (locale === "ru" ? `Вы подписались на Taste ${profileName}` : `Following ${profileName}'s Taste`)
+        : (locale === "ru" ? `Вы отписались от Taste ${profileName}` : `Unfollowed ${profileName}'s Taste`));
+      await load();
       return;
     }
-    const nextComment: LocalComment = {
-      id: crypto.randomUUID(),
-      eventId: selectedEvent.id,
-      profileHandle: profile.handle,
-      author: "You",
-      text: commentText.trim(),
-      createdAt: "just now",
-    };
-    const next = [nextComment, ...comments].slice(0, 60);
-    setComments(next);
+
+    const current = readFollowingProfiles();
+    const nextFollowing = !following;
+    writeFollowingProfiles(nextFollowing ? Array.from(new Set([...current, profileHandle])) : current.filter(item => item !== profileHandle));
+    setFollowing(nextFollowing);
+    if (nextFollowing) pushNotification({ title: `Following ${profileName}`, body: "New demo listens will appear in this browser's Taste inbox.", href: `/taste/${profileHandle}` });
+  }
+
+  async function addComment() {
+    const body = commentText.trim();
+    if (!body || body.length < 2) return;
+    if (serverProfile && selectedServerEvent) {
+      if (!connected) {
+        window.location.href = `/api/auth/spotify/start?returnTo=/taste/${encodeURIComponent(handle)}`;
+        return;
+      }
+      setSubmitting(true);
+      const response = await fetch(`/api/events/${selectedServerEvent.id}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body }),
+      });
+      setSubmitting(false);
+      if (!response.ok) {
+        showToast(t("profile.loginToComment"));
+        return;
+      }
+      setCommentText("");
+      showToast(locale === "ru" ? "Комментарий опубликован." : "Comment posted.");
+      await load();
+      return;
+    }
+    if (!selectedDemoEvent) return;
+    const nextComment: LocalComment = { id: crypto.randomUUID(), eventId: selectedDemoEvent.id, profileHandle, author: locale === "ru" ? "Вы" : "You", text: body, createdAt: new Date().toISOString() };
+    const next = [nextComment, ...localComments].slice(0, 60);
+    setLocalComments(next);
     writeJson(SOCIAL_COMMENTS_KEY, next);
     setCommentText("");
-    showToast("Comment posted to this Taste event.");
-    pushNotification({
-      title: `${profile.name} Taste thread updated`,
-      body: `New comment on ${selectedEvent.track.title}: ${nextComment.text}`,
-      href: `/taste/${profile.handle}`,
-    });
   }
+
+  if (state === "loading") return <main className="page"><section className="panel profileLoading"><div className="skeleton profileSkeletonAvatar" /><div className="rowGrow"><div className="skeleton" style={{ width: 260, height: 28 }} /><div className="skeleton" style={{ width: "60%", height: 16, marginTop: 14 }} /></div></section></main>;
+  if (state !== "ready") return <main className="page pageNarrow"><section className="emptyState standaloneState"><Icon name="privacy" size={30} /><h1>{state === "private" ? t("profile.private") : t("profile.notFound")}</h1><Link className="btn btnPrimary" href="/feed">{t("nav.feed")}</Link></section></main>;
+
+  const avatarUrl = serverProfile?.avatarUrl || demoProfile.avatarUrl;
+  const role = serverProfile?.role || demoRu?.role || demoProfile.role;
+  const bio = serverProfile?.bio || demoRu?.bio || demoProfile.bio;
+  const verified = serverProfile?.verified || demoProfile.verified;
+  const publicCount = isReal ? serverEvents.length : demoProfile.events.length;
+  const comments = isReal
+    ? (selectedServerEvent?.comments || [])
+    : localComments.filter(comment => comment.profileHandle === profileHandle && comment.eventId === selectedDemoEvent?.id);
 
   return (
     <main className="page">
       <section className="publicTasteHero">
         <div className="publicTasteIdentity">
-          <div className="publicTasteAvatar">
-            <AvatarImage src={profile.avatarUrl} fallbackSrc={profile.fallbackAvatarUrl} alt={`${profile.name} avatar`} />
-          </div>
-          <div>
-            <DemoBadge>{profile.source === "snapshot" ? "Opt-in shared snapshot" : "Live social demo"}</DemoBadge>
-            <h1 className="profileTitle">
-              {profile.name}
-              {profile.verified ? (
-                <span className="verifiedDot" title="Verified Taste profile">
-                  <Icon name="check" size={15} />
-                </span>
-              ) : null}
-            </h1>
-            <p className="muted">@{profile.handle} - {profile.role}</p>
-            <p className="lead publicTasteBio">{profile.bio}</p>
+          <div className="publicTasteAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={demoProfile.fallbackAvatarUrl} alt={`${profileName} avatar`} /></div>
+          <div className="publicTasteIdentityCopy">
+            <DemoBadge>{isReal ? t("profile.live") : t("profile.demo")}</DemoBadge>
+            <h1 className="profileTitle">{profileName}{verified ? <span className="verifiedDot" title="Verified Taste profile"><Icon name="check" size={15} /></span> : null}</h1>
+            <p className="muted profileMeta">@{profileHandle} · {role}</p>
+            <p className="lead publicTasteBio">{bio}</p>
             <div className="buttonRow">
-              <button className={`btn ${following ? "btnGhost" : "btnPrimary"}`} type="button" onClick={toggleFollow}>
-                <Icon name={following ? "check" : "taste"} />
-                {following ? "Following Taste" : "Follow Taste"}
-              </button>
-              <Link className="btn btnSubtle" href="/notifications">
-                <Icon name="info" />
-                Taste inbox
-              </Link>
+              {serverProfile?.isOwner ? (
+                <Link className="btn btnPrimary" href="/my-taste"><Icon name="user" />{t("profile.own")}</Link>
+              ) : (
+                <button className={`btn ${following ? "btnGhost" : "btnPrimary"}`} type="button" onClick={toggleFollow}><Icon name={following ? "check" : "taste"} />{following ? t("profile.following") : t("profile.follow")}</button>
+              )}
+              <Link className="btn btnSubtle" href="/notifications"><Icon name="info" />{t("profile.inbox")}</Link>
             </div>
           </div>
         </div>
 
         <div className="publicTasteStats">
-          <article className="metricCard">
-            <div className="metricLabel">Taste followers</div>
-            <div className="metricNumber">{profile.tasteFollowers}</div>
-            <div className="metricDelta">opt-in audience</div>
-          </article>
-          <article className="metricCard">
-            <div className="metricLabel">Influence Streams</div>
-            <div className="metricNumber">{profile.influenceStreams}</div>
-            <div className="metricDelta">proposed attribution</div>
-          </article>
-          <article className="metricCard">
-            <div className="metricLabel">Discovery saves</div>
-            <div className="metricNumber">{profile.discoverySaves}</div>
-            <div className="metricDelta">high-intent signal</div>
-          </article>
+          <article className="metricCard"><div className="metricLabel">{t("my.followers")}</div><div className="metricNumber">{serverProfile?.followers ?? demoProfile.tasteFollowers}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
+          <article className="metricCard"><div className="metricLabel">{isReal ? t("profile.weeklyMinutes") : "Influence Streams"}</div><div className="metricNumber">{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
+          <article className="metricCard"><div className="metricLabel">{isReal ? t("profile.uniqueTracks") : "Discovery saves"}</div><div className="metricNumber">{isReal ? serverProfile?.uniqueTracks30d : demoProfile.discoverySaves}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
         </div>
       </section>
 
       <section className="tasteSocialGrid section">
         <div className="socialFeedColumn">
           <div className="sectionHeader">
-            <div>
-              <div className="eyebrow">Public listening history</div>
-              <h2>What followers see</h2>
-            </div>
-            <DemoBadge>{profile.events.length} public events</DemoBadge>
+            <div><div className="eyebrow">{t("profile.history")}</div><h2>{t("profile.whatFollowersSee")}</h2></div>
+            <DemoBadge>{t("profile.publicEvents", { count: publicCount })}</DemoBadge>
           </div>
+          <p className="finePrint sourceDisclosure">{isReal ? t("profile.source") : t("common.demoData")}</p>
           <div className="publicEventList">
-            {profile.events.map(event => (
-              <button
-                className={`publicEventCard ${event.id === selectedEvent?.id ? "active" : ""}`}
-                type="button"
-                key={event.id}
-                onClick={() => setSelectedId(event.id)}
-              >
-                <TrackArtwork
-                  src={event.track.coverUrl}
-                  fallbackSrc={event.track.fallbackCoverUrl}
-                  alt={`${event.track.title} album cover from Spotify`}
-                  className="trackThumb"
-                />
-                <span className="publicEventText">
-                  <strong>{event.track.title}</strong>
-                  <span>{event.track.artist}</span>
-                  <em>{event.listenedAt} - {event.signal}</em>
-                </span>
-                <span className="signalPill">{event.influenceStreams}</span>
-              </button>
-            ))}
+            {(isReal ? serverEvents : demoProfile.events).map(event => {
+              const realEvent = isReal ? event as ServerEvent : null;
+              const demoEvent = !isReal ? event as typeof demoProfile.events[number] : null;
+              const track = realEvent?.track || demoEvent!.track;
+              const active = event.id === (selectedServerEvent?.id || selectedDemoEvent?.id);
+              return (
+                <button className={`publicEventCard ${active ? "active" : ""}`} type="button" key={event.id} onClick={() => setSelectedId(event.id)}>
+                  <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="trackThumb" />
+                  <span className="publicEventText">
+                    <strong>{track.title}</strong><span>{track.artist}</span>
+                    <em>{realEvent ? formatPlayedAt(realEvent.playedAt, locale) : `${demoRu?.times[demoEvent!.id] || demoEvent!.listenedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>
+                  </span>
+                  <span className="signalPill">{realEvent ? (realEvent.repeatCount > 1 ? t("profile.repeat", { count: realEvent.repeatCount }) : t("profile.recentSignal")) : demoEvent!.influenceStreams}</span>
+                </button>
+              );
+            })}
+            {!publicCount ? <div className="emptyState">{t("profile.empty")}</div> : null}
           </div>
         </div>
 
-        {selectedEvent ? (
+        {selectedTrack ? (
           <aside className="panel socialPlayerPanel">
-            <div className="sectionHeader">
-              <div>
-                <DemoBadge>Selected Taste event</DemoBadge>
-                <h2 style={{ marginTop: 12 }}>{selectedEvent.track.title}</h2>
-                <p className="muted">{selectedEvent.track.artist}</p>
-              </div>
-              <a className="iconButton" href={selectedEvent.track.spotifyUrl} target="_blank" rel="noreferrer" aria-label="Open in Spotify">
-                <Icon name="external" />
-              </a>
+            <div className="sectionHeader selectedTrackHeader">
+              <div><DemoBadge>{isReal ? t("common.spotifyData") : t("common.demoData")}</DemoBadge><h2>{selectedTrack.title}</h2><p className="muted">{selectedTrack.artist}</p></div>
+              <a className="iconButton" href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a>
             </div>
+            <SpotifyEmbed src={selectedTrack.spotifyEmbedUrl} title={`Spotify: ${selectedTrack.title}`} />
 
-            <SpotifyEmbed src={selectedEvent.track.spotifyEmbedUrl} title={`Spotify Embed: ${selectedEvent.track.title}`} />
-
-            <div className="authorNote">
-              <div className="metricLabel">
-                <Icon name="spark" size={17} />
-                Author comment
-              </div>
-              <p>{selectedEvent.authorComment}</p>
-            </div>
-
-            <div className="miniMetricGrid">
-              <div>
-                <strong>{selectedEvent.influenceStreams}</strong>
-                <span>Influence Streams</span>
-              </div>
-              <div>
-                <strong>{selectedEvent.discoverySaves}</strong>
-                <span>Discovery saves</span>
-              </div>
-              <div>
-                <strong>{selectedEvent.repeatRate}</strong>
-                <span>Repeat rate</span>
-              </div>
-            </div>
+            <div className="authorNote"><div className="metricLabel"><Icon name="spark" size={17} />{t("profile.authorNote")}</div><p>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null) || t("profile.noNote")}</p></div>
 
             <div className="commentComposer">
-              <label htmlFor="taste-comment">Comment on this Taste event</label>
-              <textarea
-                id="taste-comment"
-                value={commentText}
-                onChange={event => setCommentText(event.target.value)}
-                placeholder="Add context, reaction, or a question..."
-              />
-              <button className="btn btnPrimary" type="button" onClick={addComment}>
-                <Icon name="feed" />
-                Post comment
-              </button>
+              <label htmlFor="taste-comment">{t("profile.addComment")}</label>
+              <textarea id="taste-comment" value={commentText} onChange={event => setCommentText(event.target.value)} placeholder={t("profile.commentPlaceholder")} />
+              <button className="btn btnPrimary" type="button" onClick={addComment} disabled={submitting}><Icon name="feed" />{t("profile.postComment")}</button>
+              {isReal && !connected ? <p className="finePrint">{t("profile.loginToComment")}</p> : null}
             </div>
 
             <div className="commentList">
-              <div className="metricLabel">Follower thread</div>
-              <div className="commentBubble author">
-                <strong>{profile.name}</strong>
-                <span>{selectedEvent.authorComment}</span>
-              </div>
-              {profileComments.map(comment => (
-                <div className="commentBubble" key={comment.id}>
-                  <strong>{comment.author}</strong>
-                  <span>{comment.text}</span>
-                </div>
-              ))}
+              <div className="metricLabel">{t("profile.thread")}</div>
+              {(selectedServerEvent?.authorNote || selectedDemoEvent?.authorComment) ? <div className="commentBubble author"><strong>{profileName}</strong><span>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null)}</span></div> : null}
+              {comments.map(comment => {
+                const serverComment = comment as ServerComment;
+                const localComment = comment as LocalComment;
+                return <div className="commentBubble" key={comment.id}><strong>{isReal ? serverComment.author_name || serverComment.authorName : localComment.author}</strong><span>{isReal ? serverComment.body : localComment.text}</span></div>;
+              })}
             </div>
           </aside>
         ) : null}

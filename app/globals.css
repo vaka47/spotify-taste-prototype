@@ -46,7 +46,9 @@ a {
 }
 
 button,
-input {
+input,
+textarea,
+select {
   font: inherit;
 }
 
@@ -57,6 +59,15 @@ button {
 img {
   display: block;
   max-width: 100%;
+}
+
+h1,
+h2,
+h3,
+p,
+strong,
+span {
+  overflow-wrap: break-word;
 }
 
 :focus-visible {
@@ -196,6 +207,37 @@ img {
   font-size: 18px;
 }
 
+.topActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.languageSwitch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 38px);
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .04);
+  padding: 3px;
+}
+
+.languageSwitch button {
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.languageSwitch button.active {
+  background: var(--text);
+  color: #080808;
+}
+
 .topContext {
   color: var(--muted);
   font-size: 12px;
@@ -331,6 +373,21 @@ img {
 
 .btn:hover {
   transform: translateY(-1px);
+}
+
+.btn:disabled,
+.btn.disabled,
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .46;
+  pointer-events: none;
+  transform: none;
+}
+
+.btnCompact {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
 }
 
 .btnPrimary {
@@ -505,6 +562,123 @@ img {
 .feedList {
   display: grid;
   gap: 14px;
+}
+
+.liveFeedCard {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  padding: 16px;
+  transition: border-color .16s ease, transform .16s ease;
+}
+
+.liveFeedCard:hover {
+  border-color: rgba(30, 215, 96, .32);
+  transform: translateY(-1px);
+}
+
+.liveFeedPerson,
+.liveFeedTrack,
+.liveFeedSignals {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.liveFeedPerson {
+  gap: 11px;
+}
+
+.liveFeedPerson .feedAvatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+}
+
+.liveFeedPersonCopy,
+.liveFeedTrackCopy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.liveFeedPersonCopy strong,
+.liveFeedPersonCopy span,
+.liveFeedTrackCopy strong,
+.liveFeedTrackCopy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.liveFeedPersonCopy span,
+.liveFeedTrackCopy span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.liveFeedTrack {
+  gap: 14px;
+  border-radius: 12px;
+  background: #0d0d0d;
+  padding: 10px;
+}
+
+.liveFeedTrack .feedCover {
+  width: 76px;
+  height: 76px;
+  flex: 0 0 76px;
+  border-radius: 8px;
+}
+
+.liveFeedTrackCopy em {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  margin-top: 5px;
+  color: var(--muted-strong);
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.liveFeedSignals {
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.liveFeedSignals span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  background: rgba(30, 215, 96, .1);
+  color: var(--spotify-green-soft);
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.feedEmpty {
+  display: flex;
+  min-height: 230px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+}
+
+.feedEmpty strong {
+  color: var(--text);
+  font-size: 20px;
+}
+
+.feedEmpty > span {
+  line-height: 1.45;
 }
 
 .feedCard {
@@ -1300,11 +1474,272 @@ img {
   background: #061108;
 }
 
+.switch:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
 .myTasteHeader {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 18px;
   align-items: center;
+}
+
+.headerActions {
+  justify-content: flex-end;
+}
+
+.rowGrow {
+  min-width: 0;
+}
+
+.connectExperience {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+  gap: 18px;
+}
+
+.connectPrimary,
+.trustPanel {
+  min-height: 300px;
+}
+
+.connectPrimary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  padding: 30px;
+}
+
+.connectPrimary h2,
+.connectPrimary p {
+  margin: 0;
+}
+
+.connectIcon {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: rgba(30, 215, 96, .13);
+  color: var(--spotify-green);
+}
+
+.trustPanel {
+  display: flex;
+  align-items: center;
+}
+
+.accountHero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  background: var(--surface-raised);
+  padding: 22px;
+}
+
+.accountIdentity {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.accountIdentity h2 {
+  margin: 10px 0 6px;
+}
+
+.accountIdentity p {
+  margin: 0;
+}
+
+.accountAvatar {
+  width: 84px;
+  height: 84px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.profileEditor {
+  display: grid;
+  grid-template-columns: minmax(240px, .72fr) minmax(0, 1.28fr);
+  gap: 28px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  padding: 24px;
+}
+
+.profileEditor h2 {
+  margin: 8px 0 10px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.formGrid label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.formGrid label > span,
+.privacyTextControl strong {
+  color: var(--muted-strong);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.formGrid input,
+.formGrid textarea,
+.privacyTextControl input,
+.privacyRow select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #101010;
+  color: var(--text);
+  padding: 11px 12px;
+  outline: 0;
+}
+
+.formGrid textarea {
+  min-height: 94px;
+  resize: vertical;
+}
+
+.formGrid input:focus,
+.formGrid textarea:focus,
+.privacyTextControl input:focus,
+.privacyRow select:focus {
+  border-color: rgba(30, 215, 96, .5);
+}
+
+.formWide {
+  grid-column: 1 / -1;
+}
+
+.formAction {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.ownerEventList {
+  display: grid;
+  gap: 12px;
+}
+
+.ownerEventCard {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-raised);
+  padding: 12px;
+}
+
+.ownerEventCard .trackThumb {
+  width: 64px;
+  height: 64px;
+}
+
+.ownerEventMain {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.ownerEventMain > strong,
+.ownerEventMain > span,
+.ownerEventMain > em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ownerEventMain > span {
+  color: var(--muted-strong);
+}
+
+.ownerEventMain > em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.ownerEventMain p {
+  margin: 7px 0 0;
+  color: var(--muted-strong);
+  line-height: 1.42;
+}
+
+.ownerEventActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.visibilityButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.visibilityButton.public {
+  border-color: rgba(30, 215, 96, .3);
+  background: rgba(30, 215, 96, .1);
+  color: var(--spotify-green-soft);
+}
+
+.inlineNoteEditor {
+  grid-column: 2 / -1;
+  display: grid;
+  gap: 10px;
+}
+
+.inlineNoteEditor textarea {
+  width: 100%;
+  min-height: 84px;
+  resize: vertical;
+  border: 1px solid rgba(30, 215, 96, .36);
+  border-radius: 11px;
+  background: #0f0f0f;
+  color: var(--text);
+  padding: 12px;
+  outline: 0;
+}
+
+.compactSpotifyList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
 }
 
 .spotifyGrid {
@@ -1367,6 +1802,21 @@ img {
 .errorState {
   padding: 18px;
   color: var(--muted-strong);
+}
+
+.standaloneState {
+  display: flex;
+  min-height: 360px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.standaloneState h1 {
+  margin: 0;
+  color: var(--text);
 }
 
 .errorState {
@@ -1447,6 +1897,14 @@ img {
   gap: 22px;
   align-items: center;
   padding: 20px;
+}
+
+.publicTasteIdentityCopy {
+  min-width: 0;
+}
+
+.profileMeta {
+  margin: 8px 0 0;
 }
 
 .publicTasteAvatar {
@@ -1547,6 +2005,36 @@ img {
 .socialPlayerPanel {
   position: sticky;
   top: 94px;
+}
+
+.selectedTrackHeader {
+  align-items: flex-start;
+}
+
+.selectedTrackHeader h2 {
+  margin: 12px 0 6px;
+}
+
+.selectedTrackHeader p {
+  margin: 0;
+}
+
+.sourceDisclosure {
+  margin: -6px 0 14px;
+}
+
+.profileLoading {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  min-height: 180px;
+}
+
+.profileSkeletonAvatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
 }
 
 .authorNote {
@@ -1680,6 +2168,10 @@ img {
   place-items: center;
 }
 
+.notificationCard > span:last-child {
+  min-width: 0;
+}
+
 .notificationCard strong,
 .notificationCard span,
 .notificationCard em {
@@ -1724,6 +2216,36 @@ img {
   color: var(--spotify-green-soft);
   padding: 12px;
   font-size: 13px;
+}
+
+.privacyConnect {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.privacyConnect h2,
+.privacyConnect p {
+  margin: 0;
+}
+
+.privacyConnect p {
+  margin-top: 6px;
+}
+
+.privacyRowSelect select {
+  width: 170px;
+}
+
+.privacyTextControl {
+  grid-template-columns: 46px minmax(180px, .72fr) minmax(0, 1fr);
+}
+
+.privacySaveBar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 
 .mobileNav {
@@ -1775,7 +2297,13 @@ img {
   .publicTasteHero,
   .tasteSocialGrid,
   .publishPanel,
-  .profileHero {
+  .profileHero,
+  .connectExperience,
+  .profileEditor {
+    grid-template-columns: 1fr;
+  }
+
+  .compactSpotifyList {
     grid-template-columns: 1fr;
   }
 
@@ -1817,6 +2345,14 @@ img {
 
   .modePill {
     display: none;
+  }
+
+  .topActions {
+    gap: 6px;
+  }
+
+  .languageSwitch {
+    grid-template-columns: repeat(2, 34px);
   }
 
   .page,
@@ -1923,6 +2459,75 @@ img {
     grid-template-columns: 96px minmax(0, 1fr);
     gap: 16px;
     padding: 18px;
+  }
+
+  .accountHero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .accountHero .buttonRow,
+  .accountHero .btn {
+    width: 100%;
+  }
+
+  .profileEditor {
+    padding: 20px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formWide,
+  .formAction {
+    grid-column: auto;
+  }
+
+  .formAction {
+    width: 100%;
+  }
+
+  .ownerEventCard {
+    grid-template-columns: 56px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .ownerEventCard .trackThumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .ownerEventActions,
+  .inlineNoteEditor {
+    grid-column: 1 / -1;
+  }
+
+  .ownerEventActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .privacyConnect {
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .privacyConnect .btn {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .privacyTextControl {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .privacyTextControl input {
+    grid-column: 1 / -1;
+  }
+
+  .privacyRowSelect select {
+    width: 100%;
+    grid-column: 1 / -1;
   }
 
   .publicTasteAvatar {
@@ -2032,6 +2637,15 @@ img {
 
   .myTasteHeader {
     grid-template-columns: 1fr;
+  }
+
+  .headerActions,
+  .myTasteHeader > .btn {
+    width: 100%;
+  }
+
+  .headerActions .btn {
+    flex: 1 1 170px;
   }
 
   .mobileNav {
@@ -2155,5 +2769,32 @@ img {
   .metricNumber,
   .earningsNumber {
     font-size: 40px;
+  }
+
+  .publicTasteIdentity {
+    grid-template-columns: 1fr;
+  }
+
+  .publicTasteAvatar {
+    width: 88px;
+    height: 88px;
+  }
+
+  .accountIdentity {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .accountAvatar {
+    width: 64px;
+    height: 64px;
+  }
+
+  .visibilityButton,
+  .ownerEventActions .btn {
+    flex: 1 1 auto;
+  }
+
+  .notificationCard {
+    padding: 14px;
   }
 }
