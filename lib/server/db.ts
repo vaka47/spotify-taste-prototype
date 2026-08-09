@@ -119,6 +119,11 @@ async function createSchema() {
 }
 
 export async function ensureSchema() {
-  if (!global.spotifyTasteSchemaReady) global.spotifyTasteSchemaReady = createSchema();
+  if (!global.spotifyTasteSchemaReady) {
+    global.spotifyTasteSchemaReady = createSchema().catch(error => {
+      global.spotifyTasteSchemaReady = undefined;
+      throw error;
+    });
+  }
   return global.spotifyTasteSchemaReady;
 }

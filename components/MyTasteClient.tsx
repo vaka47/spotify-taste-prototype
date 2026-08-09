@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AvatarImage } from "@/components/AvatarImage";
 import { DemoBadge } from "@/components/DemoBadge";
@@ -95,6 +95,7 @@ export function MyTasteClient() {
   const [profileDraft, setProfileDraft] = useState({ handle: "", role: "", bio: "" });
   const [noteEventId, setNoteEventId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
+  const autoSyncStarted = useRef(false);
 
   const load = useCallback(async () => {
     setError("");
@@ -158,10 +159,15 @@ export function MyTasteClient() {
   }
 
   useEffect(() => {
-    if (searchParams.get("connected") === "1" && state === "connected" && events.length === 0 && !syncing) void sync();
-    // Run only after OAuth handoff; sync() refreshes the state itself.
+    const lastSync = user?.lastSyncedAt ? new Date(user.lastSyncedAt).getTime() : 0;
+    const stale = !lastSync || Date.now() - lastSync > 10 * 60_000;
+    if (state === "connected" && stale && !syncing && !autoSyncStarted.current) {
+      autoSyncStarted.current = true;
+      void sync();
+    }
+    // Sync once on an owner visit when the stored snapshot is stale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state]);
+  }, [state, user?.lastSyncedAt]);
 
   async function disconnect() {
     await fetch("/api/auth/logout", { method: "POST" });
