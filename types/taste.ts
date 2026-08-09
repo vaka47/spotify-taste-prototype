@@ -48,6 +48,13 @@ export type TrackSignal = {
   metric: string;
 };
 
+export type WeeklyTrackSignal = {
+  track: TrackRef;
+  plays: number;
+  popularity: number;
+  lastPlayed: string;
+};
+
 export type InspiredMix = {
   id: string;
   title: string;

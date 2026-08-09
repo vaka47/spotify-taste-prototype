@@ -5,6 +5,7 @@ import type {
   Tastemaker,
   TrackRef,
   TrackSignal,
+  WeeklyTrackSignal,
 } from "@/types/taste";
 
 export const travis: Tastemaker = {
@@ -168,6 +169,17 @@ export const onRepeatTracks: TrackSignal[] = [
   { track: tracks.gone, signal: "Kept returning after late-night sessions", metric: "11 plays" },
   { track: tracks.nissan, signal: "High repeat velocity in the last 7 days", metric: "8 plays" },
   { track: tracks.iykyk, signal: "Deep cut resurfaced from older saves", metric: "6 plays" },
+];
+
+export const travisWeeklyHistory: WeeklyTrackSignal[] = [
+  { track: tracks.euphoria, plays: 14, popularity: 82, lastPlayed: "2 min ago" },
+  { track: tracks.gone, plays: 11, popularity: 88, lastPlayed: "20 min ago" },
+  { track: tracks.nissan, plays: 8, popularity: 75, lastPlayed: "1h ago" },
+  { track: tracks.iykyk, plays: 6, popularity: 76, lastPlayed: "Yesterday" },
+  { track: tracks.likehim, plays: 4, popularity: 90, lastPlayed: "2d ago" },
+  { track: tracks.chamber, plays: 4, popularity: 84, lastPlayed: "Today" },
+  { track: tracks.lvbag, plays: 3, popularity: 72, lastPlayed: "3d ago" },
+  { track: tracks.fein, plays: 2, popularity: 91, lastPlayed: "5d ago" },
 ];
 
 export const recentlyDiscoveredTracks: TrackSignal[] = [

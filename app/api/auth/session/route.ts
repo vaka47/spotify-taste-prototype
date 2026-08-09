@@ -15,7 +15,7 @@ export async function GET() {
       (select count(*)::int from taste_follows where follower_id = ${user.id}) as following,
       (select count(*)::int from taste_events where user_id = ${user.id}) as events,
       (select coalesce(sum(duration_ms), 0)::bigint from taste_events where user_id = ${user.id} and played_at > now() - interval '7 days') as duration_ms_7d,
-      (select count(distinct track_id)::int from taste_events where user_id = ${user.id} and played_at > now() - interval '30 days') as unique_tracks_30d
+      (select count(distinct track_id)::int from taste_events where user_id = ${user.id} and played_at > now() - interval '7 days') as unique_tracks_7d
   `;
   const [tasteData] = await db()`select top_tracks, top_artists from taste_users where id = ${user.id}`;
   return NextResponse.json({ configured: true, user: { ...user, stats, topTracks: tasteData.top_tracks, topArtists: tasteData.top_artists } });

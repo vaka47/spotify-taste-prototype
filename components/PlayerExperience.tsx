@@ -68,17 +68,19 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
                 }}
               />
             </div>
-            <div>
-              <div>
+            <div className="attributionCopy">
+              <div className="attributionTitle">
                 {ru ? "Найдено благодаря" : "Discovered through"} <strong style={{ color: "var(--spotify-green-soft)" }}>{travis.name}</strong>
               </div>
-              <p className="finePrint" style={{ margin: "4px 0 0" }}>
+              <p className="finePrint">
                 {ru ? "Трек воспроизводится официальным embed-плеером Spotify. Influence Streams — предлагаемая модель атрибуции." : "This play uses Spotify's official embed. Influence Streams are a proposed attribution layer."}
+              </p>
+              <div className="attributionMetaRow">
                 <span className="dataPill" style={{ marginLeft: 8 }}>
                   <Icon name="info" size={14} />
                   {ru ? "реальный трек" : "real track"}
                 </span>
-              </p>
+              </div>
             </div>
           </section>
 

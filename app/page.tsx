@@ -151,7 +151,7 @@ export default function Home() {
 
       <section className="section">
         <div className="sectionHeader">
-          <div>
+          <div className="sectionTitleStack">
             <div className="eyebrow">{ru ? "Вдохновлено Travis" : "Inspired by Travis"}</div>
             <h2>{ru ? "Живые миксы, собранные из сигнала вкуса." : "Living mixes built from a taste signal."}</h2>
           </div>

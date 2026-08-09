@@ -53,6 +53,7 @@ async function createSchema() {
       top_tracks jsonb not null default '[]'::jsonb,
       top_artists jsonb not null default '[]'::jsonb,
       last_synced_at timestamptz,
+      sync_locked_until timestamptz,
       created_at timestamptz not null default now(),
       updated_at timestamptz not null default now()
     )
@@ -77,13 +78,17 @@ async function createSchema() {
       cover_url text,
       spotify_url text,
       duration_ms integer not null default 0,
+      popularity integer not null default 0,
       played_at timestamptz not null,
       author_note text,
       is_public boolean not null default true,
       created_at timestamptz not null default now()
     )
   `;
+  await sql`alter table taste_users add column if not exists sync_locked_until timestamptz`;
+  await sql`alter table taste_events add column if not exists popularity integer not null default 0`;
   await sql`create index if not exists taste_events_user_played_idx on taste_events(user_id, played_at desc)`;
+  await sql`create index if not exists taste_events_user_track_idx on taste_events(user_id, track_id, played_at desc)`;
   await sql`
     create table if not exists taste_follows (
       follower_id text not null references taste_users(id) on delete cascade,

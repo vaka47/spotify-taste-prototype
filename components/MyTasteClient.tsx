@@ -30,7 +30,7 @@ type SessionUser = {
   shareDelayHours: number;
   selectedSessionsOnly: boolean;
   lastSyncedAt: string | null;
-  stats: { followers: number; following: number; events: number; duration_ms_7d: string | number; unique_tracks_30d: number };
+  stats: { followers: number; following: number; events: number; duration_ms_7d: string | number; unique_tracks_7d: number };
   topTracks: SpotifyTrack[];
   topArtists: Array<{ id: string; name: string; images?: Array<{ url: string }> }>;
 };
@@ -51,8 +51,17 @@ type TasteEvent = {
   };
 };
 
+type WeeklyTrack = {
+  eventId: string;
+  playCount: number;
+  popularity: number;
+  lastPlayedAt: string;
+  totalDurationMs: number;
+  track: TasteEvent["track"];
+};
+
 type SessionResponse = { configured: boolean; user: SessionUser | null };
-type ProfileResponse = { events: TasteEvent[] };
+type ProfileResponse = { events: TasteEvent[]; weeklyHistory: WeeklyTrack[] };
 type ViewState = "loading" | "disconnected" | "connected" | "error";
 
 function formatDate(value: string | null, locale: "en" | "ru") {
@@ -89,6 +98,7 @@ export function MyTasteClient() {
   const [configured, setConfigured] = useState(true);
   const [user, setUser] = useState<SessionUser | null>(null);
   const [events, setEvents] = useState<TasteEvent[]>([]);
+  const [weeklyHistory, setWeeklyHistory] = useState<WeeklyTrack[]>([]);
   const [error, setError] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -106,6 +116,7 @@ export function MyTasteClient() {
       if (!session.user) {
         setUser(null);
         setEvents([]);
+        setWeeklyHistory([]);
         setState("disconnected");
         return;
       }
@@ -115,6 +126,7 @@ export function MyTasteClient() {
       if (profileResponse.ok) {
         const profile = await profileResponse.json() as ProfileResponse;
         setEvents(profile.events);
+        setWeeklyHistory(profile.weeklyHistory || []);
       }
       setState("connected");
     } catch (caught) {
@@ -173,6 +185,7 @@ export function MyTasteClient() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     setEvents([]);
+    setWeeklyHistory([]);
     setState("disconnected");
     showToast(locale === "ru" ? "Spotify отключён от этого браузера." : "Spotify disconnected from this browser.");
   }
@@ -288,7 +301,30 @@ export function MyTasteClient() {
             <article className="metricCard"><div className="metricLabel">{t("my.followers")}</div><div className="metricNumber">{user.stats.followers}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
             <article className="metricCard"><div className="metricLabel">{t("my.listens")}</div><div className="metricNumber">{user.stats.events}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
             <article className="metricCard"><div className="metricLabel">{t("my.minutes")}</div><div className="metricNumber">{minutes7d}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
-            <article className="metricCard"><div className="metricLabel">{t("my.unique")}</div><div className="metricNumber">{user.stats.unique_tracks_30d}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
+            <article className="metricCard"><div className="metricLabel">{t("my.unique")}</div><div className="metricNumber">{user.stats.unique_tracks_7d}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
+          </section>
+
+          <section className="section weeklyHistorySection">
+            <div className="sectionHeader">
+              <div className="sectionTitleStack"><div className="eyebrow">Taste · 7 days</div><h2>{locale === "ru" ? "Ваша недельная история" : "Your weekly history"}</h2></div>
+              <DemoBadge>{locale === "ru" ? `Треков: ${weeklyHistory.length}` : `${weeklyHistory.length} tracks`}</DemoBadge>
+            </div>
+            {weeklyHistory.length ? (
+              <div className="weeklyTrackList">
+                {weeklyHistory.map((item, index) => (
+                  <a className="weeklyTrackRow" href={item.track.spotifyUrl} target="_blank" rel="noreferrer" key={item.track.id}>
+                    <span className="trackNumber">{index + 1}</span>
+                    <TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="trackThumb" />
+                    <span className="weeklyTrackCopy"><strong>{item.track.title}</strong><span>{item.track.artist}</span><em>{formatDate(item.lastPlayedAt, locale)}</em></span>
+                    <span className="weeklyTrackMetrics">
+                      <span className="weeklyTrackMetric"><strong>{item.playCount}</strong><span>{locale === "ru" ? "за 7 дней" : "7-day plays"}</span></span>
+                      <span className="weeklyTrackMetric"><strong>{item.popularity}</strong><span>{locale === "ru" ? "популярность" : "popularity"}</span></span>
+                    </span>
+                    <span className="rowOpenIcon"><Icon name="external" size={17} /></span>
+                  </a>
+                ))}
+              </div>
+            ) : <div className="emptyState">{t("my.empty")}</div>}
           </section>
 
           <section className="profileEditor section">

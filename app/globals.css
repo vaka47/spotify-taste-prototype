@@ -291,7 +291,13 @@ span {
   align-items: flex-end;
   justify-content: space-between;
   gap: 22px;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
+}
+
+.sectionTitleStack {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
 }
 
 .sectionHeader h2,
@@ -669,7 +675,7 @@ span {
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
 }
 
 .feedEmpty strong {
@@ -679,6 +685,15 @@ span {
 
 .feedEmpty > span {
   line-height: 1.45;
+}
+
+.feedEmpty > strong,
+.feedEmpty > span {
+  margin: 0;
+}
+
+.feedEmpty > .btn {
+  margin-top: 4px;
 }
 
 .feedCard {
@@ -908,19 +923,31 @@ span {
 }
 
 .profileHero {
-  min-height: 310px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  align-items: end;
-  gap: 28px;
+  min-height: 0;
+  display: block;
   border-bottom: 1px solid var(--line);
-  padding: 26px 0 28px;
+  padding: 30px 0 32px;
 }
 
 .profileIdentity {
   display: flex;
-  align-items: flex-end;
-  gap: 22px;
+  align-items: center;
+  gap: 26px;
+}
+
+.profileIdentityCopy {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.profileIdentityCopy .profileTitle,
+.profileIdentityCopy .profileMeta {
+  margin: 0;
+}
+
+.profileActions {
+  margin-top: 6px;
 }
 
 .profileAvatar {
@@ -941,6 +968,10 @@ span {
   margin: 8px 0 10px;
   font-size: 60px;
   line-height: .95;
+}
+
+.tastemakerStats .metricCard {
+  min-height: 120px;
 }
 
 .tabBar {
@@ -993,6 +1024,100 @@ span {
 .trackList {
   display: grid;
   gap: 6px;
+}
+
+.weeklyTrackList {
+  display: grid;
+  gap: 8px;
+}
+
+.weeklyTrackRow {
+  display: grid;
+  grid-template-columns: 32px 58px minmax(0, 1fr) 216px 36px;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+  min-height: 82px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: inherit;
+  padding: 11px 12px;
+  text-align: left;
+  transition: border-color .16s ease, background .16s ease;
+}
+
+.weeklyTrackRow:hover {
+  border-color: rgba(30, 215, 96, .34);
+  background: #1d1d1d;
+}
+
+.weeklyTrackCopy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.weeklyTrackCopy strong,
+.weeklyTrackCopy span,
+.weeklyTrackCopy em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weeklyTrackCopy strong {
+  font-weight: 900;
+}
+
+.weeklyTrackCopy span {
+  color: var(--muted-strong);
+  font-size: 14px;
+}
+
+.weeklyTrackCopy em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.weeklyTrackMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, 100px);
+  gap: 8px;
+}
+
+.weeklyTrackMetric {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .045);
+  padding: 9px 10px;
+}
+
+.weeklyTrackMetric strong {
+  color: var(--spotify-green-soft);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.weeklyTrackMetric span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowOpenIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--text);
 }
 
 .trackRow {
@@ -1120,7 +1245,21 @@ span {
 }
 
 .mixContent {
-  padding-right: 16px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 11px;
+  min-width: 0;
+  padding: 18px 18px 18px 0;
+}
+
+.mixContent h3,
+.mixContent p {
+  margin: 0;
+}
+
+.mixContent p {
+  line-height: 1.4;
 }
 
 .playerPage {
@@ -1183,6 +1322,29 @@ span {
 
 .attributionCard > div:last-child {
   min-width: 0;
+}
+
+.attributionCopy {
+  display: grid;
+  gap: 10px;
+}
+
+.attributionTitle {
+  line-height: 1.35;
+}
+
+.attributionCopy .finePrint {
+  margin: 0;
+}
+
+.attributionMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.attributionMetaRow .dataPill {
+  margin-left: 0 !important;
 }
 
 .attributionAvatar {
@@ -1778,6 +1940,7 @@ select:disabled {
 
 .skeleton {
   position: relative;
+  max-width: 100%;
   overflow: hidden;
   background: #1b1b1b;
   border-radius: 10px;
@@ -1849,8 +2012,9 @@ select:disabled {
 .inlineIconButton {
   display: inline-grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -1900,7 +2064,19 @@ select:disabled {
 }
 
 .publicTasteIdentityCopy {
+  display: grid;
   min-width: 0;
+  gap: 13px;
+}
+
+.publicTasteIdentityCopy .profileTitle,
+.publicTasteIdentityCopy .profileMeta,
+.publicTasteIdentityCopy .publicTasteBio {
+  margin: 0;
+}
+
+.publicTasteIdentityCopy .buttonRow {
+  margin-top: 3px;
 }
 
 .profileMeta {
@@ -1917,8 +2093,8 @@ select:disabled {
 }
 
 .publicTasteBio {
-  margin: 12px 0 0;
   font-size: 17px;
+  line-height: 1.5;
 }
 
 .publicTasteStats {
@@ -1967,6 +2143,29 @@ select:disabled {
   text-align: left;
 }
 
+.historyMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(74px, 1fr));
+  gap: 8px;
+}
+
+.historyMetrics > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  border-radius: 10px;
+  background: rgba(30, 215, 96, .1);
+  color: var(--muted);
+  padding: 8px 10px;
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.historyMetrics strong {
+  color: var(--spotify-green-soft);
+  font-size: 15px;
+}
+
 .publicEventCard:hover,
 .publicEventCard.active {
   border-color: rgba(30, 215, 96, .34);
@@ -2012,7 +2211,7 @@ select:disabled {
 }
 
 .selectedTrackHeader h2 {
-  margin: 12px 0 6px;
+  margin: 14px 0 8px;
 }
 
 .selectedTrackHeader p {
@@ -2543,9 +2742,45 @@ select:disabled {
     grid-template-columns: 52px minmax(0, 1fr);
   }
 
-  .publicEventCard .signalPill {
+  .publicEventCard .signalPill,
+  .publicEventCard .historyMetrics {
     grid-column: 2;
     justify-self: start;
+  }
+
+  .weeklyTrackRow {
+    grid-template-columns: 22px 50px minmax(0, 1fr) 32px;
+    grid-template-areas:
+      "number art copy open"
+      ". . metrics metrics";
+    gap: 10px 12px;
+    padding: 12px;
+  }
+
+  .weeklyTrackRow .trackNumber {
+    grid-area: number;
+  }
+
+  .weeklyTrackRow .trackThumb {
+    grid-area: art;
+    width: 50px;
+    height: 50px;
+  }
+
+  .weeklyTrackCopy {
+    grid-area: copy;
+  }
+
+  .weeklyTrackMetrics {
+    grid-area: metrics;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .weeklyTrackRow .rowOpenIcon {
+    grid-area: open;
+    width: 32px;
+    height: 32px;
   }
 
   .miniMetricGrid {
@@ -2603,6 +2838,15 @@ select:disabled {
   .mixCard img {
     width: 104px;
     height: 104px;
+  }
+
+  .mixContent {
+    gap: 9px;
+    padding: 14px 14px 14px 0;
+  }
+
+  .mixContent .demoBadge {
+    white-space: normal;
   }
 
   .playerTitleRow h1 {
@@ -2754,6 +2998,18 @@ select:disabled {
 
   .profileIdentity {
     gap: 14px;
+  }
+
+  .profileIdentityCopy {
+    gap: 10px;
+  }
+
+  .profileActions {
+    width: 100%;
+  }
+
+  .profileActions .btn {
+    flex: 1 1 180px;
   }
 
   .profileAvatar {

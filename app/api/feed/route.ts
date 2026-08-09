@@ -11,7 +11,7 @@ export async function GET() {
   const events = await db()`
     select e.id, e.track_id, e.title, e.artist, e.cover_url, e.spotify_url, e.played_at, e.author_note,
       u.handle, u.display_name, u.avatar_url, u.verified,
-      (select count(*)::int from taste_events r where r.user_id = e.user_id and r.track_id = e.track_id and r.played_at > now() - interval '30 days') as repeat_count,
+      (select count(*)::int from taste_events r where r.user_id = e.user_id and r.track_id = e.track_id and r.played_at > now() - interval '7 days') as repeat_count,
       (select count(*)::int from taste_comments c where c.event_id = e.id) as comment_count
     from taste_follows f
     join taste_users u on u.id = f.followed_id

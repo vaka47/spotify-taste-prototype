@@ -58,6 +58,15 @@ type ServerEvent = {
   };
 };
 
+type ServerWeeklyTrack = {
+  eventId: string;
+  playCount: number;
+  popularity: number;
+  lastPlayedAt: string;
+  totalDurationMs: number;
+  track: ServerEvent["track"];
+};
+
 type ServerProfile = {
   id: string;
   handle: string;
@@ -70,14 +79,14 @@ type ServerProfile = {
   following: number;
   totalEvents: number;
   durationMs7d: number;
-  uniqueTracks30d: number;
+  uniqueTracks7d: number;
   lastSyncedAt: string | null;
   viewerFollows: boolean;
   isOwner: boolean;
   source: "spotify_authorized";
 };
 
-type ServerProfileResponse = { profile: ServerProfile; events: ServerEvent[] };
+type ServerProfileResponse = { profile: ServerProfile; events: ServerEvent[]; weeklyHistory: ServerWeeklyTrack[] };
 type LocalComment = { id: string; eventId: string; profileHandle: string; author: string; text: string; createdAt: string };
 type LoadState = "loading" | "ready" | "not_found" | "private" | "error";
 
@@ -105,6 +114,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const [state, setState] = useState<LoadState>("loading");
   const [serverProfile, setServerProfile] = useState<ServerProfile | null>(null);
   const [serverEvents, setServerEvents] = useState<ServerEvent[]>([]);
+  const [weeklyHistory, setWeeklyHistory] = useState<ServerWeeklyTrack[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [following, setFollowing] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -127,7 +137,8 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         const data = await profileResponse.json() as ServerProfileResponse;
         setServerProfile(data.profile);
         setServerEvents(data.events);
-        setSelectedId(current => data.events.some(event => event.id === requestedEventId) ? requestedEventId! : data.events.some(event => event.id === current) ? current : data.events[0]?.id || "");
+        setWeeklyHistory(data.weeklyHistory || []);
+        setSelectedId(current => data.events.some(event => event.id === requestedEventId) ? requestedEventId! : data.weeklyHistory.some(item => item.eventId === current) ? current : data.weeklyHistory[0]?.eventId || data.events[0]?.id || "");
         setFollowing(data.profile.viewerFollows);
         setState("ready");
         return;
@@ -135,6 +146,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
       if (hasKnownDemo) {
         setServerProfile(null);
         setServerEvents([]);
+        setWeeklyHistory([]);
         setSelectedId(current => demoProfile.events.some(event => event.id === current) ? current : demoProfile.events[0]?.id || "");
         setFollowing(readFollowingProfiles().includes(demoProfile.handle));
         setLocalComments(readJson<LocalComment[]>(SOCIAL_COMMENTS_KEY, []));
@@ -189,6 +201,13 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
       maya_ev_likehim: "52 мин назад",
     } as Record<string, string>,
   } : null;
+  const demoWeeklyHistory = useMemo(() => demoProfile.events.map((event, index) => ({
+    eventId: event.id,
+    track: event.track,
+    playCount: Math.max(2, 8 - index * 2),
+    popularity: [82, 84, 72, 91, 75, 88][index] || 70,
+    lastPlayedAt: demoRu?.times[event.id] || event.listenedAt,
+  })).sort((a, b) => b.playCount - a.playCount || b.popularity - a.popularity), [demoProfile.events, demoRu]);
 
   async function toggleFollow() {
     if (serverProfile) {
@@ -257,7 +276,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const role = serverProfile?.role || demoRu?.role || demoProfile.role;
   const bio = serverProfile?.bio || demoRu?.bio || demoProfile.bio;
   const verified = serverProfile?.verified || demoProfile.verified;
-  const publicCount = isReal ? serverEvents.length : demoProfile.events.length;
+  const publicCount = isReal ? weeklyHistory.length : demoWeeklyHistory.length;
   const comments = isReal
     ? (selectedServerEvent?.comments || [])
     : localComments.filter(comment => comment.profileHandle === profileHandle && comment.eventId === selectedDemoEvent?.id);
@@ -286,31 +305,36 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         <div className="publicTasteStats">
           <article className="metricCard"><div className="metricLabel">{t("my.followers")}</div><div className="metricNumber">{serverProfile?.followers ?? demoProfile.tasteFollowers}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
           <article className="metricCard"><div className="metricLabel">{isReal ? t("profile.weeklyMinutes") : "Influence Streams"}</div><div className="metricNumber">{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
-          <article className="metricCard"><div className="metricLabel">{isReal ? t("profile.uniqueTracks") : "Discovery saves"}</div><div className="metricNumber">{isReal ? serverProfile?.uniqueTracks30d : demoProfile.discoverySaves}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
+          <article className="metricCard"><div className="metricLabel">{isReal ? t("profile.uniqueTracks") : "Discovery saves"}</div><div className="metricNumber">{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
         </div>
       </section>
 
       <section className="tasteSocialGrid section">
         <div className="socialFeedColumn">
           <div className="sectionHeader">
-            <div><div className="eyebrow">{t("profile.history")}</div><h2>{t("profile.whatFollowersSee")}</h2></div>
-            <DemoBadge>{t("profile.publicEvents", { count: publicCount })}</DemoBadge>
+            <div className="sectionTitleStack"><div className="eyebrow">{t("profile.history")}</div><h2>{locale === "ru" ? "Треки за последние 7 дней" : "Tracks from the last 7 days"}</h2></div>
+            <DemoBadge>{locale === "ru" ? `Треков: ${publicCount}` : `${publicCount} tracks`}</DemoBadge>
           </div>
           <p className="finePrint sourceDisclosure">{isReal ? t("profile.source") : t("common.demoData")}</p>
           <div className="publicEventList">
-            {(isReal ? serverEvents : demoProfile.events).map(event => {
-              const realEvent = isReal ? event as ServerEvent : null;
-              const demoEvent = !isReal ? event as typeof demoProfile.events[number] : null;
-              const track = realEvent?.track || demoEvent!.track;
-              const active = event.id === (selectedServerEvent?.id || selectedDemoEvent?.id);
+            {(isReal ? weeklyHistory : demoWeeklyHistory).map(item => {
+              const realItem = isReal ? item as ServerWeeklyTrack : null;
+              const demoItem = !isReal ? item as typeof demoWeeklyHistory[number] : null;
+              const demoEvent = !isReal ? demoProfile.events.find(event => event.id === demoItem!.eventId)! : null;
+              const track = realItem?.track || demoItem!.track;
+              const eventId = realItem?.eventId || demoItem!.eventId;
+              const active = eventId === selectedId;
               return (
-                <button className={`publicEventCard ${active ? "active" : ""}`} type="button" key={event.id} onClick={() => setSelectedId(event.id)}>
+                <button className={`publicEventCard ${active ? "active" : ""}`} type="button" key={eventId} onClick={() => setSelectedId(eventId)}>
                   <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="trackThumb" />
                   <span className="publicEventText">
                     <strong>{track.title}</strong><span>{track.artist}</span>
-                    <em>{realEvent ? formatPlayedAt(realEvent.playedAt, locale) : `${demoRu?.times[demoEvent!.id] || demoEvent!.listenedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>
+                    <em>{realItem ? formatPlayedAt(realItem.lastPlayedAt, locale) : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>
                   </span>
-                  <span className="signalPill">{realEvent ? (realEvent.repeatCount > 1 ? t("profile.repeat", { count: realEvent.repeatCount }) : t("profile.recentSignal")) : demoEvent!.influenceStreams}</span>
+                  <span className="historyMetrics">
+                    <span><strong>{realItem?.playCount ?? demoItem!.playCount}</strong>{locale === "ru" ? "повторов" : "plays"}</span>
+                    <span><strong>{realItem?.popularity ?? demoItem!.popularity}</strong>{locale === "ru" ? "популярность" : "popularity"}</span>
+                  </span>
                 </button>
               );
             })}
