@@ -13,7 +13,7 @@ export const travis: Tastemaker = {
   name: "Travis Scott",
   role: "Artist - cultural tastemaker",
   avatarUrl: "https://image-cdn-fa.spotifycdn.com/image/ab6761610000517419c2790744c792d05570bb71",
-  fallbackAvatarUrl: "/avatars/travis_demo.jpg",
+  fallbackAvatarUrl: "https://image-cdn-fa.spotifycdn.com/image/ab6761610000517419c2790744c792d05570bb71",
   spotifyArtistId: "0Y5tJX1MQlPlqiwlOH1tJY",
   spotifyUrl: "https://open.spotify.com/artist/0Y5tJX1MQlPlqiwlOH1tJY",
   spotifyEmbedUrl: "https://open.spotify.com/embed/artist/0Y5tJX1MQlPlqiwlOH1tJY?utm_source=oembed",
@@ -60,7 +60,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "euphoria",
     artist: "Kendrick Lamar",
     coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02bdc727cfc07ddbabf925bb2f",
-    fallbackCoverUrl: "/covers/euphoria.jpg",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02bdc727cfc07ddbabf925bb2f",
   }),
   gone: spotifyTrack({
     spotifyId: "1hz7SRTGUNAtIQ46qiNv2p",
@@ -68,7 +68,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "GONE, GONE / THANK YOU",
     artist: "Tyler, The Creator",
     coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0230a635de2bb0caa4e26f6abb",
-    fallbackCoverUrl: "/covers/gone.jpg",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0230a635de2bb0caa4e26f6abb",
   }),
   chamber: spotifyTrack({
     spotifyId: "5oeOWXjH8NZFOWP0SpSXqV",
@@ -76,7 +76,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "Chamber of Reflection",
     artist: "Mac DeMarco",
     coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028b221f2ccf777ae0d4b0db50",
-    fallbackCoverUrl: "/covers/chamber.jpg",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028b221f2ccf777ae0d4b0db50",
   }),
   iykyk: spotifyTrack({
     spotifyId: "6bGwKHXHNLmTy6yt147FPh",
@@ -84,7 +84,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "If You Know You Know",
     artist: "Pusha T",
     coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029eef4d0de1fb61ac8e6ad50c",
-    fallbackCoverUrl: "/covers/iykyk.jpg",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e029eef4d0de1fb61ac8e6ad50c",
   }),
   nissan: spotifyTrack({
     spotifyId: "53z0OoN3wkWZW73OtjsuHJ",
@@ -92,7 +92,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "NISSAN ALTIMA",
     artist: "Doechii",
     coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022513ae79437fb2204c4115c3",
-    fallbackCoverUrl: "/covers/crg.jpg",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022513ae79437fb2204c4115c3",
   }),
   lvbag: spotifyTrack({
     spotifyId: "4mOfeGMIe82IXH7zJ5Dga9",
@@ -100,7 +100,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "LV Bag",
     artist: "Don Toliver, Speedy, j-hope, Pharrell Williams",
     coverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e028e53d91ae9735b67c78c8c3f",
-    fallbackCoverUrl: "/covers/lvbag.jpg",
+    fallbackCoverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e028e53d91ae9735b67c78c8c3f",
   }),
   likehim: spotifyTrack({
     spotifyId: "1O4HGh8H0drMByM6psjp8y",
@@ -108,7 +108,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "Like Him",
     artist: "Tyler, The Creator",
     coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02c5a1610726a08f3892e4dca9",
-    fallbackCoverUrl: "/covers/likehim.jpg",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02c5a1610726a08f3892e4dca9",
   }),
   fein: spotifyTrack({
     spotifyId: "42VsgItocQwOQC3XWZ8JNA",
@@ -116,7 +116,7 @@ export const tracks: Record<string, TrackRef> = {
     title: "FE!N",
     artist: "Travis Scott, Playboi Carti",
     coverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0204481c826dd292e5e4983b3f",
-    fallbackCoverUrl: "/covers/astroworld.jpg",
+    fallbackCoverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0204481c826dd292e5e4983b3f",
   }),
 };
 
@@ -184,7 +184,7 @@ export const inspiredMixes: InspiredMix[] = [
     title: "Rodeo Radio",
     subtitle: "A living mix from Travis's opt-in taste signal",
     coverUrl: tracks.fein.coverUrl,
-    fallbackCoverUrl: "/covers/rodeo.jpg",
+    fallbackCoverUrl: tracks.fein.coverUrl,
     href: "/player/fein",
     externalUrl: tracks.fein.spotifyUrl,
     origin: "illustrative",
@@ -194,7 +194,7 @@ export const inspiredMixes: InspiredMix[] = [
     title: "Astroworld Vibes",
     subtitle: "With melodic rap, Houston textures and left-field discoveries",
     coverUrl: tracks.fein.coverUrl,
-    fallbackCoverUrl: "/covers/astroworld.jpg",
+    fallbackCoverUrl: tracks.fein.coverUrl,
     href: "/player/fein",
     externalUrl: tracks.fein.spotifyUrl,
     origin: "illustrative",

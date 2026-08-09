@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icons";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
 import { spotifyErrorMessage } from "@/lib/format";
+import { tracks } from "@/lib/mock-data";
 import { encodeSnapshot, type PublicTasteEvent, type TasteSnapshot } from "@/lib/social-taste";
 import {
   beginSpotifyLogin,
@@ -209,8 +210,8 @@ export function MyTasteClient() {
         id: `spotify_track_${track.id}`,
         title: track.name,
         artist: artists(track) || "Spotify artist",
-        coverUrl: imageForTrack(track) || "/covers/euphoria.jpg",
-        fallbackCoverUrl: "/covers/euphoria.jpg",
+        coverUrl: imageForTrack(track) || tracks.euphoria.coverUrl,
+        fallbackCoverUrl: tracks.euphoria.fallbackCoverUrl,
         spotifyUrl,
         spotifyEmbedUrl: `https://open.spotify.com/embed/track/${track.id}?utm_source=oembed`,
       },

@@ -1,4 +1,4 @@
-import { tracks } from "@/lib/mock-data";
+import { tracks, travis } from "@/lib/mock-data";
 
 export type PublicTasteTrack = {
   id: string;
@@ -70,7 +70,8 @@ export const seededTasteProfiles: Record<string, PublicTasteProfile> = {
     name: "Ivan Safonov",
     role: "Product taste curator",
     bio: "Opt-in listening signal for the Spotify Taste pitch. Fans follow the music, the context and the influence graph.",
-    avatarUrl: "/avatars/travis_demo.jpg",
+    avatarUrl: travis.avatarUrl,
+    fallbackAvatarUrl: travis.fallbackAvatarUrl,
     verified: true,
     tasteFollowers: "18.4K",
     influenceStreams: "842K",
@@ -126,7 +127,8 @@ export const seededTasteProfiles: Record<string, PublicTasteProfile> = {
     name: "Maya Chen",
     role: "DJ and selector",
     bio: "A seeded second profile showing how non-celebrity tastemakers can monetize influence.",
-    avatarUrl: "/covers/chamber.jpg",
+    avatarUrl: tracks.chamber.coverUrl,
+    fallbackAvatarUrl: tracks.chamber.fallbackCoverUrl,
     verified: true,
     tasteFollowers: "82K",
     influenceStreams: "3.1M",
@@ -192,8 +194,8 @@ export function profileFromSnapshot(snapshot: TasteSnapshot): PublicTasteProfile
     name: snapshot.name,
     role: snapshot.role,
     bio: snapshot.bio,
-    avatarUrl: snapshot.avatarUrl || "/avatars/travis_demo.jpg",
-    fallbackAvatarUrl: "/avatars/travis_demo.jpg",
+    avatarUrl: snapshot.avatarUrl || travis.avatarUrl,
+    fallbackAvatarUrl: travis.fallbackAvatarUrl,
     verified: false,
     tasteFollowers: "share link",
     influenceStreams: "live preview",
