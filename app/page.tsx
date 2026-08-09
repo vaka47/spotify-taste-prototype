@@ -77,8 +77,10 @@ export default function Home() {
                 <span>{heroEvent.timestampLabel}</span>
                 <span className="statusPill">Now playing</span>
               </div>
-              <div className="feedTrack">{heroEvent.track.title}</div>
-              <div className="feedArtist">{heroEvent.track.artist}</div>
+              <div className="feedTrackBlock">
+                <div className="feedTrack">{heroEvent.track.title}</div>
+                <div className="feedArtist">{heroEvent.track.artist}</div>
+              </div>
               <div className="feedSignal">
                 <Icon name="feed" size={18} />
                 {heroEvent.humanSignal}

@@ -99,8 +99,8 @@ export const tracks: Record<string, TrackRef> = {
     slug: "lv-bag",
     title: "LV Bag",
     artist: "Don Toliver, Speedy, j-hope, Pharrell Williams",
-    coverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e028e53d91ae9735b67c78c8c3f",
-    fallbackCoverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e028e53d91ae9735b67c78c8c3f",
+    coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028e53d91ae9735b67c78c8c3f",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e028e53d91ae9735b67c78c8c3f",
   }),
   likehim: spotifyTrack({
     spotifyId: "1O4HGh8H0drMByM6psjp8y",
@@ -115,8 +115,8 @@ export const tracks: Record<string, TrackRef> = {
     slug: "fein",
     title: "FE!N",
     artist: "Travis Scott, Playboi Carti",
-    coverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0204481c826dd292e5e4983b3f",
-    fallbackCoverUrl: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0204481c826dd292e5e4983b3f",
+    coverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0204481c826dd292e5e4983b3f",
+    fallbackCoverUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e0204481c826dd292e5e4983b3f",
   }),
 };
 

@@ -544,8 +544,54 @@ img {
 }
 
 .previewFeedCard {
-  grid-template-columns: 76px minmax(0, 1fr) 124px;
+  grid-template-columns: 76px minmax(0, 1fr) minmax(112px, 124px);
+  grid-template-areas:
+    "avatar meta meta"
+    "copy copy cover"
+    "signal signal cover";
+  align-items: center;
   padding: 18px;
+}
+
+.previewFeedCard .feedAvatarWrap {
+  grid-area: avatar;
+}
+
+.previewFeedCard .feedText {
+  display: contents;
+}
+
+.previewFeedCard .feedMeta {
+  grid-area: meta;
+  align-self: end;
+}
+
+.previewFeedCard .feedTrackBlock {
+  grid-area: copy;
+  min-width: 0;
+  margin-top: 18px;
+  align-self: start;
+}
+
+.previewFeedCard .feedTrack {
+  margin-top: 0;
+}
+
+.previewFeedCard .feedArtist {
+  margin-top: 6px;
+}
+
+.previewFeedCard .feedSignal {
+  grid-area: signal;
+  align-self: start;
+  margin-top: 16px;
+}
+
+.previewFeedCard .feedCover {
+  grid-area: cover;
+  align-self: center;
+  justify-self: end;
+  width: 100%;
 }
 
 .feedAvatarWrap {
@@ -585,6 +631,16 @@ img {
   align-items: center;
   color: var(--muted);
   font-size: 14px;
+  min-width: 0;
+}
+
+.feedMeta strong,
+.feedMeta span:not(.statusPill) {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .feedName {
@@ -594,6 +650,7 @@ img {
 }
 
 .feedTrack {
+  max-width: 100%;
   margin-top: 18px;
   font-size: 22px;
   font-weight: 900;
@@ -619,6 +676,7 @@ img {
   font-size: 15px;
   font-weight: 800;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .feedCover {
@@ -1814,7 +1872,20 @@ img {
   }
 
   .previewFeedCard {
+    grid-template-columns: 62px minmax(0, 1fr) 92px;
+    grid-template-areas:
+      "avatar meta meta"
+      "copy copy cover"
+      "signal signal signal";
     padding: 14px;
+  }
+
+  .previewFeedCard .feedTrackBlock {
+    margin-top: 12px;
+  }
+
+  .previewFeedCard .feedSignal {
+    margin-top: 14px;
   }
 
   .feedAvatarWrap,
@@ -2030,6 +2101,14 @@ img {
 
   .feedCardMain {
     padding: 12px;
+  }
+
+  .previewFeedCard {
+    grid-template-columns: 52px minmax(0, 1fr) 78px;
+    grid-template-areas:
+      "avatar meta meta"
+      "copy copy cover"
+      "signal signal signal";
   }
 
   .moreButton {
