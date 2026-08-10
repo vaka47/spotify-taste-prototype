@@ -53,6 +53,8 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (caught) {
     console.error("Spotify callback failed", caught);
-    return NextResponse.redirect(`${origin}/my-taste?error=spotify`);
+    const status = (caught as Error & { status?: number }).status;
+    const reason = status === 403 ? "allowlist" : status === 429 ? "rate_limit" : "spotify";
+    return NextResponse.redirect(`${origin}/my-taste?error=${reason}`);
   }
 }

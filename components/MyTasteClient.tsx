@@ -144,6 +144,8 @@ export function MyTasteClient() {
         ? (locale === "ru" ? "Авторизация Spotify отменена." : "Spotify authorization was cancelled.")
         : authError === "database" ? t("my.databaseMissing")
         : authError === "state" ? (locale === "ru" ? "Сессия авторизации истекла. Попробуйте ещё раз." : "The authorization session expired. Please try again.")
+        : authError === "allowlist" ? t("my.allowlist")
+        : authError === "rate_limit" ? (locale === "ru" ? "Spotify временно ограничил запросы. Повторите через минуту." : "Spotify temporarily rate-limited requests. Try again in a minute.")
         : (locale === "ru" ? "Spotify не завершил авторизацию. Попробуйте ещё раз." : "Spotify did not complete authorization. Please try again.");
       setError(message);
     }
