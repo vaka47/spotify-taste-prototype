@@ -53,7 +53,7 @@ export default function Home() {
           </div>
         </section>
 
-        <aside className="panel">
+        <aside className="panel homeTastePreview">
           <div className="sectionHeader">
             <div>
               <DemoBadge>{ru ? "Карточка артиста Spotify" : "Spotify artist entity"}</DemoBadge>
@@ -64,38 +64,40 @@ export default function Home() {
               <AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" />
             </div>
           </div>
-          <Link className="feedCard previewFeedCard" href="/player/euphoria">
-            <div className="feedAvatarWrap">
-              <div className="feedAvatar">
-                <AvatarImage
-                  src={travis.avatarUrl}
-                  fallbackSrc={travis.fallbackAvatarUrl}
-                  alt={`${travis.name} artist image from Spotify`}
-                />
+          <Link className="homePreviewCard" href="/player/euphoria">
+            <div className="homePreviewPerson">
+              <div className="feedAvatarWrap">
+                <div className="feedAvatar">
+                  <AvatarImage
+                    src={travis.avatarUrl}
+                    fallbackSrc={travis.fallbackAvatarUrl}
+                    alt={`${travis.name} artist image from Spotify`}
+                  />
+                </div>
+                <span className="liveDot" aria-hidden="true" />
               </div>
-              <span className="liveDot" aria-hidden="true" />
-            </div>
-            <div className="feedText">
-              <div className="feedMeta">
+              <div className="homePreviewPersonCopy">
                 <strong>{travis.name}</strong>
                 <span>{ru ? "2 мин назад" : heroEvent.timestampLabel}</span>
                 <span className="statusPill">{ru ? "Слушает сейчас" : "Now playing"}</span>
               </div>
-              <div className="feedTrackBlock">
-                <div className="feedTrack">{heroEvent.track.title}</div>
-                <div className="feedArtist">{heroEvent.track.artist}</div>
-              </div>
-              <div className="feedSignal">
-                <Icon name="feed" size={18} />
-                {ru ? "Сейчас вместе с ним слушают 17 тыс. подписчиков" : heroEvent.humanSignal}
-              </div>
             </div>
-            <TrackArtwork
-              src={heroEvent.track.coverUrl}
-              fallbackSrc={heroEvent.track.fallbackCoverUrl}
-              alt={`${heroEvent.track.title} album cover from Spotify`}
-              className="feedCover"
-            />
+            <div className="homePreviewTrack">
+              <div className="homePreviewTrackCopy">
+                <strong>{heroEvent.track.title}</strong>
+                <span>{heroEvent.track.artist}</span>
+              </div>
+              <TrackArtwork
+                src={heroEvent.track.coverUrl}
+                fallbackSrc={heroEvent.track.fallbackCoverUrl}
+                alt={`${heroEvent.track.title} album cover from Spotify`}
+                className="homePreviewCover"
+              />
+            </div>
+            <div className="homePreviewSignal">
+              <Icon name="feed" size={18} />
+              <span>{ru ? "Сейчас вместе с ним слушают 17 тыс. подписчиков" : heroEvent.humanSignal}</span>
+            </div>
           </Link>
           <div className="section">
             <h3>{ru ? "Сценарий демонстрации" : "Demo sequence"}</h3>

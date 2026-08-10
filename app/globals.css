@@ -876,6 +876,107 @@ span {
   box-shadow: 0 18px 34px rgba(0, 0, 0, .28);
 }
 
+.homePreviewCard {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  border-radius: 14px;
+  background: #0d0d0d;
+  padding: 16px;
+  transition: background .16s ease, transform .16s ease;
+}
+
+.homePreviewCard:hover {
+  background: #111;
+  transform: translateY(-1px);
+}
+
+.homePreviewPerson {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.homePreviewPerson .feedAvatarWrap,
+.homePreviewPerson .feedAvatar {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+}
+
+.homePreviewPerson .liveDot {
+  right: 1px;
+  bottom: 4px;
+}
+
+.homePreviewPersonCopy,
+.homePreviewTrackCopy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.homePreviewPersonCopy > strong,
+.homePreviewPersonCopy > span:not(.statusPill),
+.homePreviewTrackCopy > strong,
+.homePreviewTrackCopy > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.homePreviewPersonCopy > span:not(.statusPill),
+.homePreviewTrackCopy > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.homePreviewPersonCopy .statusPill {
+  font-size: 13px;
+}
+
+.homePreviewTrack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.homePreviewTrackCopy > strong {
+  font-size: 22px;
+  line-height: 1.15;
+}
+
+.homePreviewTrackCopy > span {
+  color: var(--muted-strong);
+  font-size: 16px;
+}
+
+.homePreviewCover {
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, .3);
+}
+
+.homePreviewSignal {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: var(--spotify-green-soft);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.homePreviewSignal svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
 .moreButton {
   align-self: start;
   justify-self: center;
