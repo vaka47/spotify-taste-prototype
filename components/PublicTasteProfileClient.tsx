@@ -272,10 +272,11 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   if (state === "loading") return <main className="page"><section className="panel profileLoading"><div className="skeleton profileSkeletonAvatar" /><div className="rowGrow"><div className="skeleton" style={{ width: 260, height: 28 }} /><div className="skeleton" style={{ width: "60%", height: 16, marginTop: 14 }} /></div></section></main>;
   if (state !== "ready") return <main className="page pageNarrow"><section className="emptyState standaloneState"><Icon name="privacy" size={30} /><h1>{state === "private" ? t("profile.private") : t("profile.notFound")}</h1><Link className="btn btnPrimary" href="/feed">{t("nav.feed")}</Link></section></main>;
 
-  const avatarUrl = serverProfile?.avatarUrl || demoProfile.avatarUrl;
-  const role = serverProfile?.role || demoRu?.role || demoProfile.role;
-  const bio = serverProfile?.bio || demoRu?.bio || demoProfile.bio;
-  const verified = serverProfile?.verified || demoProfile.verified;
+  const avatarUrl = isReal ? serverProfile?.avatarUrl : demoProfile.avatarUrl;
+  const avatarFallbackUrl = isReal ? undefined : demoProfile.fallbackAvatarUrl;
+  const role = isReal ? serverProfile?.role : (demoRu?.role || demoProfile.role);
+  const bio = isReal ? serverProfile?.bio : (demoRu?.bio || demoProfile.bio);
+  const verified = isReal ? Boolean(serverProfile?.verified) : demoProfile.verified;
   const publicCount = isReal ? weeklyHistory.length : demoWeeklyHistory.length;
   const comments = isReal
     ? (selectedServerEvent?.comments || [])
@@ -285,7 +286,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
     <main className="page nativePublicProfilePage">
       <section className="nativeUserHero">
         <div className="nativeUserIdentity">
-          <div className="publicTasteAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={demoProfile.fallbackAvatarUrl} alt={`${profileName} avatar`} /></div>
+          <div className="publicTasteAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={avatarFallbackUrl} alt={`${profileName} avatar`} /></div>
           <div className="nativeUserIdentityCopy">
             <span className="nativeSourceLabel">{isReal ? t("profile.live") : t("profile.demo")}</span>
             <h1>{profileName}{verified ? <span className="verifiedDot" title="Verified Taste profile"><Icon name="check" size={13} /></span> : null}</h1>

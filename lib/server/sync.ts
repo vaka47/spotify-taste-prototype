@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { db, ensureSchema } from "@/lib/server/db";
-import { spotifyApi, userAccessToken } from "@/lib/server/spotify";
+import { spotifyApi, userAccessToken, type SpotifyProfile } from "@/lib/server/spotify";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_RECENT_PAGES = 12;
@@ -66,7 +66,8 @@ export async function syncSpotifyUser(userId: string, options: { force?: boolean
 
   try {
     const accessToken = await userAccessToken(userId);
-    const [recentItems, topTracks, topArtists, privacyRows] = await Promise.all([
+    const [spotifyProfile, recentItems, topTracks, topArtists, privacyRows] = await Promise.all([
+      spotifyApi<SpotifyProfile>(accessToken, "/me"),
       recentlyPlayedForWeek(accessToken),
       spotifyApi<TopItems<SpotifyTrack>>(accessToken, "/me/top/tracks?time_range=short_term&limit=12"),
       spotifyApi<TopItems<{ id: string; name: string; images?: Array<{ url: string }>; genres?: string[] }>>(accessToken, "/me/top/artists?time_range=short_term&limit=12"),
@@ -124,6 +125,11 @@ export async function syncSpotifyUser(userId: string, options: { force?: boolean
 
     await db()`
       update taste_users set
+        display_name = ${spotifyProfile.display_name || lease[0].display_name},
+        avatar_url = ${spotifyProfile.images?.[0]?.url || null},
+        country = ${spotifyProfile.country || null},
+        spotify_url = ${spotifyProfile.external_urls?.spotify || null},
+        product = ${spotifyProfile.product || null},
         top_tracks = ${db().json(topTracks.items)},
         top_artists = ${db().json(topArtists.items)},
         last_synced_at = now(),
