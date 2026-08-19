@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icons";
 import { TrackArtwork } from "@/components/TrackArtwork";
-import { useToast } from "@/components/ToastProvider";
 import { kindLabels } from "@/lib/format";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import type { TasteFeedEvent } from "@/types/taste";
@@ -11,7 +10,6 @@ import { useI18n } from "@/lib/i18n";
 
 export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
   const router = useRouter();
-  const { showToast } = useToast();
   const { locale } = useI18n();
   const ru = locale === "ru";
   const labels = ru ? { now_playing: "Слушает сейчас", on_repeat: "На повторе", new_discovery: "Новое открытие", deep_cut: "Редкая находка" } : kindLabels;
@@ -32,15 +30,14 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
 
   function openTrack() {
     recordTrackOpen(event.tastemaker.id, event.track.id);
-    showToast(`Opening real Spotify track: ${event.track.title}`);
     router.push(`/player/${event.track.slug}`);
   }
 
   return (
-    <article className="feedCard">
-      <button className="feedCardMain" type="button" onClick={openTrack}>
-        <div className="feedAvatarWrap">
-          <div className="feedAvatar">
+    <article className="nativeFeedCard">
+      <button className="nativeFeedCardMain" type="button" onClick={openTrack}>
+        <div className="nativeFeedAvatarWrap">
+          <div className="nativeFeedAvatar">
             <img
               className="avatarImage"
               src={event.tastemaker.avatarUrl}
@@ -50,17 +47,17 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
               }}
             />
           </div>
-          <span className="liveDot" aria-hidden="true" />
+          <span className="nativeLiveDot" aria-hidden="true" />
         </div>
-        <div className="feedText">
-          <div className="feedMeta">
+        <div className="nativeFeedText">
+          <div className="nativeFeedMeta">
             <strong>{event.tastemaker.name}</strong>
             <span>{timestamp}</span>
-            <span className="statusPill">{labels[event.kind]}</span>
+            <span className="nativeStatus">{labels[event.kind]}</span>
           </div>
-          <div className="feedTrack">{event.track.title}</div>
-          <div className="feedArtist">{event.track.artist}</div>
-          <div className="feedSignal">
+          <div className="nativeFeedTrackTitle">{event.track.title}</div>
+          <div className="nativeFeedArtist">{event.track.artist}</div>
+          <div className="nativeFeedSignal">
             <Icon name={event.kind === "new_discovery" ? "save" : event.kind === "deep_cut" ? "clock" : "feed"} size={18} />
             {signals?.[event.kind] || event.humanSignal}
           </div>
@@ -69,14 +66,14 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
           src={event.track.coverUrl}
           fallbackSrc={event.track.fallbackCoverUrl}
           alt={`${event.track.title} album cover from Spotify`}
-          className="feedCover"
+          className="nativeFeedCover"
         />
       </button>
       <button
-        className="moreButton"
+        className="nativeMoreButton"
         type="button"
         aria-label={`Open Taste options for ${event.track.title}`}
-        onClick={() => showToast(`Taste options for ${event.track.title}`)}
+        onClick={openTrack}
       >
         <Icon name="more" />
       </button>

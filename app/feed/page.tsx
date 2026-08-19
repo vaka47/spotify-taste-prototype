@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AvatarImage } from "@/components/AvatarImage";
-import { DemoBadge } from "@/components/DemoBadge";
 import { Icon } from "@/components/Icons";
 import { TasteFeedCard } from "@/components/TasteFeedCard";
 import { TrackArtwork } from "@/components/TrackArtwork";
-import { useToast } from "@/components/ToastProvider";
-import { feedEvents } from "@/lib/mock-data";
-import { usePrototypeEventCount } from "@/lib/use-prototype-event-count";
+import { feedEvents, travis } from "@/lib/mock-data";
+import { useFollowingTaste } from "@/lib/use-following-taste";
 import { useI18n } from "@/lib/i18n";
 
 const segments = ["Following", "Artists", "Creators"] as const;
@@ -34,24 +32,21 @@ function relativeTime(value: string, ru: boolean) {
 
 function LiveFeedCard({ event, ru }: { event: LiveFeedEvent; ru: boolean }) {
   return (
-    <Link className="liveFeedCard" href={`/taste/${event.profile.handle}?event=${event.id}`}>
-      <div className="liveFeedPerson">
-        <span className="feedAvatar"><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></span>
-        <span className="liveFeedPersonCopy"><strong>{event.profile.name}</strong><span>@{event.profile.handle} · {relativeTime(event.playedAt, ru)}</span></span>
-      </div>
-      <div className="liveFeedTrack">
-        <TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="feedCover" />
-        <span className="liveFeedTrackCopy"><strong>{event.track.title}</strong><span>{event.track.artist}</span>{event.authorNote ? <em>“{event.authorNote}”</em> : null}</span>
-      </div>
-      <div className="liveFeedSignals"><span><Icon name="feed" size={16} />{event.repeatCount > 1 ? (ru ? `${event.repeatCount} прослушиваний` : `${event.repeatCount} plays`) : (ru ? "новое прослушивание" : "new listen")}</span><span><Icon name="info" size={16} />{event.commentCount}</span></div>
+    <Link className="nativeLiveFeedCard" href={`/taste/${event.profile.handle}?event=${event.id}`}>
+      <span className="nativeFeedAvatar"><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></span>
+      <span className="nativeFeedContent">
+        <span className="nativeFeedPerson"><strong>{event.profile.name}</strong><small>{relativeTime(event.playedAt, ru)}</small></span>
+        <span className="nativeFeedTrack"><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="nativeFeedCover" /><span><strong>{event.track.title}</strong><small>{event.track.artist}</small>{event.authorNote ? <em>“{event.authorNote}”</em> : null}</span></span>
+        <span className="nativeFeedSignal"><Icon name="feed" size={16} />{event.repeatCount > 1 ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`) : (ru ? "Недавнее прослушивание" : "Recent listen")}</span>
+      </span>
+      <span className="nativeFeedComment"><Icon name="comment" size={17} />{event.commentCount}</span>
     </Link>
   );
 }
 
 export default function FeedPage() {
-  const eventCount = usePrototypeEventCount();
   const [activeSegment, setActiveSegment] = useState<(typeof segments)[number]>("Following");
-  const { showToast } = useToast();
+  const { following } = useFollowingTaste(travis.id);
   const { locale } = useI18n();
   const ru = locale === "ru";
   const [liveEvents, setLiveEvents] = useState<LiveFeedEvent[]>([]);
@@ -67,99 +62,49 @@ export default function FeedPage() {
     }).finally(() => setLoadingLive(false));
   }, []);
 
-  return (
-    <main className="page">
-      <div className="sectionHeader">
-        <div>
-          <div className="eyebrow">Taste Feed</div>
-          <h1 className="pageTitle">{ru ? "Новые и недавние прослушивания людей, на которых вы подписаны." : "Live and recent listening from people you follow."}</h1>
-          <p className="lead">
-            {ru ? "Откройте любую карточку, чтобы запустить реальный Spotify-плеер и зафиксировать событие атрибуции." : "Tap any track card to open a real Spotify embed player and create a browser-local attribution event."}
-          </p>
-        </div>
-        <DemoBadge>{ru ? "Реальные треки Spotify" : "Real Spotify tracks"}</DemoBadge>
-      </div>
+  const showDemoFollowing = activeSegment === "Following" && following;
+  const showDiscoverable = activeSegment === "Artists" || activeSegment === "Creators";
+  const hasFollowingContent = liveEvents.length > 0 || showDemoFollowing;
+  const segmentLabels = ru
+    ? { Following: "Подписки", Artists: "Артисты", Creators: "Авторы" }
+    : { Following: "Following", Artists: "Artists", Creators: "Creators" };
 
-      <div className="buttonRow" aria-label="Taste Feed segments">
+  return (
+    <main className="page nativeFeedPage">
+      <header className="nativePageHeader feedPageHeader">
+        <h1>{ru ? "Лента Taste" : "Taste Feed"}</h1>
+        <p>{ru ? "Музыка, которую слушают люди, за которыми вы следите." : "Music being played by people you follow."}</p>
+      </header>
+
+      <div className="nativeSegments" aria-label={ru ? "Фильтр ленты" : "Feed filter"}>
         {segments.map(segment => (
-          <button
-            className={`btn ${activeSegment === segment ? "btnPrimary" : "btnSubtle"}`}
-            type="button"
-            aria-pressed={activeSegment === segment}
-            key={segment}
-            onClick={() => {
-              setActiveSegment(segment);
-              showToast(`${segment} Taste segment selected`);
-            }}
-          >
-            {ru ? ({ Following: "Подписки", Artists: "Артисты", Creators: "Авторы" } as const)[segment] : segment}
-          </button>
+          <button className={activeSegment === segment ? "active" : ""} type="button" aria-pressed={activeSegment === segment} key={segment} onClick={() => setActiveSegment(segment)}>{segmentLabels[segment]}</button>
         ))}
       </div>
 
-      <div className="grid2 section">
-        <section className="feedList" aria-label="Taste Feed events using real Spotify tracks">
-          {activeSegment === "Following" && loadingLive ? <div className="liveFeedCard"><div className="skeleton" style={{ height: 72 }} /><div className="skeleton" style={{ height: 92 }} /></div> : null}
-          {activeSegment === "Following" && connected && liveEvents.length ? liveEvents.map(event => <LiveFeedCard event={event} ru={ru} key={event.id} />) : null}
-          {activeSegment === "Following" && connected && !loadingLive && !liveEvents.length ? <div className="emptyState feedEmpty"><Icon name="taste" /><strong>{ru ? "Ваша живая лента пока пуста" : "Your live feed is ready for people"}</strong><span>{ru ? "Откройте публичный Taste-профиль и подпишитесь на него." : "Open a public Taste profile and follow it to see real listening here."}</span><Link className="btn btnPrimary" href="/taste/ivan">{ru ? "Найти Taste" : "Find Taste"}</Link></div> : null}
-          {activeSegment === "Following" && !connected && !loadingLive ? <div className="emptyState feedEmpty"><Icon name="user" /><strong>{ru ? "Подключите Spotify для общей ленты" : "Connect Spotify for a shared feed"}</strong><span>{ru ? "Подписки и события будут одинаковыми на разных устройствах." : "Follows and listening events will persist across devices."}</span><a className="btn btnPrimary" href="/api/auth/spotify/start?returnTo=/feed">{ru ? "Подключить Spotify" : "Connect Spotify"}</a></div> : null}
-          {activeSegment !== "Following" || (!connected && !loadingLive) ? feedEvents.map(event => <TasteFeedCard event={event} key={event.id} />) : null}
-        </section>
+      <section className="nativeFeedList" aria-label={ru ? "События Taste" : "Taste events"}>
+        {activeSegment === "Following" && loadingLive ? <div className="nativeFeedSkeleton"><span className="skeleton" /><span className="skeleton" /></div> : null}
+        {activeSegment === "Following" && liveEvents.map(event => <LiveFeedCard event={event} ru={ru} key={event.id} />)}
+        {(showDemoFollowing || showDiscoverable) ? feedEvents.map(event => <TasteFeedCard event={event} key={event.id} />) : null}
 
-        <aside className="sideSummary">
-          <div className="panel">
-            <div className="sectionHeader" style={{ marginBottom: 12 }}>
-              <div>
-                <DemoBadge>{ru ? "Атрибуция прототипа" : "Prototype attribution"}</DemoBadge>
-                <h2 style={{ marginTop: 12 }}>{ru ? "Счётчик событий" : "Local event counter"}</h2>
-              </div>
-            </div>
-            <div className="summaryLine">
-              <span>{ru ? "Открытий треков" : "Track opens"}</span>
-              <strong>{eventCount}</strong>
-            </div>
-            <div className="summaryLine">
-              <span>{ru ? "Сохранено в браузере" : "Stored in browser"}</span>
-              <strong>{eventCount > 0 ? (ru ? "да" : "yes") : (ru ? "ожидание" : "waiting")}</strong>
-            </div>
-            <div className="summaryLine">
-              <span>{ru ? "Отчёт Spotify о стриме" : "Spotify stream report"}</span>
-              <strong>{ru ? "только embed" : "embed only"}</strong>
-            </div>
-            <p className="finePrint" style={{ marginTop: 16 }}>
-              {ru ? "Счётчик показывает путь атрибуции в прототипе. Само аудио воспроизводится официальным embed-плеером Spotify." : "The counter proves the prototype attribution path. Audio playback itself is handled inside Spotify's official iframe embed."}
-            </p>
+        {activeSegment === "Following" && !loadingLive && !hasFollowingContent ? (
+          <div className="nativeFeedEmpty">
+            <span className="nativeFeedEmptyAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} /></span>
+            <h2>{ru ? "Соберите свою ленту Taste" : "Build your Taste Feed"}</h2>
+            <p>{ru ? "Подпишитесь на Taste Трэвиса, и его прослушивания появятся здесь." : "Follow Travis's Taste and his listening activity will appear here."}</p>
+            <Link className="nativePrimaryButton" href="/tastemaker/travis-scott">{ru ? "Открыть Taste Трэвиса" : "Open Travis's Taste"}</Link>
+            {!connected ? <Link className="nativeTextLink" href="/my-taste">{ru ? "Подключить Spotify для ленты друзей" : "Connect Spotify for friends' activity"}</Link> : null}
           </div>
+        ) : null}
 
-          <div className="panel">
-            <h3>{ru ? "Что показывает лента" : "What the feed demonstrates"}</h3>
-            <div className="whyList">
-              <div className="whyItem">
-                <span className="whyIcon">
-                  <Icon name="taste" />
-                </span>
-                <span>{ru ? "Обычное прослушивание становится управляемым сигналом discovery." : "Ordinary listening becomes a controlled discovery signal."}</span>
-              </div>
-              <div className="whyItem">
-                <span className="whyIcon">
-                  <Icon name="info" />
-                </span>
-                <span>{ru ? "Каждое публичное событие знаменитости явно помечено как иллюстративное." : "Every public celebrity event is explicitly illustrative."}</span>
-              </div>
-            </div>
-            <div className="buttonRow" style={{ marginTop: 18 }}>
-              <a className="btn btnSubtle" href="/taste/ivan">
-                <Icon name="spark" />
-                {ru ? "Открыть публичный Taste" : "Open public Taste"}
-              </a>
-              <a className="btn btnSubtle" href="/notifications">
-                <Icon name="info" />
-                {ru ? "Уведомления" : "Inbox"}
-              </a>
-            </div>
-          </div>
-        </aside>
-      </div>
+        {activeSegment === "Following" && hasFollowingContent ? (
+          <Link className="nativeWeeklySummary" href="/tastemaker/travis-scott">
+            <span className="nativeWeeklySummaryAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" /></span>
+            <span><small>{ru ? "Сводка за неделю" : "Weekly summary"}</small><strong>{ru ? "Taste Трэвиса: 52 прослушивания, 8 треков" : "Travis's Taste: 52 plays, 8 tracks"}</strong></span>
+            <Icon name="chevronRight" />
+          </Link>
+        ) : null}
+      </section>
     </main>
   );
 }

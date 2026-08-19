@@ -63,9 +63,9 @@ export default function PrivacyPage() {
   }
 
   return (
-    <main className="page pageNarrow">
-      <div className="sectionHeader">
-        <div><div className="eyebrow">{t("privacy.eyebrow")}</div><h1 className="pageTitle">{t("privacy.title")}</h1><p className="lead">{t("privacy.lead")}</p></div>
+    <main className="page pageNarrow nativePrivacyPage">
+      <div className="nativeSectionHeader">
+        <div><h1 className="pageTitle">{t("nav.privacy")}</h1><p>{t("privacy.lead")}</p></div>
         <DemoBadge>{connected ? t("common.spotifyData") : (locale === "ru" ? "Система доверия" : "Trust guardrails")}</DemoBadge>
       </div>
 

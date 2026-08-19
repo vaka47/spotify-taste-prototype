@@ -1,16 +1,20 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DemoBadge } from "@/components/DemoBadge";
 import { Icon } from "@/components/Icons";
+import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
-import { inspiredMixes, travis, travisWeeklyHistory } from "@/lib/mock-data";
+import { tracks, travis, travisWeeklyHistory } from "@/lib/mock-data";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import { useFollowingTaste } from "@/lib/use-following-taste";
 import type { WeeklyTrackSignal } from "@/types/taste";
 import { useI18n } from "@/lib/i18n";
+
+type ArtistTab = "music" | "events" | "merch" | "taste";
+
+const tabs: ArtistTab[] = ["music", "events", "merch", "taste"];
 
 function localizedLastPlayed(value: string, ru: boolean) {
   if (!ru) return value;
@@ -20,110 +24,162 @@ function localizedLastPlayed(value: string, ru: boolean) {
     .replace("1h ago", "1 ч назад")
     .replace("Yesterday", "вчера")
     .replace("Today", "сегодня")
-    .replace("2d ago", "2 дн назад")
-    .replace("3d ago", "3 дн назад")
-    .replace("5d ago", "5 дн назад");
-}
-
-function WeeklyTrackRow({ item, index }: { item: WeeklyTrackSignal; index: number }) {
-  const router = useRouter();
-  const { showToast } = useToast();
-  const { locale } = useI18n();
-  const ru = locale === "ru";
-
-  function openTrack() {
-    recordTrackOpen(travis.id, item.track.id);
-    showToast(ru ? `Открываем ${item.track.title}` : `Opening ${item.track.title}`);
-    router.push(`/player/${item.track.slug}`);
-  }
-
-  return (
-    <button className="weeklyTrackRow" type="button" onClick={openTrack} aria-label={`${item.track.title}, ${item.plays} plays`}>
-      <span className="trackNumber">{index + 1}</span>
-      <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="trackThumb" />
-      <span className="weeklyTrackCopy">
-        <strong>{item.track.title}</strong>
-        <span>{item.track.artist}</span>
-        <em>{localizedLastPlayed(item.lastPlayed, ru)}</em>
-      </span>
-      <span className="weeklyTrackMetrics">
-        <span className="weeklyTrackMetric"><strong>{item.plays}</strong><span>{ru ? "за 7 дней" : "7-day plays"}</span></span>
-        <span className="weeklyTrackMetric"><strong>{item.popularity}</strong><span>{ru ? "популярность" : "popularity"}</span></span>
-      </span>
-      <span className="rowOpenIcon" aria-hidden="true"><Icon name="play" size={17} /></span>
-    </button>
-  );
+    .replace("2d ago", "2 дня назад")
+    .replace("3d ago", "3 дня назад")
+    .replace("5d ago", "5 дней назад");
 }
 
 export default function TravisTastePage() {
+  const router = useRouter();
   const { following, toggle } = useFollowingTaste(travis.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
   const ru = locale === "ru";
+  const [activeTab, setActiveTab] = useState<ArtistTab>("taste");
+  const [discussion, setDiscussion] = useState<WeeklyTrackSignal | null>(null);
+  const [comment, setComment] = useState("");
+  const [postedComments, setPostedComments] = useState<string[]>([]);
 
   function toggleFollow() {
     toggle();
     showToast(following
-      ? (ru ? "Вы отписались от Taste Трэвиса" : "Unfollowed Travis's Taste")
-      : (ru ? "Вы подписались на Taste Трэвиса" : "Following Travis's Taste"));
+      ? (ru ? "Taste Трэвиса удалён из вашей ленты" : "Travis's Taste removed from your feed")
+      : (ru ? "Taste Трэвиса добавлен в вашу ленту" : "Travis's Taste added to your feed"));
   }
 
+  function openTrack(item: WeeklyTrackSignal) {
+    recordTrackOpen(travis.id, item.track.id);
+    router.push(`/player/${item.track.slug}`);
+  }
+
+  function publishComment() {
+    const value = comment.trim();
+    if (!value) return;
+    setPostedComments(current => [value, ...current]);
+    setComment("");
+    showToast(ru ? "Комментарий опубликован" : "Comment posted");
+  }
+
+  const tabLabels: Record<ArtistTab, string> = ru
+    ? { music: "Музыка", events: "Концерты", merch: "Мерч", taste: "Taste" }
+    : { music: "Music", events: "Events", merch: "Merch", taste: "Taste" };
+
+  const discussionPanel = discussion ? (
+    <section className="tasteDiscussion">
+      <div className="tasteDiscussionTrack">
+        <TrackArtwork src={discussion.track.coverUrl} fallbackSrc={discussion.track.fallbackCoverUrl} alt="" className="nativeTrackArtwork" />
+        <span><strong>{discussion.track.title}</strong><small>{discussion.track.artist}</small></span>
+        <button className="nativeIconAction" type="button" onClick={() => setDiscussion(null)} aria-label={ru ? "Закрыть обсуждение" : "Close discussion"}><Icon name="chevronRight" /></button>
+      </div>
+      <div className="artistNote"><strong>{travis.name}</strong><p>{ru ? "Возвращаюсь к этому треку из-за продакшена. Обратите внимание на переход во второй половине." : "I keep coming back for the production. Listen for the switch in the second half."}</p></div>
+      <div className="tasteCommentList">
+        <div><strong>@nina</strong><span>{ru ? "Именно этот переход и привёл меня сюда." : "That switch is exactly what brought me here."}</span></div>
+        {postedComments.map((value, index) => <div key={`${value}-${index}`}><strong>{ru ? "Вы" : "You"}</strong><span>{value}</span></div>)}
+      </div>
+      <div className="tasteCommentComposer">
+        <input value={comment} onChange={event => setComment(event.target.value)} placeholder={ru ? "Добавить комментарий" : "Add a comment"} aria-label={ru ? "Комментарий" : "Comment"} />
+        <button type="button" onClick={publishComment} disabled={!comment.trim()}>{ru ? "Опубликовать" : "Post"}</button>
+      </div>
+    </section>
+  ) : null;
+
   return (
-    <main className="page">
-      <section className="profileHero tastemakerProfileHero">
-        <div className="profileIdentity">
-          <div className="profileAvatar">
-            <img className="avatarImage" src={travis.avatarUrl} alt="Travis Scott artist image from Spotify" onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }} />
-          </div>
-          <div className="profileIdentityCopy">
-            <DemoBadge>{ru ? "Карточка артиста Spotify" : "Spotify artist entity"}</DemoBadge>
-            <h1 className="profileTitle">{travis.name}<span className="verifiedDot" title="Verified profile"><Icon name="check" size={15} /></span></h1>
-            <p className="muted profileMeta">{ru ? "64,7 млн слушателей в месяц · артист и культурный тейстмейкер" : `64.7M monthly listeners · ${travis.role}`}</p>
-            <div className="buttonRow profileActions">
-              <button className={`btn ${following ? "btnGhost" : "btnPrimary"}`} type="button" onClick={toggleFollow}>
-                <Icon name={following ? "check" : "taste"} />
-                {following ? (ru ? "Вы подписаны" : "Following Taste") : (ru ? "Подписаться на Taste" : "Follow Taste")}
-              </button>
-              <a className="btn btnSubtle" href={travis.spotifyUrl} target="_blank" rel="noreferrer"><Icon name="external" />{ru ? "Открыть артиста" : "Open artist"}</a>
-            </div>
-          </div>
+    <main className="artistPage">
+      <section className="nativeArtistHero">
+        <img
+          className="nativeArtistHeroImage"
+          src={travis.avatarUrl}
+          alt="Travis Scott"
+          onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }}
+        />
+        <div className="nativeArtistHeroShade" />
+        <div className="nativeArtistHeroCopy">
+          <div className="verifiedLabel"><span className="verifiedDot"><Icon name="check" size={13} /></span>{ru ? "Подтверждённый исполнитель" : "Verified artist"}</div>
+          <h1>{travis.name}</h1>
+          <p>{ru ? "64,7 млн слушателей в месяц" : "64.7M monthly listeners"}</p>
         </div>
       </section>
 
-      <section className="grid4 section tastemakerStats" aria-label="Illustrative weekly Taste statistics">
-        <article className="metricCard"><div className="metricLabel">{ru ? "Прослушиваний" : "Plays"}</div><div className="metricNumber">52</div><div className="metricDelta">{ru ? "за 7 дней" : "last 7 days"}</div></article>
-        <article className="metricCard"><div className="metricLabel">{ru ? "Уникальных треков" : "Unique tracks"}</div><div className="metricNumber">8</div><div className="metricDelta">{ru ? "за 7 дней" : "last 7 days"}</div></article>
-        <article className="metricCard"><div className="metricLabel">{ru ? "Минут" : "Minutes"}</div><div className="metricNumber">196</div><div className="metricDelta">{ru ? "за 7 дней" : "last 7 days"}</div></article>
-        <article className="metricCard"><div className="metricLabel">{ru ? "Новых открытий" : "New discoveries"}</div><div className="metricNumber">4</div><div className="metricDelta">{ru ? "иллюстративно" : "illustrative"}</div></article>
-      </section>
+      <div className="artistBody">
+        <div className="artistActionBar">
+          <button className="nativePlayButton" type="button" aria-label={ru ? "Слушать Travis Scott" : "Play Travis Scott"} onClick={() => router.push(`/player/${tracks.fein.slug}`)}><Icon name="play" size={25} /></button>
+          <button className={`nativeFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>
+            {following ? (ru ? "Вы подписаны" : "Following Taste") : (activeTab === "taste" ? (ru ? "Подписаться на Taste" : "Follow Taste") : (ru ? "Подписаться" : "Follow"))}
+          </button>
+          <a className="nativeIconAction" href={travis.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? "Открыть в Spotify" : "Open in Spotify"}><Icon name="more" /></a>
+        </div>
 
-      <section className="section weeklyHistorySection">
-        <div className="sectionHeader">
-          <div className="sectionTitleStack"><div className="eyebrow">Taste · 7 days</div><h2>{ru ? "История прослушиваний" : "Listening history"}</h2></div>
-          <DemoBadge>{ru ? "Иллюстративная активность" : "Illustrative activity"}</DemoBadge>
-        </div>
-        <div className="weeklyTrackList">
-          {travisWeeklyHistory.map((item, index) => <WeeklyTrackRow item={item} index={index} key={item.track.id} />)}
-        </div>
-      </section>
-
-      <section className="section inspiredSection">
-        <div className="sectionHeader">
-          <div className="sectionTitleStack"><div className="eyebrow">{ru ? "Вдохновлено Travis" : "Inspired by Travis"}</div><h2>{ru ? "Живые миксы из его Taste-сигнала" : "Living mixes from his Taste signal"}</h2></div>
-        </div>
-        <div className="mixGrid">
-          {inspiredMixes.map(mix => (
-            <Link className="mixCard" href={mix.href} key={mix.id}>
-              <TrackArtwork src={mix.coverUrl} fallbackSrc={mix.fallbackCoverUrl} alt={`${mix.title} cover`} className="mixArtwork" />
-              <div className="mixContent">
-                <DemoBadge>{ru ? "Иллюстративный микс" : "Illustrative mix"}</DemoBadge>
-                <h3>{mix.title}</h3>
-                <p className="muted">{ru ? (mix.id === "rodeo-radio" ? "Живой микс из добровольно опубликованного Taste-сигнала Трэвиса" : "Мелодичный рэп, Хьюстон и неожиданные музыкальные открытия") : mix.subtitle}</p>
-              </div>
-            </Link>
+        <nav className="nativeArtistTabs" aria-label={ru ? "Разделы артиста" : "Artist sections"}>
+          {tabs.map(tab => (
+            <button className={activeTab === tab ? "active" : ""} type="button" aria-pressed={activeTab === tab} onClick={() => setActiveTab(tab)} key={tab}>
+              {tabLabels[tab]}
+            </button>
           ))}
-        </div>
-      </section>
+        </nav>
+
+        {activeTab === "taste" ? (
+          <section className="artistTasteSurface">
+            <header className="tasteIntro">
+              <div>
+                <h2>{ru ? "Taste Трэвиса" : "Travis's Taste"}</h2>
+                <p>{ru ? "Музыка, которую Трэвис действительно слушал за последние семь дней." : "Music Travis actually listened to during the last seven days."}</p>
+              </div>
+              <button className={`nativeFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>
+                {following ? (ru ? "В вашей ленте" : "In your feed") : (ru ? "Подписаться" : "Follow")}
+              </button>
+            </header>
+
+            <div className="tasteStatStrip" aria-label={ru ? "Статистика за неделю" : "Weekly statistics"}>
+              <div><strong>52</strong><span>{ru ? "прослушивания" : "plays"}</span></div>
+              <div><strong>8</strong><span>{ru ? "уникальных треков" : "unique tracks"}</span></div>
+              <div><strong>196</strong><span>{ru ? "минут" : "minutes"}</span></div>
+              <div><strong>4</strong><span>{ru ? "новых открытия" : "new discoveries"}</span></div>
+            </div>
+
+            <div className="nativeSectionHeader tasteHistoryHeader">
+              <div><h2>{ru ? "История за неделю" : "This week's listening"}</h2><p>{ru ? "Сначала по числу повторов, затем по популярности трека." : "Ranked by repeat plays, then by track popularity."}</p></div>
+              <span>{ru ? "7 дней" : "7 days"}</span>
+            </div>
+
+            <div className="nativeTrackTable">
+              <div className="nativeTrackTableHead" aria-hidden="true"><span>#</span><span>{ru ? "Трек" : "Track"}</span><span>{ru ? "Повторы" : "Plays"}</span><span>{ru ? "Последнее" : "Last played"}</span><span /></div>
+              {travisWeeklyHistory.map((item, index) => (
+                <div className="nativeTasteTrackGroup" key={item.track.id}>
+                  <div className="nativeTasteTrackRow">
+                    <button className="nativeTasteTrackMain" type="button" onClick={() => openTrack(item)} aria-label={`${item.track.title}, ${item.plays} plays`}>
+                      <span className="nativeTrackNumber">{index + 1}</span>
+                      <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="nativeTrackArtwork" />
+                      <span className="nativeTrackCopy"><strong>{item.track.title}</strong><span>{item.track.artist}</span></span>
+                      <span className="nativeTrackPlays"><strong>{item.plays}</strong><span>{ru ? `популярность ${item.popularity}` : `popularity ${item.popularity}`}</span></span>
+                      <span className="nativeTrackLast">{localizedLastPlayed(item.lastPlayed, ru)}</span>
+                      <span className="nativeRowPlay"><Icon name="play" size={16} /></span>
+                    </button>
+                    <button className={`nativeCommentButton ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => setDiscussion(current => current?.track.id === item.track.id ? null : item)} aria-label={ru ? `Комментарии к ${item.track.title}` : `Comments on ${item.track.title}`}>
+                      <Icon name="comment" size={17} /><span>{index < 3 ? index + 1 : 0}</span>
+                    </button>
+                  </div>
+                  {discussion?.track.id === item.track.id ? discussionPanel : null}
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {activeTab === "music" ? (
+          <section className="artistStandardSurface">
+            <div className="nativeSectionHeader"><div><h2>{ru ? "Популярное" : "Popular"}</h2><p>{ru ? "Официальный каталог артиста в Spotify." : "The artist's official Spotify catalog."}</p></div></div>
+            <SpotifyEmbed src={travis.spotifyEmbedUrl || ""} title="Travis Scott on Spotify" size="artist" />
+          </section>
+        ) : null}
+
+        {activeTab === "events" ? (
+          <section className="artistStandardSurface nativeEmptySurface"><Icon name="clock" size={28} /><h2>{ru ? "Ближайшие концерты" : "Upcoming events"}</h2><p>{ru ? "Актуальные даты и билеты открываются в официальном профиле Spotify." : "Current dates and tickets are available from the official Spotify profile."}</p><a className="nativeOutlineButton" href={travis.spotifyUrl} target="_blank" rel="noreferrer">{ru ? "Открыть концерты" : "Open events"}</a></section>
+        ) : null}
+
+        {activeTab === "merch" ? (
+          <section className="artistStandardSurface nativeEmptySurface"><Icon name="library" size={28} /><h2>{ru ? "Мерч артиста" : "Artist merch"}</h2><p>{ru ? "Официальные товары отображаются на странице артиста Spotify." : "Official items are available from the artist's Spotify page."}</p><a className="nativeOutlineButton" href={travis.spotifyUrl} target="_blank" rel="noreferrer">{ru ? "Открыть мерч" : "Open merch"}</a></section>
+        ) : null}
+      </div>
     </main>
   );
 }

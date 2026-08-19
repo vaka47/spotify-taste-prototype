@@ -62,15 +62,15 @@ export function NotificationsClient() {
     : localNotifications.filter(notification => !notification.read).length;
 
   return (
-    <main className="page pageNarrow">
-      <div className="sectionHeader">
-        <div><div className="eyebrow">{t("inbox.eyebrow")}</div><h1 className="pageTitle">{t("inbox.title")}</h1><p className="lead">{t("inbox.lead")}</p></div>
+    <main className="page pageNarrow nativeNotificationsPage">
+      <div className="nativeSectionHeader">
+        <div><h1 className="pageTitle">{t("nav.inbox")}</h1><p>{t("inbox.lead")}</p></div>
         <DemoBadge>{t("inbox.unread", { count: unread })}</DemoBadge>
       </div>
 
-      <div className="buttonRow">
-        <button className="btn btnPrimary" type="button" onClick={markRead} disabled={!unread}><Icon name="check" />{t("inbox.mark")}</button>
-        {!connected ? <a className="btn btnSubtle" href="/api/auth/spotify/start?returnTo=/notifications"><Icon name="user" />{t("my.connect")}</a> : null}
+      <div className="nativeNotificationActions">
+        <button className="nativeOutlineButton" type="button" onClick={markRead} disabled={!unread}><Icon name="check" size={16} />{t("inbox.mark")}</button>
+        {!connected ? <a className="nativeTextLink" href="/api/auth/spotify/start?returnTo=/notifications">{t("my.connect")}</a> : null}
       </div>
 
       <section className="notificationList section">

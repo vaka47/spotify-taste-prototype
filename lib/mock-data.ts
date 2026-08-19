@@ -13,7 +13,7 @@ export const travis: Tastemaker = {
   slug: "travis-scott",
   name: "Travis Scott",
   role: "Artist - cultural tastemaker",
-  avatarUrl: "https://image-cdn-fa.spotifycdn.com/image/ab6761610000517419c2790744c792d05570bb71",
+  avatarUrl: "https://image-cdn-fa.spotifycdn.com/image/ab6761610000e5eb19c2790744c792d05570bb71",
   fallbackAvatarUrl: "https://image-cdn-fa.spotifycdn.com/image/ab6761610000517419c2790744c792d05570bb71",
   spotifyArtistId: "0Y5tJX1MQlPlqiwlOH1tJY",
   spotifyUrl: "https://open.spotify.com/artist/0Y5tJX1MQlPlqiwlOH1tJY",

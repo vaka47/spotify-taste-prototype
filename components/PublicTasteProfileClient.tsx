@@ -126,8 +126,8 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
     setState("loading");
     try {
       const [profileResponse, sessionResponse] = await Promise.all([
-        fetch(`/api/profiles/${encodeURIComponent(handle)}`, { cache: "no-store" }),
-        fetch("/api/auth/session", { cache: "no-store" }),
+        fetch(`/api/profiles/${encodeURIComponent(handle)}`, { cache: "no-store", signal: AbortSignal.timeout(hasKnownDemo ? 2500 : 12_000) }),
+        fetch("/api/auth/session", { cache: "no-store", signal: AbortSignal.timeout(hasKnownDemo ? 2500 : 12_000) }),
       ]);
       if (sessionResponse.ok) {
         const session = await sessionResponse.json() as { user?: unknown };
@@ -282,30 +282,30 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
     : localComments.filter(comment => comment.profileHandle === profileHandle && comment.eventId === selectedDemoEvent?.id);
 
   return (
-    <main className="page">
-      <section className="publicTasteHero">
-        <div className="publicTasteIdentity">
+    <main className="page nativePublicProfilePage">
+      <section className="nativeUserHero">
+        <div className="nativeUserIdentity">
           <div className="publicTasteAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={demoProfile.fallbackAvatarUrl} alt={`${profileName} avatar`} /></div>
-          <div className="publicTasteIdentityCopy">
-            <DemoBadge>{isReal ? t("profile.live") : t("profile.demo")}</DemoBadge>
-            <h1 className="profileTitle">{profileName}{verified ? <span className="verifiedDot" title="Verified Taste profile"><Icon name="check" size={15} /></span> : null}</h1>
-            <p className="muted profileMeta">@{profileHandle} · {role}</p>
-            <p className="lead publicTasteBio">{bio}</p>
-            <div className="buttonRow">
+          <div className="nativeUserIdentityCopy">
+            <span className="nativeSourceLabel">{isReal ? t("profile.live") : t("profile.demo")}</span>
+            <h1>{profileName}{verified ? <span className="verifiedDot" title="Verified Taste profile"><Icon name="check" size={13} /></span> : null}</h1>
+            <p className="profileMeta">@{profileHandle} · {role}</p>
+            <p className="publicTasteBio">{bio}</p>
+            <div className="nativeUserActions">
               {serverProfile?.isOwner ? (
-                <Link className="btn btnPrimary" href="/my-taste"><Icon name="user" />{t("profile.own")}</Link>
+                <Link className="nativePrimaryButton" href="/my-taste">{t("profile.own")}</Link>
               ) : (
-                <button className={`btn ${following ? "btnGhost" : "btnPrimary"}`} type="button" onClick={toggleFollow}><Icon name={following ? "check" : "taste"} />{following ? t("profile.following") : t("profile.follow")}</button>
+                <button className={`nativeFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>{following ? t("profile.following") : t("profile.follow")}</button>
               )}
-              <Link className="btn btnSubtle" href="/notifications"><Icon name="info" />{t("profile.inbox")}</Link>
+              <Link className="nativeIconAction" href="/notifications" aria-label={t("profile.inbox")}><Icon name="bell" /></Link>
             </div>
           </div>
         </div>
 
-        <div className="publicTasteStats">
-          <article className="metricCard"><div className="metricLabel">{t("my.followers")}</div><div className="metricNumber">{serverProfile?.followers ?? demoProfile.tasteFollowers}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
-          <article className="metricCard"><div className="metricLabel">{isReal ? t("profile.weeklyMinutes") : "Influence Streams"}</div><div className="metricNumber">{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
-          <article className="metricCard"><div className="metricLabel">{isReal ? t("profile.uniqueTracks") : "Discovery saves"}</div><div className="metricNumber">{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</div><div className="metricDelta">{isReal ? t("profile.realStats") : t("common.demoData")}</div></article>
+        <div className="nativeUserStats">
+          <div><strong>{serverProfile?.followers ?? demoProfile.tasteFollowers}</strong><span>{t("my.followers")}</span></div>
+          <div><strong>{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</strong><span>{isReal ? t("profile.weeklyMinutes") : "Influence Streams"}</span></div>
+          <div><strong>{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</strong><span>{isReal ? t("profile.uniqueTracks") : "Discovery saves"}</span></div>
         </div>
       </section>
 

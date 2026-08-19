@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { DemoBadge } from "@/components/DemoBadge";
 import { Icon } from "@/components/Icons";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TrackArtwork } from "@/components/TrackArtwork";
@@ -17,121 +16,41 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
   const ru = locale === "ru";
 
   return (
-    <main className="page playerPage">
-      <div className="playerTop">
-        <Link className="iconButton" href="/feed" aria-label="Back to Taste Feed">
-          <Icon name="feed" />
-        </Link>
-        <div className="eyebrow">{ru ? "Прослушивание из Taste" : "Playing from Taste"}</div>
-        <button
-          className="iconButton"
-          type="button"
-          aria-label="Open player options"
-          onClick={() => showToast("Player options would open the Spotify track menu.")}
-        >
-          <Icon name="more" />
-        </button>
-      </div>
+    <main className="nativePlayerPage">
+      <header className="nativePlayerTop">
+        <Link className="nativeIconAction" href="/feed" aria-label={ru ? "Вернуться в ленту Taste" : "Back to Taste Feed"}><Icon name="chevronLeft" /></Link>
+        <div><small>{ru ? "ИЗ ЛЕНТЫ TASTE" : "PLAYING FROM TASTE"}</small><strong>{travis.name}</strong></div>
+        <button className="nativeIconAction" type="button" aria-label={ru ? "Параметры трека" : "Track options"} onClick={() => showToast(ru ? "Открыто меню трека" : "Track menu opened")}><Icon name="more" /></button>
+      </header>
 
-      <section className="playerHeroPanel">
-        <TrackArtwork
-          src={track.coverUrl}
-          fallbackSrc={track.fallbackCoverUrl}
-          alt={`${track.title} album cover from Spotify`}
-          className="playerCover"
-        />
+      <section className="nativePlayerLayout">
+        <TrackArtwork src={track.coverUrl} fallbackSrc={track.fallbackCoverUrl} alt={`${track.title} cover`} className="nativePlayerCover" />
 
-        <div className="playerHeroDetails">
-          <section className="playerTitleRow">
-            <div>
-              <h1>{track.title}</h1>
-              <p className="lead" style={{ margin: "8px 0 0" }}>{track.artist}</p>
-            </div>
-            <button
-              className="iconButton"
-              type="button"
-              aria-label={`Save ${track.title}`}
-              onClick={() => showToast(`Saved intent recorded for ${track.title}`)}
-            >
-              <Icon name="save" />
-            </button>
-          </section>
+        <div className="nativePlayerDetails">
+          <div className="nativePlayerTitleRow">
+            <div><h1>{track.title}</h1><p>{track.artist}</p></div>
+            <button className="nativeIconAction saveTrackButton" type="button" aria-label={ru ? "Сохранить трек" : "Save track"} onClick={() => showToast(ru ? "Трек сохранён" : "Track saved")}><Icon name="save" /></button>
+          </div>
 
-          <section className="attributionCard">
-            <div className="attributionAvatar">
-              <img
-                className="avatarImage"
-                src={travis.avatarUrl}
-                alt="Travis Scott artist image from Spotify"
-                onError={event => {
-                  if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl;
-                }}
-              />
-            </div>
-            <div className="attributionCopy">
-              <div className="attributionTitle">
-                {ru ? "Найдено благодаря" : "Discovered through"} <strong style={{ color: "var(--spotify-green-soft)" }}>{travis.name}</strong>
-              </div>
-              <p className="finePrint">
-                {ru ? "Трек воспроизводится официальным embed-плеером Spotify. Influence Streams — предлагаемая модель атрибуции." : "This play uses Spotify's official embed. Influence Streams are a proposed attribution layer."}
-              </p>
-              <div className="attributionMetaRow">
-                <span className="dataPill" style={{ marginLeft: 8 }}>
-                  <Icon name="info" size={14} />
-                  {ru ? "реальный трек" : "real track"}
-                </span>
-              </div>
-            </div>
-          </section>
+          <Link className="nativeAttribution" href="/tastemaker/travis-scott">
+            <span className="nativeAttributionAvatar"><img src={travis.avatarUrl} alt="" onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }} /></span>
+            <span><small>{ru ? "Найдено через Taste" : "Discovered through Taste"}</small><strong>{travis.name}</strong></span>
+            <Icon name="chevronRight" size={18} />
+          </Link>
 
-          <section className="spotifyPlayerPanel" aria-label="Real Spotify player">
-            <SpotifyEmbed src={track.spotifyEmbedUrl} title={`Spotify Embed: ${track.title}`} size="large" />
-            <div className="playerActionRow">
-              <a className="btn btnPrimary" href={track.spotifyUrl} target="_blank" rel="noreferrer">
-                <Icon name="external" />
-                {ru ? "Открыть в Spotify" : "Open in Spotify"}
-              </a>
-              <button
-                className="btn btnGhost"
-                type="button"
-                onClick={() => showToast(`Repeat intent recorded for ${track.title}`)}
-              >
-                <Icon name="feed" />
-                {ru ? "Добавить в Taste-цикл" : "Add to Taste loop"}
-              </button>
-            </div>
-            <p className="finePrint">
-              {ru ? "Воспроизведение, обложка и метаданные загружаются через Spotify. Доступность полного трека зависит от Spotify-сессии зрителя в плеере." : "Playback, cover art and track metadata are served by Spotify's embed. Full-track availability depends on the viewer's Spotify session inside the iframe."}
-            </p>
-          </section>
+          <SpotifyEmbed src={track.spotifyEmbedUrl} title={`Spotify: ${track.title}`} size="large" />
+
+          <div className="nativePlayerLinks">
+            <a href={track.spotifyUrl} target="_blank" rel="noreferrer"><Icon name="external" size={17} />{ru ? "Открыть в Spotify" : "Open in Spotify"}</a>
+            <button type="button" onClick={() => showToast(ru ? "Трек добавлен в очередь" : "Track added to queue")}><Icon name="feed" size={17} />{ru ? "В очередь" : "Add to queue"}</button>
+          </div>
         </div>
       </section>
 
-      <section className="panel whyCard">
-        <div className="sectionHeader" style={{ marginBottom: 0 }}>
-          <h2>{ru ? "Почему вы это видите" : "Why you're seeing this"}</h2>
-          <DemoBadge>{ru ? "Реальный трек + предлагаемая атрибуция" : "Real Spotify track + proposed attribution"}</DemoBadge>
-        </div>
-        <div className="whyList">
-          <button className="whyItem whyButton" type="button" onClick={() => showToast("Taste repeat signal opened.")}>
-            <span className="whyIcon">
-              <Icon name="play" />
-            </span>
-            <span>{ru ? `${travis.name} слушал этот трек 14 раз за неделю.` : `${travis.name} has played this 14 times this week.`}</span>
-          </button>
-          <button className="whyItem whyButton" type="button" onClick={() => showToast("Live fan cohort opened.")}>
-            <span className="whyIcon">
-              <Icon name="user" />
-            </span>
-            <span>{ru ? "11 тыс. подписчиков сейчас слушают трек из этого Taste-сигнала." : "11K fans are listening from this Taste signal now."}</span>
-          </button>
-          <button className="whyItem whyButton" type="button" onClick={() => showToast("Influence Streams model opened.")}>
-            <span className="whyIcon">
-              <Icon name="info" />
-            </span>
-            <span>{ru ? "Стрим остаётся стримом Spotify; Taste добавляет измеримый путь discovery-атрибуции." : "Spotify plays remain Spotify plays; Taste adds a measurable discovery attribution path."}</span>
-          </button>
-        </div>
+      <section className="nativeWhySection">
+        <h2>{ru ? "Почему этот трек в вашей ленте" : "Why this is in your feed"}</h2>
+        <div><Icon name="feed" /><span><strong>{ru ? "14 прослушиваний за неделю" : "14 plays this week"}</strong><small>{ru ? "Трэвис чаще всего возвращался к этому треку." : "This is the track Travis returned to most."}</small></span></div>
+        <div><Icon name="user" /><span><strong>{ru ? "Найдено благодаря Трэвису" : "Discovered through Travis"}</strong><small>{ru ? "Если вы продолжите слушать или сохраните трек, Taste учтёт влияние." : "A repeat play or save contributes to Taste influence."}</small></span></div>
       </section>
     </main>
   );

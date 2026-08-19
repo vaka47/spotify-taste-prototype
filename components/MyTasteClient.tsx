@@ -239,9 +239,9 @@ export function MyTasteClient() {
     <main className="page">
       <div className="myTasteHeader">
         <div>
-          <div className="eyebrow">{t("my.eyebrow")}</div>
-          <h1 className="pageTitle">{t("my.title")}</h1>
-          <p className="lead">{t("my.lead")}</p>
+          {state === "connected" ? <div className="eyebrow">{t("my.eyebrow")}</div> : null}
+          <h1 className="pageTitle">{state === "connected" ? t("my.title") : t("nav.my")}</h1>
+          <p className="lead">{state === "connected" ? t("my.lead") : (locale === "ru" ? "Подключите Spotify, чтобы делиться прослушиваниями и подписываться на Taste друзей." : "Connect Spotify to share listening and follow your friends' Taste profiles.")}</p>
         </div>
         {state === "connected" ? (
           <div className="buttonRow headerActions">
@@ -250,11 +250,7 @@ export function MyTasteClient() {
             </button>
             <button className="btn btnGhost" type="button" onClick={disconnect}>{t("my.disconnect")}</button>
           </div>
-        ) : (
-          <a className={`btn btnPrimary ${!configured ? "disabled" : ""}`} href={configured ? "/api/auth/spotify/start?returnTo=/my-taste" : undefined} aria-disabled={!configured}>
-            <Icon name="user" />{t("my.connect")}
-          </a>
-        )}
+        ) : null}
       </div>
 
       {error ? <section className="errorState section" role="alert"><strong>{locale === "ru" ? "Нужна проверка" : "Needs attention"}</strong><p>{error}</p></section> : null}
@@ -262,20 +258,18 @@ export function MyTasteClient() {
       {state === "loading" ? <section className="panel section"><SkeletonRows /></section> : null}
 
       {state === "disconnected" || state === "error" ? (
-        <section className="connectExperience section">
-          <article className="panel connectPrimary">
-            <div className="connectIcon"><Icon name="taste" size={32} /></div>
-            <DemoBadge>{t("common.demoData")}</DemoBadge>
-            <h2>{t("my.disconnectedTitle")}</h2>
-            <p className="muted">{t("my.disconnectedBody")}</p>
+        <section className="nativeConnectExperience section">
+          <article className="nativeConnectPanel">
+            <div className="connectIcon"><Icon name="user" size={28} /></div>
+            <h2>{t("my.connect")}</h2>
+            <p>{t("my.disconnectedBody")}</p>
             <a className={`btn btnPrimary ${!configured ? "disabled" : ""}`} href={configured ? "/api/auth/spotify/start?returnTo=/my-taste" : undefined} aria-disabled={!configured}>
               <Icon name="user" />{t("my.connect")}
             </a>
           </article>
-          <aside className="panel trustPanel">
+          <aside className="nativeTrustPanel">
             <div className="whyList">
               <div className="whyItem"><span className="whyIcon"><Icon name="privacy" /></span><span>{t("my.noSecret")}</span></div>
-              <div className="whyItem"><span className="whyIcon"><Icon name="feed" /></span><span>{t("my.allowlist")}</span></div>
               <div className="whyItem"><span className="whyIcon"><Icon name="taste" /></span><span>{t("my.shareBody")}</span></div>
             </div>
           </aside>
