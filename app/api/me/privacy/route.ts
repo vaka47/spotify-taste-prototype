@@ -9,7 +9,7 @@ export async function GET() {
   if (!viewer) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   await ensureSchema();
   const rows = await db()`
-    select share_enabled, share_delay_hours, selected_sessions_only, hidden_track_ids, hidden_artist_ids
+    select share_enabled, share_delay_hours, meaningful_signals_only, selected_sessions_only, hidden_track_ids, hidden_artist_ids
     from taste_users where id = ${viewer.id}
   `;
   return NextResponse.json({ privacy: rows[0] });
@@ -21,6 +21,7 @@ export async function PATCH(request: NextRequest) {
   const payload = await request.json().catch(() => ({})) as {
     shareEnabled?: boolean;
     shareDelayHours?: number;
+    meaningfulSignalsOnly?: boolean;
     selectedSessionsOnly?: boolean;
     hiddenTrackIds?: string[];
     hiddenArtistIds?: string[];
@@ -31,6 +32,7 @@ export async function PATCH(request: NextRequest) {
     update taste_users set
       share_enabled = coalesce(${payload.shareEnabled ?? null}, share_enabled),
       share_delay_hours = coalesce(${delay}, share_delay_hours),
+      meaningful_signals_only = coalesce(${payload.meaningfulSignalsOnly ?? null}, meaningful_signals_only),
       selected_sessions_only = coalesce(${payload.selectedSessionsOnly ?? null}, selected_sessions_only),
       hidden_track_ids = coalesce(${payload.hiddenTrackIds ? db().json(payload.hiddenTrackIds.slice(0, 100)) : null}, hidden_track_ids),
       hidden_artist_ids = coalesce(${payload.hiddenArtistIds ? db().json(payload.hiddenArtistIds.slice(0, 100)) : null}, hidden_artist_ids),

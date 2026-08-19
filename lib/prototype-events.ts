@@ -9,10 +9,18 @@ export function readPrototypeEvents(): PrototypeAttributionEvent[] {
 }
 
 export function recordTrackOpen(tastemakerId: string, trackId: string) {
+  return recordAttributionEvent("track_open", tastemakerId, trackId);
+}
+
+export function recordAttributionEvent(
+  eventType: PrototypeAttributionEvent["eventType"],
+  tastemakerId: string,
+  trackId: string,
+) {
   const events = readPrototypeEvents();
   const event: PrototypeAttributionEvent = {
     id: crypto.randomUUID(),
-    eventType: "track_open",
+    eventType,
     tastemakerId,
     trackId,
     occurredAt: new Date().toISOString(),

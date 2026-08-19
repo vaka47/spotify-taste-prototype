@@ -29,15 +29,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : pathname.startsWith("/privacy") ? "nav.privacy"
     : pathname.startsWith("/hub") ? "nav.hub"
     : current.labelKey;
+  const immersivePlayer = pathname.startsWith("/player/");
+
+  if (pathname === "/pitch") return <ToastProvider>{children}</ToastProvider>;
 
   return (
     <ToastProvider>
       <div className="appShell">
         <aside className="sidebar" aria-label="Primary navigation">
-          <Link href="/" className="brandMark" aria-label="Spotify Taste overview">
+          <Link href="/" className="brandMark" aria-label="Follow Taste overview">
             <span className="brandDisc" aria-hidden="true" />
             <span>
-              <strong>Taste</strong>
+              <strong>Follow Taste</strong>
               <small>{t("shell.concept")}</small>
             </span>
           </Link>
@@ -85,14 +88,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {t("shell.disclaimer")}
           </footer>
         </div>
-        <nav className="mobileNav" aria-label="Mobile navigation">
-          {navItems.filter(item => ["/", "/feed", "/my-taste"].includes(item.href)).map(item => (
-            <Link key={item.href} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
-              <Icon name={item.icon} size={21} />
-              <span>{t(item.mobileKey)}</span>
-            </Link>
-          ))}
-        </nav>
+        {!immersivePlayer ? (
+          <nav className="mobileNav" aria-label="Mobile navigation">
+            {navItems.filter(item => ["/", "/feed", "/my-taste"].includes(item.href)).map(item => (
+              <Link key={item.href} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
+                <Icon name={item.icon} size={21} />
+                <span>{t(item.mobileKey)}</span>
+              </Link>
+            ))}
+          </nav>
+        ) : null}
       </div>
     </ToastProvider>
   );

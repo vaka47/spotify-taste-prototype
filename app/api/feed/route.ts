@@ -9,16 +9,20 @@ export async function GET() {
   if (!viewer) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   await ensureSchema();
   const events = await db()`
+    with latest_events as (
+      select e.*, row_number() over (partition by e.user_id, e.track_id order by e.played_at desc) as taste_rank
+      from taste_events e
+      where e.is_public = true
+    )
     select e.id, e.track_id, e.title, e.artist, e.cover_url, e.spotify_url, e.played_at, e.author_note,
       u.handle, u.display_name, u.avatar_url, u.verified,
       (select count(*)::int from taste_events r where r.user_id = e.user_id and r.track_id = e.track_id and r.played_at > now() - interval '7 days') as repeat_count,
       (select count(*)::int from taste_comments c where c.event_id = e.id) as comment_count
     from taste_follows f
     join taste_users u on u.id = f.followed_id
-    join taste_events e on e.user_id = u.id
+    join latest_events e on e.user_id = u.id and e.taste_rank = 1
     where f.follower_id = ${viewer.id}
       and u.share_enabled = true
-      and e.is_public = true
       and e.played_at <= now() - make_interval(hours => u.share_delay_hours)
     order by e.played_at desc
     limit 80

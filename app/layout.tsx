@@ -6,8 +6,8 @@ import { AppShell } from "@/components/AppShell";
 import { LocaleProvider, type Locale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
-  title: "Spotify Taste - independent product concept",
-  description: "Pitch-ready prototype for human-led music discovery through verified taste signals.",
+  title: "Follow Taste - product proposal for Spotify",
+  description: "A pitch-ready proposal for trusted, human-led music discovery with measurable attribution.",
 };
 
 export const viewport: Viewport = {

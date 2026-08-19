@@ -88,7 +88,7 @@ export function NotificationsClient() {
           <Link className={`notificationCard ${notification.read ? "" : "unread"}`} href={notification.href} key={notification.id}>
             <span className="notificationIcon"><Icon name={notification.read ? "check" : "feed"} /></span>
             <span>
-              <strong>{locale === "ru" ? ({ seed_note_1: "Иван добавил комментарий", seed_note_2: "Майя слушает на повторе", seed_note_3: "Новая отметка Influence Streams" } as Record<string, string>)[notification.id] || notification.title : notification.title}</strong>
+              <strong>{locale === "ru" ? ({ seed_note_1: "Иван добавил комментарий", seed_note_2: "Майя слушает на повторе", seed_note_3: "Новое квалифицированное открытие" } as Record<string, string>)[notification.id] || notification.title : notification.title}</strong>
               <span>{locale === "ru" ? ({ seed_note_1: "Короткий комментарий автора и мгновенный переход к треку.", seed_note_2: "NISSAN ALTIMA быстро набирает повторные прослушивания среди её Taste-подписчиков.", seed_note_3: "Ваш граф подписок создал 7 новых сохранений из Taste в этом браузере." } as Record<string, string>)[notification.id] || notification.body : notification.body}</span>
               <em>{locale === "ru" ? notification.createdAt.replace("min ago", "мин назад").replace("Today", "Сегодня") : notification.createdAt}</em>
             </span>

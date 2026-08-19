@@ -15,6 +15,7 @@ export type SessionUser = {
   bio: string;
   shareEnabled: boolean;
   shareDelayHours: number;
+  meaningfulSignalsOnly: boolean;
   selectedSessionsOnly: boolean;
   lastSyncedAt: string | null;
 };
@@ -51,7 +52,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   await ensureSchema();
   const rows = await db()`
     select u.id, u.handle, u.display_name, u.avatar_url, u.role, u.bio,
-      u.share_enabled, u.share_delay_hours, u.selected_sessions_only, u.last_synced_at
+      u.share_enabled, u.share_delay_hours, u.meaningful_signals_only, u.selected_sessions_only, u.last_synced_at
     from taste_sessions s
     join taste_users u on u.id = s.user_id
     where s.token_hash = ${hashToken(token)} and s.expires_at > now()
@@ -68,6 +69,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     bio: user.bio,
     shareEnabled: user.share_enabled,
     shareDelayHours: user.share_delay_hours,
+    meaningfulSignalsOnly: user.meaningful_signals_only,
     selectedSessionsOnly: user.selected_sessions_only,
     lastSyncedAt: user.last_synced_at?.toISOString?.() || user.last_synced_at || null,
   };

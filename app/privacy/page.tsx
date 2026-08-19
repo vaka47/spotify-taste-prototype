@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 type PrivacyState = {
   share_enabled: boolean;
   share_delay_hours: number;
+  meaningful_signals_only: boolean;
   selected_sessions_only: boolean;
   hidden_track_ids: string[];
   hidden_artist_ids: string[];
@@ -16,7 +17,8 @@ type PrivacyState = {
 
 const defaults: PrivacyState = {
   share_enabled: true,
-  share_delay_hours: 0,
+  share_delay_hours: 24,
+  meaningful_signals_only: true,
   selected_sessions_only: false,
   hidden_track_ids: [],
   hidden_artist_ids: [],
@@ -52,6 +54,7 @@ export default function PrivacyPage() {
       body: JSON.stringify({
         shareEnabled: privacy.share_enabled,
         shareDelayHours: privacy.share_delay_hours,
+        meaningfulSignalsOnly: privacy.meaningful_signals_only,
         selectedSessionsOnly: privacy.selected_sessions_only,
         hiddenTrackIds: hiddenTracks.split(",").map(value => value.trim()).filter(Boolean),
         hiddenArtistIds: hiddenArtists.split(",").map(value => value.trim()).filter(Boolean),
@@ -91,6 +94,12 @@ export default function PrivacyPage() {
             <option value={0}>{t("privacy.immediate")}</option>
             <option value={24}>{t("privacy.24h")}</option>
           </select>
+        </article>
+
+        <article className="privacyRow">
+          <span className="privacyIcon"><Icon name="spark" /></span>
+          <div><strong>{t("privacy.meaningful")}</strong><p className="finePrint">{t("privacy.meaningfulDesc")}</p></div>
+          <button className={`switch ${privacy.meaningful_signals_only ? "on" : ""}`} type="button" role="switch" aria-checked={privacy.meaningful_signals_only} onClick={() => setPrivacy(current => ({ ...current, meaningful_signals_only: !current.meaningful_signals_only }))} disabled={!connected}><span /></button>
         </article>
 
         <article className="privacyRow">

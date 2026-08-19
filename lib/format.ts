@@ -1,10 +1,10 @@
 import type { TasteEventKind, TrackRef } from "@/types/taste";
 
 export const kindLabels: Record<TasteEventKind, string> = {
-  now_playing: "Now playing",
+  recommended: "Recommended",
   on_repeat: "On repeat",
-  new_discovery: "New discovery",
-  deep_cut: "Deep cut",
+  saved_discovery: "Saved discovery",
+  rediscovered: "Rediscovered",
 };
 
 export function getTrackBySlug(tracks: Record<string, TrackRef>, slug: string) {

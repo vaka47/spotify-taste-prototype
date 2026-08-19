@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Icon } from "@/components/Icons";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TrackArtwork } from "@/components/TrackArtwork";
@@ -21,12 +22,21 @@ function localizedLastPlayed(value: string, ru: boolean) {
   return value
     .replace("2 min ago", "2 мин назад")
     .replace("20 min ago", "20 мин назад")
+    .replace("2h ago", "2 ч назад")
+    .replace("20h ago", "20 ч назад")
     .replace("1h ago", "1 ч назад")
     .replace("Yesterday", "вчера")
     .replace("Today", "сегодня")
     .replace("2d ago", "2 дня назад")
     .replace("3d ago", "3 дня назад")
     .replace("5d ago", "5 дней назад");
+}
+
+function signalLabel(kind: WeeklyTrackSignal["kind"], ru: boolean) {
+  const labels = ru
+    ? { recommended: "Рекомендация", on_repeat: "На повторе", saved_discovery: "Сохранено", rediscovered: "Вернулся к треку" }
+    : { recommended: "Recommended", on_repeat: "On repeat", saved_discovery: "Saved discovery", rediscovered: "Rediscovered" };
+  return labels[kind];
 }
 
 export default function TravisTastePage() {
@@ -71,7 +81,7 @@ export default function TravisTastePage() {
         <span><strong>{discussion.track.title}</strong><small>{discussion.track.artist}</small></span>
         <button className="nativeIconAction" type="button" onClick={() => setDiscussion(null)} aria-label={ru ? "Закрыть обсуждение" : "Close discussion"}><Icon name="chevronRight" /></button>
       </div>
-      <div className="artistNote"><strong>{travis.name}</strong><p>{ru ? "Возвращаюсь к этому треку из-за продакшена. Обратите внимание на переход во второй половине." : "I keep coming back for the production. Listen for the switch in the second half."}</p></div>
+      <div className="artistNote"><strong>{travis.name}</strong><p>{discussion.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : discussion.authorNote) : (ru ? "Поделился после нескольких прослушиваний. Это осознанный Taste-сигнал, а не случайный запуск." : "Shared after repeated listening. This is an intentional Taste signal, not an inferred endorsement.")}</p></div>
       <div className="tasteCommentList">
         <div><strong>@nina</strong><span>{ru ? "Именно этот переход и привёл меня сюда." : "That switch is exactly what brought me here."}</span></div>
         {postedComments.map((value, index) => <div key={`${value}-${index}`}><strong>{ru ? "Вы" : "You"}</strong><span>{value}</span></div>)}
@@ -103,9 +113,6 @@ export default function TravisTastePage() {
       <div className="artistBody">
         <div className="artistActionBar">
           <button className="nativePlayButton" type="button" aria-label={ru ? "Слушать Travis Scott" : "Play Travis Scott"} onClick={() => router.push(`/player/${tracks.fein.slug}`)}><Icon name="play" size={25} /></button>
-          <button className={`nativeFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>
-            {following ? (ru ? "Вы подписаны" : "Following Taste") : (activeTab === "taste" ? (ru ? "Подписаться на Taste" : "Follow Taste") : (ru ? "Подписаться" : "Follow"))}
-          </button>
           <a className="nativeIconAction" href={travis.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? "Открыть в Spotify" : "Open in Spotify"}><Icon name="more" /></a>
         </div>
 
@@ -122,12 +129,19 @@ export default function TravisTastePage() {
             <header className="tasteIntro">
               <div>
                 <h2>{ru ? "Taste Трэвиса" : "Travis's Taste"}</h2>
-                <p>{ru ? "Музыка, которую Трэвис действительно слушал за последние семь дней." : "Music Travis actually listened to during the last seven days."}</p>
+                <p>{ru ? "Значимые сигналы, которыми Трэвис решил поделиться за последние семь дней." : "Meaningful listening signals Travis chose to share from the last seven days."}</p>
               </div>
               <button className={`nativeFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>
-                {following ? (ru ? "В вашей ленте" : "In your feed") : (ru ? "Подписаться" : "Follow")}
+                {following ? (ru ? "Вы подписаны на Taste" : "Following Taste") : (ru ? "Подписаться на Taste" : "Follow Taste")}
               </button>
             </header>
+
+            <div className="tasteTrustLine">
+              <span><Icon name="privacy" size={16} />{ru ? "Только с согласия" : "Opt-in only"}</span>
+              <span><Icon name="clock" size={16} />{ru ? "Задержка 24 часа" : "24h delay"}</span>
+              <span><Icon name="hide" size={16} />{ru ? "Разовые прослушивания скрыты" : "One-off listens hidden"}</span>
+              <Link href="/privacy">{ru ? "Как работает приватность" : "How privacy works"}</Link>
+            </div>
 
             <div className="tasteStatStrip" aria-label={ru ? "Статистика за неделю" : "Weekly statistics"}>
               <div><strong>52</strong><span>{ru ? "прослушивания" : "plays"}</span></div>
@@ -150,7 +164,7 @@ export default function TravisTastePage() {
                       <span className="nativeTrackNumber">{index + 1}</span>
                       <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="nativeTrackArtwork" />
                       <span className="nativeTrackCopy"><strong>{item.track.title}</strong><span>{item.track.artist}</span></span>
-                      <span className="nativeTrackPlays"><strong>{item.plays}</strong><span>{ru ? `популярность ${item.popularity}` : `popularity ${item.popularity}`}</span></span>
+                      <span className={`nativeTrackPlays signal-${item.kind}`}><strong>{item.plays}</strong><span>{signalLabel(item.kind, ru)}</span></span>
                       <span className="nativeTrackLast">{localizedLastPlayed(item.lastPlayed, ru)}</span>
                       <span className="nativeRowPlay"><Icon name="play" size={16} /></span>
                     </button>

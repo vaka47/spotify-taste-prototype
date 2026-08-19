@@ -58,7 +58,7 @@ export default function Home() {
                 <span className="homeTasteCopy">
                   <strong>{event.track.title}</strong>
                   <span>{event.track.artist}</span>
-                  <em>{travis.name} · {ru ? ({ now_playing: "слушает сейчас", on_repeat: "на повторе", new_discovery: "новое открытие", deep_cut: "редкая находка" } as const)[event.kind] : event.kind.replaceAll("_", " ")}</em>
+                  <em>{travis.name} · {ru ? ({ recommended: "рекомендует", on_repeat: "на повторе", saved_discovery: "сохранённое открытие", rediscovered: "вернулся к треку" } as const)[event.kind] : event.kind.replaceAll("_", " ")}</em>
                 </span>
                 <TrackArtwork src={event.track.coverUrl} fallbackSrc={event.track.fallbackCoverUrl} alt={`${event.track.title} cover`} className="homeTasteCover" />
                 <span className="rowPlay"><Icon name="play" size={18} /></span>

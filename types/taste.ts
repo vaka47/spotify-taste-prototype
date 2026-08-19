@@ -29,7 +29,7 @@ export type Tastemaker = {
   origin: DataOrigin;
 };
 
-export type TasteEventKind = "now_playing" | "on_repeat" | "new_discovery" | "deep_cut";
+export type TasteEventKind = "recommended" | "on_repeat" | "saved_discovery" | "rediscovered";
 
 export type TasteFeedEvent = {
   id: string;
@@ -53,6 +53,8 @@ export type WeeklyTrackSignal = {
   plays: number;
   popularity: number;
   lastPlayed: string;
+  kind: TasteEventKind;
+  authorNote?: string;
 };
 
 export type InspiredMix = {
@@ -68,7 +70,7 @@ export type InspiredMix = {
 
 export type HubInfluencedTrack = {
   track: TrackRef;
-  influenceStreams: string;
+  qualifiedDiscoveries: string;
   share: number;
 };
 

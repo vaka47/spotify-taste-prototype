@@ -42,7 +42,8 @@ async function createSchema() {
       role text not null default 'Spotify listener',
       verified boolean not null default false,
       share_enabled boolean not null default true,
-      share_delay_hours integer not null default 0,
+      share_delay_hours integer not null default 24,
+      meaningful_signals_only boolean not null default true,
       selected_sessions_only boolean not null default false,
       hidden_track_ids jsonb not null default '[]'::jsonb,
       hidden_artist_ids jsonb not null default '[]'::jsonb,
@@ -86,6 +87,8 @@ async function createSchema() {
     )
   `;
   await sql`alter table taste_users add column if not exists sync_locked_until timestamptz`;
+  await sql`alter table taste_users add column if not exists meaningful_signals_only boolean not null default true`;
+  await sql`alter table taste_users alter column share_delay_hours set default 24`;
   await sql`alter table taste_events add column if not exists popularity integer not null default 0`;
   await sql`create index if not exists taste_events_user_played_idx on taste_events(user_id, played_at desc)`;
   await sql`create index if not exists taste_events_user_track_idx on taste_events(user_id, track_id, played_at desc)`;

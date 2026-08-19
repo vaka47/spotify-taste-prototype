@@ -123,13 +123,13 @@ export const tracks: Record<string, TrackRef> = {
 
 export const feedEvents: TasteFeedEvent[] = [
   {
-    id: "ev_now_playing",
+    id: "ev_recommended",
     tastemaker: travis,
     track: tracks.euphoria,
-    kind: "now_playing",
-    timestampLabel: "2 min ago",
-    humanSignal: "Live - 17K fans are also here",
-    secondarySignal: "Track metadata and playback are real Spotify embeds",
+    kind: "recommended",
+    timestampLabel: "2h ago",
+    humanSignal: "Travis added a note after 14 plays",
+    secondarySignal: "An explicit recommendation, not an inferred endorsement",
     origin: "illustrative",
   },
   {
@@ -146,7 +146,7 @@ export const feedEvents: TasteFeedEvent[] = [
     id: "ev_new_discovery",
     tastemaker: travis,
     track: tracks.chamber,
-    kind: "new_discovery",
+    kind: "saved_discovery",
     timestampLabel: "5h ago",
     humanSignal: "First saved by Travis today",
     secondarySignal: "First-save signal shown as proposed product behavior",
@@ -156,7 +156,7 @@ export const feedEvents: TasteFeedEvent[] = [
     id: "ev_deep_cut",
     tastemaker: travis,
     track: tracks.iykyk,
-    kind: "deep_cut",
+    kind: "rediscovered",
     timestampLabel: "Yesterday",
     humanSignal: "Resurfaced after 4 months",
     secondarySignal: "Deep cuts can re-enter discovery through taste",
@@ -172,14 +172,14 @@ export const onRepeatTracks: TrackSignal[] = [
 ];
 
 export const travisWeeklyHistory: WeeklyTrackSignal[] = [
-  { track: tracks.euphoria, plays: 14, popularity: 82, lastPlayed: "2 min ago" },
-  { track: tracks.gone, plays: 11, popularity: 88, lastPlayed: "20 min ago" },
-  { track: tracks.nissan, plays: 8, popularity: 75, lastPlayed: "1h ago" },
-  { track: tracks.iykyk, plays: 6, popularity: 76, lastPlayed: "Yesterday" },
-  { track: tracks.likehim, plays: 4, popularity: 90, lastPlayed: "2d ago" },
-  { track: tracks.chamber, plays: 4, popularity: 84, lastPlayed: "Today" },
-  { track: tracks.lvbag, plays: 3, popularity: 72, lastPlayed: "3d ago" },
-  { track: tracks.fein, plays: 2, popularity: 91, lastPlayed: "5d ago" },
+  { track: tracks.euphoria, plays: 14, popularity: 82, lastPlayed: "2h ago", kind: "recommended", authorNote: "Listen for the switch in the second half." },
+  { track: tracks.gone, plays: 11, popularity: 88, lastPlayed: "20h ago", kind: "on_repeat" },
+  { track: tracks.nissan, plays: 8, popularity: 75, lastPlayed: "1d ago", kind: "on_repeat" },
+  { track: tracks.iykyk, plays: 6, popularity: 76, lastPlayed: "Yesterday", kind: "rediscovered" },
+  { track: tracks.likehim, plays: 4, popularity: 90, lastPlayed: "2d ago", kind: "on_repeat" },
+  { track: tracks.chamber, plays: 4, popularity: 84, lastPlayed: "Today", kind: "saved_discovery" },
+  { track: tracks.lvbag, plays: 3, popularity: 72, lastPlayed: "3d ago", kind: "saved_discovery" },
+  { track: tracks.fein, plays: 2, popularity: 91, lastPlayed: "5d ago", kind: "rediscovered" },
 ];
 
 export const recentlyDiscoveredTracks: TrackSignal[] = [
@@ -215,20 +215,22 @@ export const inspiredMixes: InspiredMix[] = [
 
 export const hubMetrics = {
   tasteFollowers: "4.2M",
-  tasteFollowersDelta: "+24% this month",
-  influenceStreams: "38.1M",
-  influenceStreamsDelta: "+18% this month",
-  discoverySaves: "6.8M",
-  discoverySavesNote: "High-intent signal",
-  estimatedEarnings: "$18,420",
+  qualifiedDiscoveries: "8.4M",
+  saveRate: "17.8%",
+  repeat28d: "31.4%",
+  attributedStarts: "38.1M",
+  firstListens: "12.6M",
+  saves: "6.8M",
+  repeats: "2.9M",
+  artistFollows: "940K",
   origin: "illustrative" as const,
 };
 
 export const topInfluencedTracks: HubInfluencedTrack[] = [
-  { track: tracks.nissan, influenceStreams: "2.8M", share: 94 },
-  { track: tracks.fein, influenceStreams: "2.2M", share: 73 },
-  { track: tracks.lvbag, influenceStreams: "1.7M", share: 54 },
-  { track: tracks.likehim, influenceStreams: "1.4M", share: 43 },
+  { track: tracks.nissan, qualifiedDiscoveries: "2.8M", share: 94 },
+  { track: tracks.fein, qualifiedDiscoveries: "2.2M", share: 73 },
+  { track: tracks.lvbag, qualifiedDiscoveries: "1.7M", share: 54 },
+  { track: tracks.likehim, qualifiedDiscoveries: "1.4M", share: 43 },
 ];
 
 export const privacyControls = [

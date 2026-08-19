@@ -69,7 +69,7 @@ export const seededTasteProfiles: Record<string, PublicTasteProfile> = {
     handle: "ivan",
     name: "Ivan Safonov",
     role: "Product taste curator",
-    bio: "Opt-in listening signal for the Spotify Taste pitch. Fans follow the music, the context and the influence graph.",
+    bio: "Opt-in recommendations, repeats and discoveries shared with the people who follow my taste.",
     avatarUrl: travis.avatarUrl,
     fallbackAvatarUrl: travis.fallbackAvatarUrl,
     verified: true,

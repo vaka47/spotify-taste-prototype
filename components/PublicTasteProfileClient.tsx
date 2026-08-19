@@ -175,10 +175,10 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
     role: handle === "maya" ? "Диджей и селектор" : "Продуктовый куратор вкуса",
     bio: handle === "maya"
       ? "Второй демонстрационный профиль показывает, как независимые тейстмейкеры могут превращать влияние в отдельный актив."
-      : "Добровольный музыкальный сигнал для концепта Spotify Taste. Подписчики следят за музыкой, контекстом и графом влияния.",
+      : "Добровольно опубликованные рекомендации, повторы и открытия. Подписчики видят музыку вместе с контекстом автора.",
     signals: {
-      ivan_ev_euphoria: "Живой Taste-сигнал",
-      ivan_ev_chamber: "Недавнее открытие",
+      ivan_ev_euphoria: "Рекомендация автора",
+      ivan_ev_chamber: "Сохранённое открытие",
       ivan_ev_lvbag: "Сохранено после первого прослушивания",
       ivan_ev_fein: "На повторе",
       maya_ev_nissan: "После клубного сета",
@@ -304,8 +304,8 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
 
         <div className="nativeUserStats">
           <div><strong>{serverProfile?.followers ?? demoProfile.tasteFollowers}</strong><span>{t("my.followers")}</span></div>
-          <div><strong>{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</strong><span>{isReal ? t("profile.weeklyMinutes") : "Influence Streams"}</span></div>
-          <div><strong>{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</strong><span>{isReal ? t("profile.uniqueTracks") : "Discovery saves"}</span></div>
+          <div><strong>{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</strong><span>{isReal ? t("profile.weeklyMinutes") : (locale === "ru" ? "Открытия через Taste" : "Taste-sourced starts")}</span></div>
+          <div><strong>{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</strong><span>{isReal ? t("profile.uniqueTracks") : (locale === "ru" ? "Квалифицированные открытия" : "Qualified discoveries")}</span></div>
         </div>
       </section>
 

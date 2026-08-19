@@ -70,20 +70,24 @@ export async function syncSpotifyUser(userId: string, options: { force?: boolean
       recentlyPlayedForWeek(accessToken),
       spotifyApi<TopItems<SpotifyTrack>>(accessToken, "/me/top/tracks?time_range=short_term&limit=12"),
       spotifyApi<TopItems<{ id: string; name: string; images?: Array<{ url: string }>; genres?: string[] }>>(accessToken, "/me/top/artists?time_range=short_term&limit=12"),
-      db()`select share_enabled, selected_sessions_only, hidden_track_ids, hidden_artist_ids from taste_users where id = ${userId}`,
+      db()`select share_enabled, meaningful_signals_only, selected_sessions_only, hidden_track_ids, hidden_artist_ids from taste_users where id = ${userId}`,
     ]);
     const privacy = privacyRows[0];
     const hiddenTracks = new Set<string>(privacy.hidden_track_ids || []);
     const hiddenArtists = new Set<string>(privacy.hidden_artist_ids || []);
+    const weeklyPlayCounts = new Map<string, number>();
+    for (const item of recentItems) {
+      if (item.track.id) weeklyPlayCounts.set(item.track.id, (weeklyPlayCounts.get(item.track.id) || 0) + 1);
+    }
     let inserted = 0;
     let newestEventId: string | null = null;
-    let newestTitle = "";
 
     for (const item of recentItems) {
       if (!item.track.id) continue;
       const eventId = createHash("sha256").update(`${userId}:${item.track.id}:${item.played_at}`).digest("hex").slice(0, 32);
       const artistIds = item.track.artists.map(artist => artist.id);
-      const isPublic = Boolean(privacy.share_enabled) && !privacy.selected_sessions_only && !hiddenTracks.has(item.track.id) && !artistIds.some(id => hiddenArtists.has(id));
+      const passesPrivacy = Boolean(privacy.share_enabled) && !privacy.selected_sessions_only && !hiddenTracks.has(item.track.id) && !artistIds.some(id => hiddenArtists.has(id));
+      const isPublic = passesPrivacy && !privacy.meaningful_signals_only;
       const result = await db()`
         insert into taste_events (
           id, user_id, track_id, title, artist, artist_ids, album_name, cover_url,
@@ -102,8 +106,19 @@ export async function syncSpotifyUser(userId: string, options: { force?: boolean
         inserted += 1;
         if (!newestEventId) {
           newestEventId = eventId;
-          newestTitle = item.track.name;
         }
+      }
+    }
+
+    if (privacy.share_enabled && privacy.meaningful_signals_only && !privacy.selected_sessions_only) {
+      for (const [trackId, count] of weeklyPlayCounts) {
+        if (count < 2 || hiddenTracks.has(trackId)) continue;
+        const track = recentItems.find(item => item.track.id === trackId)?.track;
+        if (!track || track.artists.some(artist => hiddenArtists.has(artist.id))) continue;
+        await db()`
+          update taste_events set is_public = true
+          where user_id = ${userId} and track_id = ${trackId} and played_at > now() - interval '7 days'
+        `;
       }
     }
 
@@ -118,11 +133,21 @@ export async function syncSpotifyUser(userId: string, options: { force?: boolean
     `;
 
     if (inserted && newestEventId && privacy.share_enabled && !privacy.selected_sessions_only) {
-      await db()`
-        insert into taste_notifications (id, user_id, actor_id, kind, event_id, body)
-        select md5(follower_id || ${newestEventId} || clock_timestamp()::text), follower_id, ${userId}, 'new_listen', ${newestEventId}, ${`${lease[0].display_name} listened to ${newestTitle}`}
-        from taste_follows where followed_id = ${userId}
+      const publicEvent = await db()`
+        select id, title from taste_events
+        where user_id = ${userId} and is_public = true and created_at > now() - interval '5 minutes'
+        order by played_at desc limit 1
       `;
+      if (publicEvent.length) {
+        const eventId = publicEvent[0].id as string;
+        const title = publicEvent[0].title as string;
+        await db()`
+          insert into taste_notifications (id, user_id, actor_id, kind, event_id, body)
+          select md5(follower_id || ${eventId} || 'meaningful_signal'), follower_id, ${userId}, 'meaningful_signal', ${eventId}, ${`${lease[0].display_name} shared a listening signal for ${title}`}
+          from taste_follows where followed_id = ${userId}
+          on conflict (id) do nothing
+        `;
+      }
     }
 
     return { ok: true, skipped: false, inserted, total: recentItems.length, syncedAt: new Date().toISOString() };

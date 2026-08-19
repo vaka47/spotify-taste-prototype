@@ -31,13 +31,18 @@ function relativeTime(value: string, ru: boolean) {
 }
 
 function LiveFeedCard({ event, ru }: { event: LiveFeedEvent; ru: boolean }) {
+  const signal = event.authorNote
+    ? (ru ? "Рекомендует с комментарием" : "Recommended with a note")
+    : event.repeatCount > 1
+      ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
+      : (ru ? "Осознанно опубликованный сигнал" : "Intentionally shared signal");
   return (
     <Link className="nativeLiveFeedCard" href={`/taste/${event.profile.handle}?event=${event.id}`}>
       <span className="nativeFeedAvatar"><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></span>
       <span className="nativeFeedContent">
         <span className="nativeFeedPerson"><strong>{event.profile.name}</strong><small>{relativeTime(event.playedAt, ru)}</small></span>
         <span className="nativeFeedTrack"><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="nativeFeedCover" /><span><strong>{event.track.title}</strong><small>{event.track.artist}</small>{event.authorNote ? <em>“{event.authorNote}”</em> : null}</span></span>
-        <span className="nativeFeedSignal"><Icon name="feed" size={16} />{event.repeatCount > 1 ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`) : (ru ? "Недавнее прослушивание" : "Recent listen")}</span>
+        <span className="nativeFeedSignal"><Icon name={event.authorNote ? "comment" : "feed"} size={16} />{signal}</span>
       </span>
       <span className="nativeFeedComment"><Icon name="comment" size={17} />{event.commentCount}</span>
     </Link>
@@ -73,7 +78,7 @@ export default function FeedPage() {
     <main className="page nativeFeedPage">
       <header className="nativePageHeader feedPageHeader">
         <h1>{ru ? "Лента Taste" : "Taste Feed"}</h1>
-        <p>{ru ? "Музыка, которую слушают люди, за которыми вы следите." : "Music being played by people you follow."}</p>
+        <p>{ru ? "Рекомендации, повторы и открытия от людей, чьему вкусу вы доверяете." : "Recommendations, repeat listens and discoveries from people whose taste you trust."}</p>
       </header>
 
       <div className="nativeSegments" aria-label={ru ? "Фильтр ленты" : "Feed filter"}>
@@ -91,7 +96,7 @@ export default function FeedPage() {
           <div className="nativeFeedEmpty">
             <span className="nativeFeedEmptyAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} /></span>
             <h2>{ru ? "Соберите свою ленту Taste" : "Build your Taste Feed"}</h2>
-            <p>{ru ? "Подпишитесь на Taste Трэвиса, и его прослушивания появятся здесь." : "Follow Travis's Taste and his listening activity will appear here."}</p>
+            <p>{ru ? "Подпишитесь на Taste Трэвиса, и его значимые музыкальные сигналы появятся здесь." : "Follow Travis's Taste and his meaningful listening signals will appear here."}</p>
             <Link className="nativePrimaryButton" href="/tastemaker/travis-scott">{ru ? "Открыть Taste Трэвиса" : "Open Travis's Taste"}</Link>
             {!connected ? <Link className="nativeTextLink" href="/my-taste">{ru ? "Подключить Spotify для ленты друзей" : "Connect Spotify for friends' activity"}</Link> : null}
           </div>
@@ -100,7 +105,7 @@ export default function FeedPage() {
         {activeSegment === "Following" && hasFollowingContent ? (
           <Link className="nativeWeeklySummary" href="/tastemaker/travis-scott">
             <span className="nativeWeeklySummaryAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" /></span>
-            <span><small>{ru ? "Сводка за неделю" : "Weekly summary"}</small><strong>{ru ? "Taste Трэвиса: 52 прослушивания, 8 треков" : "Travis's Taste: 52 plays, 8 tracks"}</strong></span>
+            <span><small>{ru ? "Сводка за неделю" : "Weekly summary"}</small><strong>{ru ? "Taste Трэвиса: 8 значимых сигналов" : "Travis's Taste: 8 meaningful signals"}</strong></span>
             <Icon name="chevronRight" />
           </Link>
         ) : null}

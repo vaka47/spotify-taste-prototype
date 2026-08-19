@@ -5153,3 +5153,1010 @@ select:disabled {
     min-height: 40px;
   }
 }
+
+/* Follow Taste product hardening */
+
+.tasteTrustLine {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  border-block: 1px solid rgba(255, 255, 255, .09);
+  margin: 18px 0 0;
+  padding: 14px 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.tasteTrustLine span,
+.tasteTrustLine a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tasteTrustLine svg {
+  color: var(--spotify-green-soft);
+}
+
+.tasteTrustLine a {
+  margin-left: auto;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.nativeTrackPlays.signal-recommended span,
+.nativeTrackPlays.signal-saved_discovery span {
+  color: var(--spotify-green-soft);
+}
+
+.nativeAnalyticsPage {
+  width: min(1180px, calc(100% - 48px));
+  margin-inline: auto;
+  padding-bottom: 80px;
+}
+
+.analyticsHero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 36px;
+  padding: 54px 0 34px;
+}
+
+.analyticsHero > div:first-child {
+  max-width: 800px;
+}
+
+.analyticsHero h1 {
+  max-width: 760px;
+  margin: 10px 0 14px;
+  font-size: 46px;
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.analyticsHero p {
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.analyticsMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid rgba(255, 255, 255, .11);
+}
+
+.analyticsMetricGrid article {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border-right: 1px solid rgba(255, 255, 255, .11);
+  padding: 22px 24px;
+}
+
+.analyticsMetricGrid article:first-child {
+  padding-left: 0;
+}
+
+.analyticsMetricGrid article:last-child {
+  border-right: 0;
+}
+
+.analyticsMetricGrid span,
+.analyticsMetricGrid small {
+  color: var(--muted);
+}
+
+.analyticsMetricGrid span {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.analyticsMetricGrid strong {
+  font-size: 34px;
+}
+
+.analyticsMetricGrid small {
+  line-height: 1.35;
+}
+
+.analyticsSplit {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.analyticsSurface {
+  min-width: 0;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+  padding-top: 24px;
+}
+
+.discoveryFunnel {
+  display: grid;
+  gap: 13px;
+  margin-top: 24px;
+}
+
+.funnelRow {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr) 64px;
+  gap: 14px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.funnelRow > span {
+  color: var(--muted-strong);
+}
+
+.funnelRow > div {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, .08);
+}
+
+.funnelRow i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--spotify-green);
+}
+
+.funnelRow strong {
+  text-align: right;
+}
+
+.analyticsDefinition {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.analyticsDefinition svg {
+  flex: 0 0 auto;
+  color: var(--spotify-green-soft);
+}
+
+.integrityList {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.integrityList > div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 11px 0;
+}
+
+.integrityList > div > svg {
+  color: var(--spotify-green-soft);
+}
+
+.integrityList span {
+  display: grid;
+  gap: 4px;
+}
+
+.integrityList small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.analyticsPrivacyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 16px;
+}
+
+.pilotReadout dl {
+  display: grid;
+  margin: 18px 0 20px;
+}
+
+.pilotReadout dl > div {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+  padding: 11px 0;
+}
+
+.pilotReadout dt {
+  color: var(--muted);
+}
+
+.pilotReadout dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.localProof {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 20px 0;
+  color: var(--muted);
+}
+
+.localProof strong {
+  color: #fff;
+  font-size: 25px;
+}
+
+@media (max-width: 900px) {
+  .tasteTrustLine a {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .analyticsMetricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analyticsMetricGrid article:nth-child(2) {
+    border-right: 0;
+  }
+
+  .analyticsMetricGrid article:first-child,
+  .analyticsMetricGrid article {
+    padding-left: 18px;
+  }
+
+  .analyticsSplit {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .nativeAnalyticsPage {
+    width: calc(100% - 28px);
+  }
+
+  .analyticsHero {
+    display: grid;
+    align-items: start;
+    padding-top: 28px;
+  }
+
+  .analyticsHero h1 {
+    font-size: 34px;
+  }
+
+  .analyticsMetricGrid strong {
+    font-size: 26px;
+  }
+
+  .funnelRow {
+    grid-template-columns: minmax(0, 1fr) 54px;
+  }
+
+  .funnelRow > div {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+/* Standalone presentation mode */
+
+.pitchDeck {
+  --pitch-line: rgba(255, 255, 255, .12);
+  display: grid;
+  min-height: 100svh;
+  grid-template-rows: 72px minmax(0, 1fr) 64px;
+  overflow: hidden;
+  background: #050505;
+  color: #fff;
+}
+
+.pitchTopbar,
+.pitchControls {
+  display: flex;
+  align-items: center;
+  border-color: var(--pitch-line);
+  padding-inline: 36px;
+}
+
+.pitchTopbar {
+  justify-content: space-between;
+  border-bottom: 1px solid var(--pitch-line);
+}
+
+.pitchBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.pitchBrand > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.pitchBrand strong {
+  font-size: 16px;
+}
+
+.pitchBrand small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.pitchTopActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pitchTopActions > a,
+.pitchAskActions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pitchLanguage {
+  display: flex;
+  border: 1px solid var(--pitch-line);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.pitchLanguage button {
+  width: 36px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pitchLanguage button.active {
+  background: #fff;
+  color: #000;
+}
+
+.pitchViewport {
+  min-height: 0;
+  overflow: auto;
+}
+
+.pitchSlide {
+  display: grid;
+  width: min(1280px, calc(100% - 96px));
+  min-height: 100%;
+  align-content: center;
+  gap: 38px;
+  margin-inline: auto;
+  padding-block: 40px;
+}
+
+.pitchKicker {
+  color: var(--spotify-green-soft);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.pitchSlideHeader {
+  max-width: 980px;
+}
+
+.pitchSlideHeader h2,
+.pitchAskSlide h2 {
+  max-width: 980px;
+  margin: 10px 0 0;
+  font-size: 48px;
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.pitchSlideHeader p,
+.pitchAskSlide p {
+  max-width: 820px;
+  margin: 16px 0 0;
+  color: var(--muted-strong);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.pitchHeroSlide {
+  grid-template-columns: minmax(0, .9fr) minmax(430px, .75fr);
+  gap: 72px;
+  align-items: center;
+}
+
+.pitchHeroCopy h1 {
+  margin: 10px 0 14px;
+  font-size: 72px;
+  line-height: .95;
+  letter-spacing: 0;
+}
+
+.pitchClaim {
+  max-width: 700px;
+  margin: 0;
+  font-size: 31px;
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.pitchSupport {
+  max-width: 680px;
+  margin: 24px 0 0;
+  color: var(--muted-strong);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.pitchHeroVisual {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--pitch-line);
+  border-radius: 8px;
+  background: #111;
+  padding: 24px;
+}
+
+.pitchHeroArtist,
+.pitchHeroTrack {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+}
+
+.pitchHeroArtist {
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 14px;
+  border-bottom: 1px solid var(--pitch-line);
+  padding-bottom: 20px;
+}
+
+.pitchHeroArtist > div,
+.pitchHeroArtist img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.pitchHeroArtist span,
+.pitchHeroTrack span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.pitchHeroArtist small,
+.pitchHeroTrack small {
+  color: var(--spotify-green-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.pitchHeroArtist strong {
+  font-size: 22px;
+}
+
+.pitchHeroTrack {
+  grid-template-columns: 82px minmax(0, 1fr) 44px;
+  gap: 16px;
+  padding: 24px 0 18px;
+}
+
+.pitchHeroTrack > div,
+.pitchHeroTrack img {
+  width: 82px;
+  height: 82px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.pitchHeroTrack strong {
+  overflow: hidden;
+  font-size: 25px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pitchHeroTrack em {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.pitchHeroVisual blockquote {
+  margin: 0;
+  border-left: 2px solid var(--spotify-green);
+  padding: 14px 0 14px 18px;
+  color: var(--muted-strong);
+  line-height: 1.45;
+}
+
+.pitchComparison {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--pitch-line);
+}
+
+.pitchComparison > div {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+  border-right: 1px solid var(--pitch-line);
+  border-bottom: 1px solid var(--pitch-line);
+  padding: 22px;
+}
+
+.pitchComparison > div:nth-child(3n) {
+  border-right: 0;
+}
+
+.pitchComparison span,
+.pitchComparison small {
+  color: var(--muted);
+}
+
+.pitchComparison span {
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.pitchComparison strong {
+  font-size: 19px;
+}
+
+.pitchComparisonAnswer {
+  background: #142419;
+}
+
+.pitchComparisonAnswer span,
+.pitchComparisonAnswer small {
+  color: var(--spotify-green-soft);
+}
+
+.pitchSources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.pitchSources a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pitchJourney {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid var(--pitch-line);
+}
+
+.pitchJourney a {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 54px auto;
+  gap: 18px;
+  border-right: 1px solid var(--pitch-line);
+  padding: 24px;
+}
+
+.pitchJourney a:last-child {
+  border-right: 0;
+}
+
+.pitchJourney b {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.pitchJourney a > div,
+.pitchJourney a > svg {
+  width: 54px;
+  height: 54px;
+}
+
+.pitchJourney a > div,
+.pitchJourney a > div img {
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.pitchJourney a:first-child > div,
+.pitchJourney a:first-child img {
+  border-radius: 50%;
+}
+
+.pitchJourney a > span,
+.pitchProductPrinciple span,
+.pitchSignalLadder span,
+.pitchPilotMeasure span {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pitchJourney small,
+.pitchProductPrinciple small,
+.pitchSignalLadder small,
+.pitchPilotMeasure small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.pitchProductPrinciple {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  color: var(--spotify-green-soft);
+}
+
+.pitchProductPrinciple small {
+  color: var(--muted-strong);
+}
+
+.pitchSignalLadder {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--pitch-line);
+}
+
+.pitchSignalLadder > div {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  background: #0b0b0b;
+  padding: 26px 22px;
+}
+
+.pitchSignalLadder > div > svg {
+  color: var(--spotify-green-soft);
+}
+
+.pitchSignalLadder .private > svg,
+.pitchSignalLadder .private small {
+  color: var(--muted);
+}
+
+.pitchSignalLadder .recommended {
+  background: #142419;
+}
+
+.pitchTrustControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+}
+
+.pitchTrustControls span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pitchTrustControls svg {
+  color: var(--spotify-green-soft);
+}
+
+.pitchFunnel {
+  display: grid;
+  align-items: start;
+  gap: 8px;
+}
+
+.pitchFunnel > div {
+  display: flex;
+  min-width: 260px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 44px;
+  border-radius: 4px;
+  background: #173e24;
+  padding: 0 18px;
+}
+
+.pitchFunnel span {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pitchMetricDefinition {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 22px;
+  border-top: 1px solid var(--pitch-line);
+  padding-top: 20px;
+  color: var(--muted-strong);
+  line-height: 1.45;
+}
+
+.pitchMetricDefinition strong {
+  color: #fff;
+}
+
+.pitchPilotGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: 1px solid var(--pitch-line);
+}
+
+.pitchPilotGrid > div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  border-right: 1px solid var(--pitch-line);
+  padding: 24px;
+}
+
+.pitchPilotGrid > div:last-child {
+  border-right: 0;
+}
+
+.pitchPilotGrid span {
+  font-size: 48px;
+  font-weight: 850;
+}
+
+.pitchPilotGrid strong {
+  font-size: 18px;
+}
+
+.pitchPilotGrid small {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.pitchPilotMeasure {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.pitchPilotMeasure > div {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.pitchPilotMeasure svg {
+  color: var(--spotify-green-soft);
+}
+
+.pitchAskSlide {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .6fr);
+  gap: 70px;
+  align-items: center;
+}
+
+.pitchAskActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.pitchAskActions a:last-child {
+  border: 1px solid var(--pitch-line);
+  background: transparent;
+  color: #fff;
+}
+
+.pitchClosingStatement {
+  display: grid;
+  gap: 18px;
+  border-left: 2px solid var(--spotify-green);
+  padding: 24px 0 24px 28px;
+  font-size: 27px;
+  line-height: 1.18;
+}
+
+.pitchClosingStatement strong:first-child {
+  color: var(--muted);
+}
+
+.pitchControls {
+  justify-content: center;
+  gap: 20px;
+  border-top: 1px solid var(--pitch-line);
+}
+
+.pitchControls > button {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--pitch-line);
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+}
+
+.pitchControls > button:disabled {
+  opacity: .28;
+}
+
+.pitchControls > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.pitchDots {
+  display: flex;
+  gap: 7px;
+}
+
+.pitchDots button {
+  width: 22px;
+  height: 3px;
+  border: 0;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .2);
+  padding: 0;
+}
+
+.pitchDots button.active {
+  background: var(--spotify-green);
+}
+
+@media (max-width: 900px) {
+  .pitchComparison,
+  .pitchPilotGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pitchHeroSlide,
+  .pitchAskSlide {
+    grid-template-columns: 1fr;
+  }
+
+  .pitchComparison > div:nth-child(3n) {
+    border-right: 1px solid var(--pitch-line);
+  }
+
+  .pitchComparison > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .pitchJourney,
+  .pitchSignalLadder {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pitchJourney a:nth-child(2) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .pitchDeck {
+    grid-template-rows: 60px minmax(0, 1fr) 56px;
+  }
+
+  .pitchTopbar {
+    padding-inline: 14px;
+  }
+
+  .pitchBrand small,
+  .pitchTopActions > a {
+    display: none;
+  }
+
+  .pitchSlide {
+    width: calc(100% - 28px);
+    align-content: start;
+    gap: 28px;
+    padding-block: 28px;
+  }
+
+  .pitchSlideHeader h2,
+  .pitchAskSlide h2 {
+    font-size: 35px;
+  }
+
+  .pitchHeroCopy h1 {
+    font-size: 52px;
+  }
+
+  .pitchClaim {
+    font-size: 24px;
+  }
+
+  .pitchHeroVisual {
+    padding: 18px;
+  }
+
+  .pitchComparison,
+  .pitchJourney,
+  .pitchSignalLadder,
+  .pitchPilotGrid,
+  .pitchPilotMeasure {
+    grid-template-columns: 1fr;
+  }
+
+  .pitchComparison > div,
+  .pitchComparison > div:nth-child(n),
+  .pitchJourney a,
+  .pitchPilotGrid > div {
+    border-right: 0;
+  }
+
+  .pitchJourney a {
+    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .pitchSignalLadder > div,
+  .pitchPilotGrid > div {
+    padding: 18px;
+  }
+
+  .pitchFunnel > div {
+    width: 100% !important;
+    min-width: 240px;
+  }
+
+  .pitchMetricDefinition {
+    grid-template-columns: 1fr;
+  }
+
+  .pitchClosingStatement {
+    font-size: 22px;
+  }
+
+  .pitchControls {
+    gap: 10px;
+    padding-inline: 10px;
+  }
+
+  .pitchDots button {
+    width: 12px;
+  }
+}

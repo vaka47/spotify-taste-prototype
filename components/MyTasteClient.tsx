@@ -241,7 +241,7 @@ export function MyTasteClient() {
         <div>
           {state === "connected" ? <div className="eyebrow">{t("my.eyebrow")}</div> : null}
           <h1 className="pageTitle">{state === "connected" ? t("my.title") : t("nav.my")}</h1>
-          <p className="lead">{state === "connected" ? t("my.lead") : (locale === "ru" ? "Подключите Spotify, чтобы делиться прослушиваниями и подписываться на Taste друзей." : "Connect Spotify to share listening and follow your friends' Taste profiles.")}</p>
+          <p className="lead">{state === "connected" ? t("my.lead") : (locale === "ru" ? "Подключите Spotify, чтобы публиковать значимые сигналы и подписываться на вкус друзей." : "Connect Spotify to publish meaningful signals and follow the taste of friends you trust.")}</p>
         </div>
         {state === "connected" ? (
           <div className="buttonRow headerActions">

@@ -7,6 +7,7 @@ import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
 import { getTrackBySlug } from "@/lib/format";
 import { tracks, travis } from "@/lib/mock-data";
+import { recordAttributionEvent } from "@/lib/prototype-events";
 import { useI18n } from "@/lib/i18n";
 
 export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
@@ -19,7 +20,7 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
     <main className="nativePlayerPage">
       <header className="nativePlayerTop">
         <Link className="nativeIconAction" href="/feed" aria-label={ru ? "Вернуться в ленту Taste" : "Back to Taste Feed"}><Icon name="chevronLeft" /></Link>
-        <div><small>{ru ? "ИЗ ЛЕНТЫ TASTE" : "PLAYING FROM TASTE"}</small><strong>{travis.name}</strong></div>
+        <div><small>{ru ? "ИЗ FOLLOW TASTE" : "PLAYING FROM FOLLOW TASTE"}</small><strong>{travis.name}</strong></div>
         <button className="nativeIconAction" type="button" aria-label={ru ? "Параметры трека" : "Track options"} onClick={() => showToast(ru ? "Открыто меню трека" : "Track menu opened")}><Icon name="more" /></button>
       </header>
 
@@ -29,12 +30,12 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
         <div className="nativePlayerDetails">
           <div className="nativePlayerTitleRow">
             <div><h1>{track.title}</h1><p>{track.artist}</p></div>
-            <button className="nativeIconAction saveTrackButton" type="button" aria-label={ru ? "Сохранить трек" : "Save track"} onClick={() => showToast(ru ? "Трек сохранён" : "Track saved")}><Icon name="save" /></button>
+            <button className="nativeIconAction saveTrackButton" type="button" aria-label={ru ? "Сохранить трек" : "Save track"} onClick={() => { recordAttributionEvent("save_intent", travis.id, track.id); showToast(ru ? "Трек сохранён · влияние учтено" : "Track saved · influence attributed"); }}><Icon name="save" /></button>
           </div>
 
           <Link className="nativeAttribution" href="/tastemaker/travis-scott">
             <span className="nativeAttributionAvatar"><img src={travis.avatarUrl} alt="" onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }} /></span>
-            <span><small>{ru ? "Найдено через Taste" : "Discovered through Taste"}</small><strong>{travis.name}</strong></span>
+            <span><small>{ru ? "Рекомендовано через Follow Taste" : "Recommended through Follow Taste"}</small><strong>{travis.name}</strong></span>
             <Icon name="chevronRight" size={18} />
           </Link>
 
@@ -49,8 +50,9 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
 
       <section className="nativeWhySection">
         <h2>{ru ? "Почему этот трек в вашей ленте" : "Why this is in your feed"}</h2>
-        <div><Icon name="feed" /><span><strong>{ru ? "14 прослушиваний за неделю" : "14 plays this week"}</strong><small>{ru ? "Трэвис чаще всего возвращался к этому треку." : "This is the track Travis returned to most."}</small></span></div>
-        <div><Icon name="user" /><span><strong>{ru ? "Найдено благодаря Трэвису" : "Discovered through Travis"}</strong><small>{ru ? "Если вы продолжите слушать или сохраните трек, Taste учтёт влияние." : "A repeat play or save contributes to Taste influence."}</small></span></div>
+        <div><Icon name="comment" /><span><strong>{ru ? "Трэвис рекомендует этот трек" : "Recommended by Travis"}</strong><small>{ru ? "«Обратите внимание на переход во второй половине»." : "“Listen for the switch in the second half.”"}</small></span></div>
+        <div><Icon name="feed" /><span><strong>{ru ? "14 прослушиваний за неделю" : "14 plays this week"}</strong><small>{ru ? "Рекомендация подтверждена повторными прослушиваниями, а не одним случайным запуском." : "The recommendation is backed by repeat listening, not a one-off play."}</small></span></div>
+        <div><Icon name="user" /><span><strong>{ru ? "Квалифицированное открытие" : "Qualified discovery"}</strong><small>{ru ? "Первый запуск связывается с Трэвисом; сохранение или повтор подтверждают влияние." : "The first play is attributed to Travis; a save or repeat qualifies the influence."}</small></span></div>
       </section>
     </main>
   );

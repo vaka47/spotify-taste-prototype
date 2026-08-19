@@ -12,12 +12,12 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
   const router = useRouter();
   const { locale } = useI18n();
   const ru = locale === "ru";
-  const labels = ru ? { now_playing: "Слушает сейчас", on_repeat: "На повторе", new_discovery: "Новое открытие", deep_cut: "Редкая находка" } : kindLabels;
+  const labels = ru ? { recommended: "Рекомендует", on_repeat: "На повторе", saved_discovery: "Сохранённое открытие", rediscovered: "Вернулся к треку" } : kindLabels;
   const signals = ru ? {
-    now_playing: "Сейчас вместе с ним слушают 17 тыс. подписчиков",
-    on_repeat: "14 прослушиваний за эту неделю",
-    new_discovery: "Сохранено после первого прослушивания",
-    deep_cut: "Возвращается к треку спустя годы",
+    recommended: "Добавил комментарий после 14 прослушиваний",
+    on_repeat: "11 прослушиваний за эту неделю",
+    saved_discovery: "Сохранено после первого прослушивания",
+    rediscovered: "Вернулся к треку спустя 4 месяца",
   } : null;
   const timestamp = ru
     ? event.timestampLabel
@@ -47,7 +47,6 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
               }}
             />
           </div>
-          <span className="nativeLiveDot" aria-hidden="true" />
         </div>
         <div className="nativeFeedText">
           <div className="nativeFeedMeta">
@@ -58,7 +57,7 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
           <div className="nativeFeedTrackTitle">{event.track.title}</div>
           <div className="nativeFeedArtist">{event.track.artist}</div>
           <div className="nativeFeedSignal">
-            <Icon name={event.kind === "new_discovery" ? "save" : event.kind === "deep_cut" ? "clock" : "feed"} size={18} />
+            <Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />
             {signals?.[event.kind] || event.humanSignal}
           </div>
         </div>

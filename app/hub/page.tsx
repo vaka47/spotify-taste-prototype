@@ -1,292 +1,101 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DemoBadge } from "@/components/DemoBadge";
 import { Icon } from "@/components/Icons";
 import { TrackArtwork } from "@/components/TrackArtwork";
-import { useToast } from "@/components/ToastProvider";
-import { hubMetrics, privacyControls, topInfluencedTracks } from "@/lib/mock-data";
+import { hubMetrics, topInfluencedTracks } from "@/lib/mock-data";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import { usePrototypeEventCount } from "@/lib/use-prototype-event-count";
 import { useI18n } from "@/lib/i18n";
 
-const experiments = [
-  "Spotify-funded Tastemaker Pool",
-  "Taste+ add-on",
-  "Premium Tastemaker subscription",
+const funnel = [
+  { key: "starts", value: hubMetrics.attributedStarts, width: 100 },
+  { key: "first", value: hubMetrics.firstListens, width: 72 },
+  { key: "saves", value: hubMetrics.saves, width: 48 },
+  { key: "repeats", value: hubMetrics.repeats, width: 31 },
+  { key: "follows", value: hubMetrics.artistFollows, width: 18 },
 ] as const;
 
 export default function HubPage() {
-  const eventCount = usePrototypeEventCount();
   const router = useRouter();
-  const { showToast } = useToast();
-  const [activeExperiment, setActiveExperiment] = useState<(typeof experiments)[number]>("Spotify-funded Tastemaker Pool");
+  const eventCount = usePrototypeEventCount();
   const { locale } = useI18n();
   const ru = locale === "ru";
-  const privacyRu: Record<string, { title: string; description: string }> = {
-    "hide-track": { title: "Скрыть трек", description: "Исключить отдельный трек из публичной истории." },
-    "hide-artist": { title: "Скрыть артиста", description: "Не публиковать прослушивания выбранного артиста." },
-    delay: { title: "Задержка 24 часа", description: "Не показывать активность в реальном времени." },
-    selected: { title: "Только выбранные сессии", description: "Публиковать только явно выбранные прослушивания." },
-  };
+  const funnelLabels = ru
+    ? { starts: "Запуски из Follow Taste", first: "Первые прослушивания", saves: "Сохранения", repeats: "Повторы через 28 дней", follows: "Подписки на артиста" }
+    : { starts: "Starts from Follow Taste", first: "First listens", saves: "Saves", repeats: "28-day repeats", follows: "Artist follows" };
 
-  function openInfluencedTrack(trackId: string, trackSlug: string, title: string) {
+  function openTrack(trackId: string, slug: string) {
     recordTrackOpen("spotify_artist_0Y5tJX1MQlPlqiwlOH1tJY", trackId);
-    showToast(`Opening influenced track: ${title}`);
-    router.push(`/player/${trackSlug}`);
+    router.push(`/player/${slug}`);
   }
 
   return (
-    <main className="page">
-      <div className="sectionHeader">
+    <main className="page nativeAnalyticsPage">
+      <header className="analyticsHero">
         <div>
-          <div className="eyebrow">{ru ? "Аналитика тейстмейкера" : "Tastemaker Hub"}</div>
-          <h1 className="pageTitle">{ru ? "Влияние, которое можно измерить." : "Influence, made measurable."}</h1>
-          <p className="lead">{ru ? "Для артистов и верифицированных культурных профилей. Вся экономика на экране является предлагаемой продуктовой моделью." : "For artists and verified cultural profiles. All economics here are a proposed product model."}</p>
+          <div className="eyebrow">{ru ? "АНАЛИТИКА FOLLOW TASTE" : "FOLLOW TASTE ANALYTICS"}</div>
+          <h1>{ru ? "Влияние измеряется поведением после открытия." : "Influence is what happens after discovery."}</h1>
+          <p>{ru ? "Не считаем случайный клик влиянием. Сигнал становится квалифицированным, когда новое прослушивание приводит к сохранению, повтору или подписке на артиста." : "A click is not influence. A discovery qualifies when a first listen leads to a save, repeat listen or artist follow."}</p>
         </div>
-        <DemoBadge>{ru ? "Иллюстративная экономика · не данные Spotify" : "Illustrative economics · not Spotify data"}</DemoBadge>
-      </div>
+        <DemoBadge>{ru ? "Иллюстративная модель · не данные Spotify" : "Illustrative model · not Spotify data"}</DemoBadge>
+      </header>
 
-      <section className="panel">
-        <div className="sectionHeader" style={{ marginBottom: 0 }}>
-          <div>
-            <div className="metricLabel">
-              {ru ? "Подписчики Taste" : "Taste followers"}
-              <button className="inlineIconButton" type="button" aria-label="Taste followers details" onClick={() => showToast("Followers of the proposed Taste surface.")}>
-                <Icon name="info" size={17} />
-              </button>
-            </div>
-            <div className="metricNumber">{hubMetrics.tasteFollowers}</div>
-            <div className="metricDelta">{ru ? "+380 тыс. за 90 дней" : hubMetrics.tasteFollowersDelta}</div>
-          </div>
-          <DemoBadge>{ru ? "Иллюстративная метрика профиля" : "Illustrative profile metric"}</DemoBadge>
-        </div>
-        <div className="hubChart" aria-label="Illustrative Taste followers growth chart">
-          <div className="chartFrame">
-            <svg viewBox="0 0 620 220" role="img" aria-label="Illustrative follower growth line">
-              <defs>
-                <linearGradient id="tasteArea" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#1ed760" stopOpacity=".34" />
-                  <stop offset="100%" stopColor="#1ed760" stopOpacity=".02" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M0 182 C40 166 58 150 92 146 C118 142 132 126 166 125 C198 124 216 115 248 110 C282 104 304 88 338 92 C366 95 382 72 416 67 C452 62 464 49 498 47 C530 45 548 29 584 24 C600 21 610 15 620 10 L620 220 L0 220 Z"
-                fill="url(#tasteArea)"
-              />
-              <path
-                d="M0 182 C40 166 58 150 92 146 C118 142 132 126 166 125 C198 124 216 115 248 110 C282 104 304 88 338 92 C366 95 382 72 416 67 C452 62 464 49 498 47 C530 45 548 29 584 24 C600 21 610 15 620 10"
-                fill="none"
-                stroke="#1ed760"
-                strokeLinecap="round"
-                strokeWidth="5"
-              />
-            </svg>
-            <div className="chartMonths">
-              <span>{ru ? "1 апр" : "Apr 1"}</span>
-              <span>{ru ? "15 апр" : "Apr 15"}</span>
-              <span>{ru ? "1 мая" : "May 1"}</span>
-              <span>{ru ? "15 мая" : "May 15"}</span>
-              <span>{ru ? "31 мая" : "May 31"}</span>
-            </div>
-          </div>
-          <div className="chartAxis">
-            <span>4.5M</span>
-            <span>3.0M</span>
-            <span>1.5M</span>
-          </div>
-        </div>
+      <section className="analyticsMetricGrid" aria-label={ru ? "Ключевые метрики" : "Key metrics"}>
+        <article><span>{ru ? "Подписчики Taste" : "Taste followers"}</span><strong>{hubMetrics.tasteFollowers}</strong><small>{ru ? "люди, выбравшие человеческий источник" : "people choosing a human source"}</small></article>
+        <article><span>{ru ? "Квалифицированные открытия" : "Qualified discoveries"}</span><strong>{hubMetrics.qualifiedDiscoveries}</strong><small>{ru ? "первый запуск + действие высокого намерения" : "first play + high-intent action"}</small></article>
+        <article><span>{ru ? "Сохранение после открытия" : "Post-discovery save rate"}</span><strong>{hubMetrics.saveRate}</strong><small>{ru ? "основной ранний показатель качества" : "primary early quality signal"}</small></article>
+        <article><span>{ru ? "Повтор через 28 дней" : "28-day repeat rate"}</span><strong>{hubMetrics.repeat28d}</strong><small>{ru ? "долгосрочная ценность рекомендации" : "long-term recommendation value"}</small></article>
       </section>
 
-      <section className="grid4 section" aria-label="Hub metrics">
-        <article className="metricCard">
-          <div className="metricLabel">
-            Influence Streams
-            <button className="inlineIconButton" type="button" aria-label="Influence Streams details" onClick={() => showToast("Qualified discovery attribution: play, save, repeat and follow.")}>
-              <Icon name="info" size={17} />
-            </button>
+      <section className="analyticsSplit section">
+        <article className="analyticsSurface">
+          <div className="nativeSectionHeader"><div><h2>{ru ? "Фаннел влияния" : "Influence funnel"}</h2><p>{ru ? "Атрибуция заканчивается не на клике, а на подтверждённом намерении." : "Attribution continues beyond the click to verified intent."}</p></div></div>
+          <div className="discoveryFunnel">
+            {funnel.map(item => <div className="funnelRow" key={item.key}><span>{funnelLabels[item.key]}</span><div><i style={{ width: `${item.width}%` }} /></div><strong>{item.value}</strong></div>)}
           </div>
-          <div className="metricNumber">{hubMetrics.influenceStreams}</div>
-          <div className="metricDelta">{ru ? "+18% к прошлому месяцу" : hubMetrics.influenceStreamsDelta}</div>
+          <p className="analyticsDefinition"><Icon name="info" size={17} />{ru ? "Окно атрибуции: первый запуск из Taste → сохранение, повтор или подписка в течение 28 дней." : "Attribution window: first play from Taste → save, repeat or artist follow within 28 days."}</p>
         </article>
-        <article className="metricCard">
-          <div className="metricLabel">
-            {ru ? "Сохранения после открытия" : "Discovery saves"}
-            <button className="inlineIconButton" type="button" aria-label="Discovery saves details" onClick={() => showToast("High-intent saves after a Taste-sourced first listen.")}>
-              <Icon name="save" size={17} />
-            </button>
+
+        <article className="analyticsSurface">
+          <div className="nativeSectionHeader"><div><h2>{ru ? "Контракт качества" : "Quality contract"}</h2><p>{ru ? "Правила, без которых человеческое влияние превращается в payola." : "Guardrails that keep human influence from becoming payola."}</p></div></div>
+          <div className="integrityList">
+            <div><Icon name="check" /><span><strong>{ru ? "Значимые сигналы" : "Meaningful signals"}</strong><small>{ru ? "Повторы, сохранения и явные рекомендации; разовые запуски скрыты." : "Repeats, saves and explicit recommendations; one-off plays stay private."}</small></span></div>
+            <div><Icon name="privacy" /><span><strong>{ru ? "Согласие и задержка" : "Consent and delay"}</strong><small>{ru ? "Opt-in, задержка 24 часа, скрытие треков и артистов." : "Opt-in, 24-hour delay, track and artist exclusions."}</small></span></div>
+            <div><Icon name="info" /><span><strong>{ru ? "Маркировка промо" : "Promotion disclosure"}</strong><small>{ru ? "Оплаченный сигнал всегда отделён от органической рекомендации." : "Paid signals are always separated from organic recommendations."}</small></span></div>
+            <div><Icon name="hide" /><span><strong>{ru ? "Антифрод до экономики" : "Integrity before economics"}</strong><small>{ru ? "Подозрительные цепочки исключаются; выплаты не входят в MVP." : "Suspicious paths are excluded; payouts are outside the MVP."}</small></span></div>
           </div>
-          <div className="metricNumber">{hubMetrics.discoverySaves}</div>
-          <div className="metricDelta">{ru ? "после первого прослушивания из Taste" : hubMetrics.discoverySavesNote}</div>
-        </article>
-        <article className="metricCard">
-          <div className="metricLabel">
-            {ru ? "Локальные события браузера" : "Browser-local events"}
-            <button className="inlineIconButton" type="button" aria-label="Browser-local event details" onClick={() => showToast("Local events prove the click path only.")}>
-              <Icon name="feed" size={17} />
-            </button>
-          </div>
-          <div className="metricNumber">{eventCount}</div>
-          <div className="metricDelta">{ru ? "Записано в этом браузере" : "Recorded in this browser"}</div>
-        </article>
-        <article className="metricCard">
-          <div className="metricLabel">
-            {ru ? "Официальные данные Spotify" : "Official Spotify data"}
-            <button className="inlineIconButton" type="button" aria-label="Official Spotify data details" onClick={() => showToast("Tracks and embeds are real; hub metrics are proposed.")}>
-              <Icon name="info" size={17} />
-            </button>
-          </div>
-          <div className="metricNumber">0</div>
-          <div className="metricDelta">{ru ? "публичные метрики являются макетом" : "public hub metrics are mock"}</div>
+          <Link className="nativeTextLink analyticsPrivacyLink" href="/privacy">{ru ? "Открыть настройки доверия" : "Open trust controls"}<Icon name="chevronRight" size={17} /></Link>
         </article>
       </section>
 
-      <section className="grid2 section">
-        <article className="panel">
-          <div className="sectionHeader">
-            <h2>{ru ? "Треки с наибольшим влиянием" : "Top tracks influenced"}</h2>
-            <DemoBadge>{ru ? "Предлагаемая метрика Influence Streams" : "Proposed Influence Streams metric"}</DemoBadge>
-          </div>
+      <section className="analyticsSplit section">
+        <article className="analyticsSurface">
+          <div className="nativeSectionHeader"><div><h2>{ru ? "Треки с подтверждённым влиянием" : "Top qualified discoveries"}</h2><p>{ru ? "Только открытия, после которых появилось действие высокого намерения." : "Only discoveries followed by a high-intent action."}</p></div></div>
           <div className="influencedList">
             {topInfluencedTracks.map(item => (
-              <button
-                className="influencedTrack"
-                type="button"
-                key={item.track.id}
-                onClick={() => openInfluencedTrack(item.track.id, item.track.slug, item.track.title)}
-              >
-                <TrackArtwork
-                  src={item.track.coverUrl}
-                  fallbackSrc={item.track.fallbackCoverUrl}
-                  alt={`${item.track.title} album cover from Spotify`}
-                  className="trackThumb"
-                />
-                <div style={{ minWidth: 0 }}>
-                  <div className="trackTitle">
-                    {item.track.artist} - {item.track.title}
-                  </div>
-                  <div className="bar" aria-hidden="true">
-                    <span style={{ width: `${item.share}%` }} />
-                  </div>
-                </div>
-                <strong>{item.influenceStreams}</strong>
+              <button className="influencedTrack" type="button" key={item.track.id} onClick={() => openTrack(item.track.id, item.track.slug)}>
+                <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="trackThumb" />
+                <div><span className="trackTitle">{item.track.artist} · {item.track.title}</span><div className="bar"><span style={{ width: `${item.share}%` }} /></div></div>
+                <strong>{item.qualifiedDiscoveries}</strong>
               </button>
             ))}
           </div>
         </article>
 
-        <article className="earningsCard">
-          <DemoBadge>{ru ? "Иллюстративная экономика · не данные Spotify" : "Illustrative economics · not Spotify data"}</DemoBadge>
-          <div className="eyebrow" style={{ marginTop: 16 }}>{ru ? "Оценка дохода Taste" : "Estimated Taste Earnings"}</div>
-          <div className="earningsNumber">{hubMetrics.estimatedEarnings}</div>
-          <p className="muted">
-            {ru ? "Гипотетическая месячная доля из фонда тейстмейкеров Spotify. Модель не уменьшает роялти правообладателя найденного трека." : "Hypothetical monthly share from a Spotify-funded Tastemaker Pool. This does not take money from the rights-holder royalty assigned to the discovered track."}
-          </p>
-          <div className="modelSteps">
-            <div className="modelStep">
-              <span className="stepNumber">1</span>
-              <div>
-                <strong>{ru ? "Spotify финансирует фонд тейстмейкеров" : "Spotify funds a Tastemaker Pool"}</strong>
-                <p className="finePrint">{ru ? "Отдельный фонд вне расчёта роялти артистов." : "A separate pool, outside artist royalty accounting."}</p>
-              </div>
-            </div>
-            <div className="modelStep">
-              <span className="stepNumber">2</span>
-              <div>
-                <strong>{ru ? "Подтверждённое влияние создаёт долю" : "Verified influence creates a pool share"}</strong>
-                <p className="finePrint">{ru ? "Учитываются первое прослушивание, сохранение, повтор и подписка на артиста." : "Qualified discovery can include first play, save, repeat and artist follow."}</p>
-              </div>
-            </div>
-            <div className="modelStep">
-              <span className="stepNumber">3</span>
-              <div>
-                <strong>{ru ? "Тейстмейкер получает доход" : "Tastemaker receives earnings"}</strong>
-                <p className="finePrint">{ru ? "Только в рамках пилота с защитой от фрода и правилами прозрачности." : "Only as a proposed pilot with fraud controls and disclosure rules."}</p>
-              </div>
-            </div>
-          </div>
-        </article>
-      </section>
-
-      <section className="grid2 section">
-        <article className="panel">
-          <div className="sectionHeader">
-            <h2>{ru ? "Эксперименты монетизации" : "Monetization experiments"}</h2>
-            <DemoBadge>{ru ? "Вторичные тесты" : "Secondary tests"}</DemoBadge>
-          </div>
-          <div className="experimentList">
-            <button
-              className="experimentRow"
-              type="button"
-              aria-pressed={activeExperiment === experiments[0]}
-              onClick={() => {
-                setActiveExperiment(experiments[0]);
-                showToast(`${experiments[0]} selected`);
-              }}
-            >
-              <span className={`radioDot ${activeExperiment === experiments[0] ? "active" : ""}`} />
-              <div>
-                <strong>{ru ? "Фонд тейстмейкеров Spotify" : "Spotify-funded Tastemaker Pool"}</strong>
-                <p className="finePrint">{ru ? "Рекомендуемая первая модель: вознаграждать подтверждённое влияние, сохраняя Taste доступным." : "Recommended first model: reward verified influence while keeping Taste broadly accessible."}</p>
-              </div>
-            </button>
-            <button
-              className="experimentRow"
-              type="button"
-              aria-pressed={activeExperiment === experiments[1]}
-              onClick={() => {
-                setActiveExperiment(experiments[1]);
-                showToast(`${experiments[1]} selected`);
-              }}
-            >
-              <span className={`radioDot ${activeExperiment === experiments[1] ? "active" : ""}`} />
-              <div>
-                <strong>{ru ? "Дополнение Taste+" : "Taste+ add-on"}</strong>
-                <p className="finePrint">{ru ? "Необязательный платный уровень для глубокой социальной выдачи, живых миксов и расширенной истории." : "Optional paid tier for deeper social discovery, living mixes and richer Taste history."}</p>
-              </div>
-            </button>
-            <button
-              className="experimentRow"
-              type="button"
-              aria-pressed={activeExperiment === experiments[2]}
-              onClick={() => {
-                setActiveExperiment(experiments[2]);
-                showToast(`${experiments[2]} selected`);
-              }}
-            >
-              <span className={`radioDot ${activeExperiment === experiments[2] ? "active" : ""}`} />
-              <div>
-                <strong>{ru ? "Премиум-подписка на тейстмейкера" : "Premium Tastemaker subscription"}</strong>
-                <p className="finePrint">{ru ? "Высокий потенциал, но больший риск для доверия. Оставить на поздний эксперимент." : "High upside, but stronger authenticity risk. Keep as a later experiment."}</p>
-              </div>
-            </button>
-          </div>
-        </article>
-
-        <article className="panel">
-          <div className="sectionHeader">
-            <h2>{ru ? "Настройки" : "Controls"}</h2>
-            <DemoBadge>{ru ? "Защита доверия" : "Trust guardrails"}</DemoBadge>
-          </div>
-          <div className="trackList">
-            {privacyControls.slice(1, 5).map(control => (
-              <Link className="privacyRow" href="/privacy" key={control.id}>
-                <span className="privacyIcon">
-                  <Icon name={control.id === "delay" ? "clock" : control.id === "selected" ? "external" : "hide"} />
-                </span>
-                <div>
-                  <strong>{ru ? privacyRu[control.id]?.title || control.title : control.title}</strong>
-                  <p className="finePrint">{ru ? privacyRu[control.id]?.description || control.description : control.description}</p>
-                </div>
-                <span className="muted">&gt;</span>
-              </Link>
-            ))}
-          </div>
-          <p className="finePrint" style={{ marginTop: 18, textAlign: "center" }}>
-            {ru ? "Оплаченные и промо-размещения Taste всегда должны быть помечены." : "Paid or promoted Taste placements must be labeled."}
-          </p>
+        <article className="analyticsSurface pilotReadout">
+          <div className="nativeSectionHeader"><div><h2>{ru ? "Дизайн пилота" : "Pilot design"}</h2><p>{ru ? "Минимальный тест, который способен доказать ценность Spotify." : "The smallest test that can prove value to Spotify."}</p></div></div>
+          <dl>
+            <div><dt>{ru ? "Участники" : "Supply"}</dt><dd>{ru ? "50 диджеев, продюсеров и кураторов" : "50 DJs, producers and curators"}</dd></div>
+            <div><dt>{ru ? "Аудитория" : "Audience"}</dt><dd>{ru ? "10 тыс. приглашённых слушателей" : "10K invited listeners"}</dd></div>
+            <div><dt>{ru ? "Срок" : "Duration"}</dt><dd>{ru ? "4 недели" : "4 weeks"}</dd></div>
+            <div><dt>{ru ? "Основная метрика" : "Primary metric"}</dt><dd>{ru ? "Сохранения и повторы новых артистов" : "Saves and repeats of newly discovered artists"}</dd></div>
+            <div><dt>{ru ? "Guardrail" : "Guardrail"}</dt><dd>{ru ? "Скрытия, жалобы и доля промо-сигналов" : "Hides, reports and promoted-signal share"}</dd></div>
+          </dl>
+          <div className="localProof"><span>{ru ? "Локальных demo-событий" : "Local demo events"}</span><strong>{eventCount}</strong></div>
+          <Link className="nativePrimaryButton" href="/pitch">{ru ? "Открыть pitch для Spotify" : "Open Spotify pitch"}</Link>
         </article>
       </section>
     </main>
