@@ -274,8 +274,9 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
 
   const avatarUrl = isReal ? serverProfile?.avatarUrl : demoProfile.avatarUrl;
   const avatarFallbackUrl = isReal ? undefined : demoProfile.fallbackAvatarUrl;
-  const role = isReal ? serverProfile?.role : (demoRu?.role || demoProfile.role);
-  const bio = isReal ? serverProfile?.bio : (demoRu?.bio || demoProfile.bio);
+  const useLocalizedSeedCopy = !isReal && demoProfile.source === "seeded";
+  const role = isReal ? serverProfile?.role : (useLocalizedSeedCopy ? demoRu?.role : demoProfile.role) || demoProfile.role;
+  const bio = isReal ? serverProfile?.bio : (useLocalizedSeedCopy ? demoRu?.bio : demoProfile.bio) || demoProfile.bio;
   const verified = isReal ? Boolean(serverProfile?.verified) : demoProfile.verified;
   const publicCount = isReal ? weeklyHistory.length : demoWeeklyHistory.length;
   const comments = isReal
