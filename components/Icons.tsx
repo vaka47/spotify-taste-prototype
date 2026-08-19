@@ -22,6 +22,9 @@ type IconName =
   | "library"
   | "bell"
   | "comment"
+  | "close"
+  | "volume"
+  | "volumeOff"
   | "chevronLeft"
   | "chevronRight";
 
@@ -57,6 +60,9 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     library: <path d="M4 4v16M9 4v16M14 6l5-1v15l-5 1V6Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />,
     bell: <path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 6 2.5 8H3.5C3.5 15 6 15 6 9Zm4 11h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />,
     comment: <path d="M4 5h16v11H9l-5 4V5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />,
+    close: <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />,
+    volume: <><path d="M5 10v4h3l4 4V6l-4 4H5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></>,
+    volumeOff: <><path d="M5 10v4h3l4 4V6l-4 4H5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="m16 10 4 4m0-4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></>,
     chevronLeft: <path d="m15 5-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
     chevronRight: <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
   };

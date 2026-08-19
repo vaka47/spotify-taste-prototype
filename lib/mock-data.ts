@@ -22,6 +22,32 @@ export const travis: Tastemaker = {
   origin: "spotify",
 };
 
+export const tyler: Tastemaker = {
+  id: "spotify_artist_4V8LLVI7PbaPR0K2TGSxFF",
+  slug: "tyler-the-creator",
+  name: "Tyler, The Creator",
+  role: "Artist and creator",
+  avatarUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02c5a1610726a08f3892e4dca9",
+  fallbackAvatarUrl: "/covers/likehim.jpg",
+  spotifyArtistId: "4V8LLVI7PbaPR0K2TGSxFF",
+  spotifyUrl: "https://open.spotify.com/artist/4V8LLVI7PbaPR0K2TGSxFF",
+  verified: true,
+  origin: "spotify",
+};
+
+export const doechii: Tastemaker = {
+  id: "spotify_artist_4E2rKHVDssGJm2SCDOMMJB",
+  slug: "doechii",
+  name: "Doechii",
+  role: "Artist and tastemaker",
+  avatarUrl: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e022513ae79437fb2204c4115c3",
+  fallbackAvatarUrl: "/covers/crg.jpg",
+  spotifyArtistId: "4E2rKHVDssGJm2SCDOMMJB",
+  spotifyUrl: "https://open.spotify.com/artist/4E2rKHVDssGJm2SCDOMMJB",
+  verified: true,
+  origin: "spotify",
+};
+
 function spotifyTrack({
   spotifyId,
   slug,
@@ -130,6 +156,7 @@ export const feedEvents: TasteFeedEvent[] = [
     timestampLabel: "2h ago",
     humanSignal: "Travis added a note after 14 plays",
     secondarySignal: "An explicit recommendation, not an inferred endorsement",
+    authorNote: "Listen for the switch in the second half.",
     origin: "illustrative",
   },
   {
@@ -144,22 +171,23 @@ export const feedEvents: TasteFeedEvent[] = [
   },
   {
     id: "ev_new_discovery",
-    tastemaker: travis,
+    tastemaker: doechii,
     track: tracks.chamber,
     kind: "saved_discovery",
     timestampLabel: "5h ago",
-    humanSignal: "First saved by Travis today",
+    humanSignal: "First saved by Doechii today",
     secondarySignal: "First-save signal shown as proposed product behavior",
     origin: "illustrative",
   },
   {
     id: "ev_deep_cut",
-    tastemaker: travis,
+    tastemaker: tyler,
     track: tracks.iykyk,
     kind: "rediscovered",
     timestampLabel: "Yesterday",
     humanSignal: "Resurfaced after 4 months",
     secondarySignal: "Deep cuts can re-enter discovery through taste",
+    authorNote: "The opening leaves exactly the right amount of space.",
     origin: "illustrative",
   },
 ];

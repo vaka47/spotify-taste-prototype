@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/Icons";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
+import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
 import { tracks, travis, travisWeeklyHistory } from "@/lib/mock-data";
@@ -74,6 +75,16 @@ export default function TravisTastePage() {
     ? { music: "Музыка", events: "Концерты", merch: "Мерч", taste: "Taste" }
     : { music: "Music", events: "Events", merch: "Merch", taste: "Taste" };
 
+  const tasteQueue = travisWeeklyHistory.map(item => ({
+    id: `travis_queue_${item.track.id}`,
+    track: item.track,
+    tastemaker: travis,
+    signal: ru
+      ? `${item.plays} ${item.plays === 2 || item.plays === 3 || item.plays === 4 ? "прослушивания" : "прослушиваний"} за неделю · ${signalLabel(item.kind, true)}`
+      : `${item.plays} plays this week · ${signalLabel(item.kind, false)}`,
+    authorNote: item.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : item.authorNote) : null,
+  }));
+
   const discussionPanel = discussion ? (
     <section className="tasteDiscussion">
       <div className="tasteDiscussionTrack">
@@ -112,7 +123,18 @@ export default function TravisTastePage() {
 
       <div className="artistBody">
         <div className="artistActionBar">
-          <button className="nativePlayButton" type="button" aria-label={ru ? "Слушать Travis Scott" : "Play Travis Scott"} onClick={() => router.push(`/player/${tracks.fein.slug}`)}><Icon name="play" size={25} /></button>
+          {activeTab === "taste" ? (
+            <TasteQueuePlayer
+              items={tasteQueue}
+              triggerLabel={ru ? "Слушать Taste" : "Play Taste"}
+              triggerAriaLabel={ru ? "Слушать Taste Трэвиса по порядку" : "Play Travis's Taste in order"}
+              triggerClassName="nativePlayButton"
+              iconOnly
+            />
+          ) : (
+            <button className="nativePlayButton" type="button" aria-label={ru ? "Слушать Travis Scott" : "Play Travis Scott"} onClick={() => router.push(`/player/${tracks.fein.slug}`)}><Icon name="play" size={25} /></button>
+          )}
+          {activeTab === "taste" ? <span className="artistActionContext">{ru ? "Слушать Taste · 8 треков" : "Play Taste · 8 tracks"}</span> : null}
           <a className="nativeIconAction" href={travis.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? "Открыть в Spotify" : "Open in Spotify"}><Icon name="more" /></a>
         </div>
 
@@ -175,6 +197,11 @@ export default function TravisTastePage() {
                   {discussion?.track.id === item.track.id ? discussionPanel : null}
                 </div>
               ))}
+            </div>
+
+            <div className="artistTeamEntry">
+              <span><Icon name="check" size={17} /><span><strong>{ru ? "Вы представляете артиста?" : "Represent this artist?"}</strong><small>{ru ? "Подключите Taste через подтверждённую команду Spotify for Artists." : "Activate Taste through the verified Spotify for Artists team."}</small></span></span>
+              <Link href="/artist-onboarding">{ru ? "Настроить Taste" : "Set up Taste"}<Icon name="chevronRight" size={17} /></Link>
             </div>
           </section>
         ) : null}

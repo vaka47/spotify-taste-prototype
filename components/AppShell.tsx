@@ -27,6 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : pathname.startsWith("/taste/") ? "nav.public"
     : pathname.startsWith("/notifications") ? "nav.inbox"
     : pathname.startsWith("/privacy") ? "nav.privacy"
+    : pathname.startsWith("/artist-onboarding") ? "nav.onboarding"
     : pathname.startsWith("/hub") ? "nav.hub"
     : current.labelKey;
   const immersivePlayer = pathname.startsWith("/player/");

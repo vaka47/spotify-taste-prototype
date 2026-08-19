@@ -7,7 +7,7 @@ import { Icon } from "@/components/Icons";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { hubMetrics, tracks, travis } from "@/lib/mock-data";
 
-const SLIDE_COUNT = 7;
+const SLIDE_COUNT = 9;
 
 export default function PitchPage() {
   const [slide, setSlide] = useState(0);
@@ -81,12 +81,33 @@ export default function PitchPage() {
             <Link href="/tastemaker/travis-scott"><b>1</b><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" /><span><strong>{ru ? "Открыть Taste артиста" : "Open an artist's Taste"}</strong><small>{ru ? "Нативная вкладка в профиле" : "A native artist-profile tab"}</small></span></Link>
             <Link href="/tastemaker/travis-scott"><b>2</b><Icon name="taste" size={28} /><span><strong>{ru ? "Подписаться на вкус" : "Follow their taste"}</strong><small>{ru ? "Отдельно от Follow Artist" : "Separate from Follow Artist"}</small></span></Link>
             <Link href="/feed"><b>3</b><TrackArtwork src={tracks.gone.coverUrl} alt="" /><span><strong>{ru ? "Получать значимые сигналы" : "Receive meaningful signals"}</strong><small>{ru ? "Повторы, сохранения, рекомендации" : "Repeats, saves, recommendations"}</small></span></Link>
-            <Link href="/player/euphoria"><b>4</b><Icon name="play" size={28} /><span><strong>{ru ? "Слушать с объяснением" : "Listen with provenance"}</strong><small>{ru ? "Кто повлиял и почему трек здесь" : "Who influenced this discovery and why"}</small></span></Link>
+            <Link href="/feed"><b>4</b><Icon name="play" size={28} /><span><strong>{ru ? "Запустить всю очередь" : "Play the full queue"}</strong><small>{ru ? "Профиль или общая лента — одним нажатием" : "One tap from a profile or the full feed"}</small></span></Link>
           </div>
           <div className="pitchProductPrinciple"><Icon name="spark" size={22} /><span><strong>{ru ? "Контент создаётся поведением, но публикуется намерением." : "Behavior creates the signal; intent decides what gets published."}</strong><small>{ru ? "Функция остаётся лёгкой для автора и понятной для слушателя." : "Low effort for the tastemaker, high context for the listener."}</small></span></div>
         </section> : null}
 
         {slide === 3 ? <section className="pitchSlide">
+          <header className="pitchSlideHeader"><span className="pitchKicker">TASTE QUEUE</span><h2>{ru ? "Не изучайте статистику. Нажмите Play и слушайте." : "Do not study a dashboard. Press Play and listen."}</h2><p>{ru ? "Очередь сохраняет человеческий контекст, но ощущается как обычный Spotify-плеер." : "The queue preserves human context while behaving like a familiar Spotify player."}</p></header>
+          <div className="pitchQueueFlow">
+            <div><span className="pitchQueueIcon"><Icon name="play" size={24} /></span><span><strong>{ru ? "Слушать Taste артиста" : "Play an artist's Taste"}</strong><small>{ru ? "Вся неделя: сначала повторы, затем популярность" : "The week, ranked by repeats and then popularity"}</small></span></div>
+            <div><span className="pitchQueueIcon"><Icon name="feed" size={24} /></span><span><strong>{ru ? "Слушать общую ленту" : "Play the full feed"}</strong><small>{ru ? "Все люди из подписок в одной очереди" : "Every followed tastemaker in one queue"}</small></span></div>
+            <div className="pitchQueueComment"><TrackArtwork src={tracks.euphoria.coverUrl} alt="" /><span><small>{ru ? "ПО РЕКОМЕНДАЦИИ TRAVIS SCOTT" : "RECOMMENDED BY TRAVIS SCOTT"}</small><strong>euphoria</strong><p>{ru ? "«Обратите внимание на переход во второй половине»" : "“Listen for the switch in the second half.”"}</p></span><Icon name="volume" size={22} /></div>
+          </div>
+          <div className="pitchProductPrinciple"><Icon name="comment" size={22} /><span><strong>{ru ? "Комментарий появляется поверх обложки; короткий сигнал можно отключить." : "The note appears over artwork; the short audio cue is optional."}</strong><small>{ru ? "У каждого трека всегда видно, чья рекомендация привела его в очередь." : "Every track keeps visible provenance to the person who put it there."}</small></span></div>
+        </section> : null}
+
+        {slide === 4 ? <section className="pitchSlide">
+          <header className="pitchSlideHeader"><span className="pitchKicker">ARTIST ACTIVATION</span><h2>{ru ? "Артист включает Taste там, где уже управляет карьерой." : "Artists activate Taste where they already manage their career."}</h2><p>{ru ? "Spotify for Artists уже подтверждает личность, команду и уровень доступа. Follow Taste использует этот контур вместо новой ручной верификации." : "Spotify for Artists already verifies identity, team membership and access level. Follow Taste reuses that trust layer instead of inventing a new claim flow."}</p></header>
+          <div className="pitchOnboardingFlow">
+            <div><b>1</b><Icon name="user" size={24} /><span><strong>Spotify for Artists</strong><small>{ru ? "Вход через рабочий аккаунт" : "Existing work-account sign-in"}</small></span></div>
+            <div><b>2</b><Icon name="check" size={24} /><span><strong>{ru ? "Права команды" : "Team permission"}</strong><small>{ru ? "Admin или Editor подтверждает профиль" : "Admin or Editor confirms the profile"}</small></span></div>
+            <div><b>3</b><Icon name="privacy" size={24} /><span><strong>{ru ? "Правила публикации" : "Publishing controls"}</strong><small>{ru ? "Сигналы, задержка, уведомления" : "Signals, delay and notifications"}</small></span></div>
+            <div><b>4</b><Icon name="taste" size={24} /><span><strong>{ru ? "7 дней предпросмотра" : "7-day preview"}</strong><small>{ru ? "Проверка до публичного запуска" : "Team review before public launch"}</small></span></div>
+          </div>
+          <div className="pitchOnboardingPolicy"><span><Icon name="info" size={20} /><strong>{ru ? "Ручная проверка — исключение" : "Manual review is the exception"}</strong></span><p>{ru ? "Она нужна только для неподтверждённого профиля, недоступного администратора, передачи прав лейблу или наследникам." : "Use it only for unclaimed profiles, unreachable admins, label transfers or estate rights."}</p><Link href="/artist-onboarding">{ru ? "Открыть сценарий подключения" : "Open activation flow"}<Icon name="external" size={16} /></Link></div>
+        </section> : null}
+
+        {slide === 5 ? <section className="pitchSlide">
           <header className="pitchSlideHeader"><span className="pitchKicker">TRUST BY DESIGN</span><h2>{ru ? "Прослушал не значит рекомендует." : "A play is not an endorsement."}</h2><p>{ru ? "Follow Taste публикует не сырую историю, а сигналы с понятной силой намерения." : "Follow Taste publishes intent-aware signals, not a raw surveillance feed."}</p></header>
           <div className="pitchSignalLadder">
             <div className="private"><Icon name="hide" /><span><strong>{ru ? "Разовый запуск" : "One-off play"}</strong><small>{ru ? "Приватно по умолчанию" : "Private by default"}</small></span></div>
@@ -97,7 +118,7 @@ export default function PitchPage() {
           <div className="pitchTrustControls"><span><Icon name="privacy" />Opt-in</span><span><Icon name="clock" />{ru ? "Задержка 24 часа" : "24h delay"}</span><span><Icon name="hide" />{ru ? "Скрытие треков и артистов" : "Track and artist exclusions"}</span><span><Icon name="info" />{ru ? "Маркировка промо" : "Promotion labels"}</span></div>
         </section> : null}
 
-        {slide === 4 ? <section className="pitchSlide">
+        {slide === 6 ? <section className="pitchSlide">
           <header className="pitchSlideHeader"><span className="pitchKicker">MEASURABLE INFLUENCE</span><h2>{ru ? "Не ещё один счётчик кликов." : "Not another click counter."}</h2><p>{ru ? "Qualified Discovery измеряет, превратилось ли человеческое влияние в устойчивое слушательское поведение." : "Qualified Discovery measures whether human influence became durable listener behavior."}</p></header>
           <div className="pitchFunnel">
             <div style={{ width: "100%" }}><span>{ru ? "Запуски из Taste" : "Taste-sourced starts"}</span><strong>{hubMetrics.attributedStarts}</strong></div>
@@ -109,7 +130,7 @@ export default function PitchPage() {
           <div className="pitchMetricDefinition"><strong>{ru ? "Квалифицированное открытие" : "Qualified discovery"}</strong><span>{ru ? "Первый запуск из Follow Taste + сохранение, повтор или подписка на артиста в течение 28 дней." : "First play from Follow Taste + save, repeat or artist follow within 28 days."}</span></div>
         </section> : null}
 
-        {slide === 5 ? <section className="pitchSlide">
+        {slide === 7 ? <section className="pitchSlide">
           <header className="pitchSlideHeader"><span className="pitchKicker">THE PILOT</span><h2>{ru ? "Доказываем ценность до масштабирования и монетизации." : "Prove value before scale or monetization."}</h2></header>
           <div className="pitchPilotGrid">
             <div><span>50</span><strong>{ru ? "тейстмейкеров" : "tastemakers"}</strong><small>{ru ? "Диджеи, продюсеры, журналисты и кураторы — не A-list-знаменитости." : "DJs, producers, journalists and curators — not A-list celebrities."}</small></div>
@@ -119,7 +140,7 @@ export default function PitchPage() {
           <div className="pitchPilotMeasure"><div><Icon name="check" /><span><strong>{ru ? "Успех" : "Success"}</strong><small>{ru ? "Рост сохранений и повторов новых артистов относительно контрольного discovery." : "Lift in saves and repeats of new artists versus control discovery."}</small></span></div><div><Icon name="privacy" /><span><strong>Guardrails</strong><small>{ru ? "Скрытия, жалобы, отключение sharing и доля промо-сигналов." : "Hides, reports, sharing opt-outs and promoted-signal share."}</small></span></div></div>
         </section> : null}
 
-        {slide === 6 ? <section className="pitchSlide pitchAskSlide">
+        {slide === 8 ? <section className="pitchSlide pitchAskSlide">
           <div>
             <span className="pitchKicker">THE ASK</span>
             <h2>{ru ? "Провести закрытый pilot Follow Taste внутри Spotify." : "Run a closed Follow Taste pilot inside Spotify."}</h2>

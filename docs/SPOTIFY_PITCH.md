@@ -15,8 +15,22 @@ Follow Taste is deliberately not raw public listening history. A single accident
 1. A creator opts in and controls delay, hidden tracks, hidden artists and manual selection.
 2. A listener taps `Follow Taste` on the existing artist or profile surface.
 3. Meaningful signals appear in Taste Feed with optional creator context.
-4. Playback stays inside Spotify.
-5. Spotify attributes downstream saves, 28-day repeats and artist follows.
+4. A single Play action starts either the tastemaker's ranked weekly queue or the listener's full feed queue.
+5. Every queued track keeps visible provenance; creator notes appear over artwork with an optional sound cue.
+6. Playback stays inside Spotify through the official Embed API.
+7. Spotify attributes downstream saves, 28-day repeats and artist follows.
+
+## Artist activation
+
+Follow Taste should be activated inside Spotify for Artists, not through a new email-based claim process. Spotify already knows which users belong to an artist team and whether they have Admin, Editor or Reader access.
+
+1. The team member signs in with the account already used for Spotify for Artists.
+2. Spotify displays artist teams where that person has edit permission.
+3. The team chooses signal, delay, exclusion and note-notification defaults.
+4. A seven-day private preview shows every signal before public launch.
+5. Team Admins can revoke access and inspect the audit log.
+
+Manual support remains the exception for unclaimed profiles, inaccessible team admins, label transfers and estate rights.
 
 ## Why Spotify wins
 
@@ -54,19 +68,21 @@ Supporting funnel: Taste-sourced starts -> first listens -> saves -> 28-day repe
 
 Approve a scoped discovery pilot with the Social Discovery, Personalization and Spotify for Artists teams. Provide a product sponsor, a privacy partner, controlled access to attribution events and a small opt-in creator cohort.
 
-## Seven-slide talk track
+## Nine-slide talk track
 
 1. `Discovery has a trust gap.` Algorithms predict relevance; people create conviction.
 2. `Spotify has the pieces, not the loop.` Show the current surfaces and the missing followable influence layer.
 3. `One native action: Follow Taste.` Artist/profile -> Taste -> feed -> playback -> qualified outcome.
-4. `Trust by design.` Explain the signal ladder and why one-off plays remain private.
-5. `Measure durable discovery.` Define Qualified Discovery and show the funnel.
-6. `Prove it in four weeks.` Present cohort, control, outcomes and guardrails.
-7. `The ask.` Request a sponsor and controlled pilot, not a feature purchase or royalty change.
+4. `Press Play and listen.` Show profile queue, feed queue, provenance and optional note cue.
+5. `Activate through Spotify for Artists.` Reuse team identity, permissions and a seven-day preview.
+6. `Trust by design.` Explain the signal ladder and why one-off plays remain private.
+7. `Measure durable discovery.` Define Qualified Discovery and show the funnel.
+8. `Prove it in four weeks.` Present cohort, control, outcomes and guardrails.
+9. `The ask.` Request a sponsor and controlled pilot, not a feature purchase or royalty change.
 
 ## Demo route
 
-`/pitch` -> `/tastemaker/travis-scott` -> `/feed` -> `/player/euphoria` -> `/taste/ivan` -> `/privacy` -> `/hub`
+`/pitch` -> `/tastemaker/travis-scott` -> `/feed` -> `/artist-onboarding` -> `/taste/ivan` -> `/privacy` -> `/hub`
 
 ## Claims to avoid
 

@@ -39,7 +39,16 @@ export type TasteFeedEvent = {
   timestampLabel: string;
   humanSignal: string;
   secondarySignal?: string;
+  authorNote?: string;
   origin: DataOrigin;
+};
+
+export type TasteQueueItem = {
+  id: string;
+  track: TrackRef;
+  tastemaker: Pick<Tastemaker, "id" | "name" | "avatarUrl" | "fallbackAvatarUrl">;
+  signal: string;
+  authorNote?: string | null;
 };
 
 export type TrackSignal = {

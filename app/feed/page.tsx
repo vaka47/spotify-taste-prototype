@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AvatarImage } from "@/components/AvatarImage";
 import { Icon } from "@/components/Icons";
 import { TasteFeedCard } from "@/components/TasteFeedCard";
+import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { feedEvents, travis } from "@/lib/mock-data";
 import { useFollowingTaste } from "@/lib/use-following-taste";
 import { useI18n } from "@/lib/i18n";
+import type { TasteQueueItem, TrackRef } from "@/types/taste";
 
 const segments = ["Following", "Artists", "Creators"] as const;
 
@@ -57,6 +59,7 @@ export default function FeedPage() {
   const [liveEvents, setLiveEvents] = useState<LiveFeedEvent[]>([]);
   const [connected, setConnected] = useState(false);
   const [loadingLive, setLoadingLive] = useState(true);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     fetch("/api/feed", { cache: "no-store" }).then(async response => {
@@ -67,12 +70,60 @@ export default function FeedPage() {
     }).finally(() => setLoadingLive(false));
   }, []);
 
-  const showDemoFollowing = activeSegment === "Following" && following;
-  const showDiscoverable = activeSegment === "Artists" || activeSegment === "Creators";
-  const hasFollowingContent = liveEvents.length > 0 || showDemoFollowing;
+  const normalizedQuery = query.trim().toLocaleLowerCase(locale);
+  const matchesPerson = (name: string, handle = "") => !normalizedQuery || `${name} ${handle}`.toLocaleLowerCase(locale).includes(normalizedQuery);
+  const visibleLiveEvents = activeSegment === "Following"
+    ? liveEvents.filter(event => matchesPerson(event.profile.name, event.profile.handle))
+    : [];
+  const demoEventsForSegment = activeSegment === "Following"
+    ? (following ? feedEvents.filter(event => event.tastemaker.id === travis.id) : [])
+    : activeSegment === "Creators"
+      ? feedEvents.filter(event => event.tastemaker.slug === "tyler-the-creator")
+      : feedEvents;
+  const visibleDemoEvents = demoEventsForSegment.filter(event => matchesPerson(event.tastemaker.name, event.tastemaker.slug));
+  const hasFollowingContent = liveEvents.length > 0 || following;
+  const hasVisibleContent = visibleLiveEvents.length > 0 || visibleDemoEvents.length > 0;
   const segmentLabels = ru
     ? { Following: "Подписки", Artists: "Артисты", Creators: "Авторы" }
     : { Following: "Following", Artists: "Artists", Creators: "Creators" };
+
+  const queueItems = useMemo<TasteQueueItem[]>(() => {
+    const fromLive = visibleLiveEvents.map(event => {
+      const track: TrackRef = {
+        id: `spotify_track_${event.track.id}`,
+        slug: event.track.id,
+        spotifyId: event.track.id,
+        spotifyUri: `spotify:track:${event.track.id}`,
+        spotifyUrl: event.track.spotifyUrl,
+        spotifyEmbedUrl: `https://open.spotify.com/embed/track/${event.track.id}`,
+        title: event.track.title,
+        artist: event.track.artist,
+        coverUrl: event.track.coverUrl || "",
+        origin: "spotify",
+      };
+      return {
+        id: `feed_queue_${event.id}`,
+        track,
+        tastemaker: { id: event.profile.handle, name: event.profile.name, avatarUrl: event.profile.avatarUrl || "" },
+        signal: event.authorNote
+          ? (ru ? "Опубликовано с личным комментарием" : "Shared with a personal note")
+          : event.repeatCount > 1
+            ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
+            : (ru ? "Опубликованный Taste-сигнал" : "Shared Taste signal"),
+        authorNote: event.authorNote,
+      };
+    });
+    const fromDemo = visibleDemoEvents.map(event => ({
+      id: `feed_queue_${event.id}`,
+      track: event.track,
+      tastemaker: event.tastemaker,
+      signal: ru
+        ? event.kind === "recommended" ? "Личная рекомендация" : event.kind === "on_repeat" ? "На повторе всю неделю" : event.kind === "saved_discovery" ? "Новое сохранение" : "Снова вернулся к треку"
+        : event.humanSignal,
+      authorNote: event.authorNote,
+    }));
+    return [...fromLive, ...fromDemo];
+  }, [ru, visibleDemoEvents, visibleLiveEvents]);
 
   return (
     <main className="page nativeFeedPage">
@@ -80,6 +131,20 @@ export default function FeedPage() {
         <h1>{ru ? "Лента Taste" : "Taste Feed"}</h1>
         <p>{ru ? "Рекомендации, повторы и открытия от людей, чьему вкусу вы доверяете." : "Recommendations, repeat listens and discoveries from people whose taste you trust."}</p>
       </header>
+
+      <div className="nativeFeedTools">
+        <label className="nativePeopleSearch">
+          <Icon name="search" size={18} />
+          <input value={query} onChange={event => setQuery(event.target.value)} placeholder={ru ? "Найти человека в ленте" : "Find someone in your feed"} aria-label={ru ? "Поиск по людям" : "Search people"} />
+          {query ? <button type="button" onClick={() => setQuery("")} aria-label={ru ? "Очистить поиск" : "Clear search"}><Icon name="close" size={17} /></button> : null}
+        </label>
+        <TasteQueuePlayer
+          items={queueItems}
+          triggerLabel={ru ? "Слушать ленту" : "Play feed"}
+          triggerAriaLabel={ru ? "Слушать все рекомендации в текущей ленте" : "Play all recommendations in the current feed"}
+          triggerClassName="nativeFeedPlayButton"
+        />
+      </div>
 
       <div className="nativeSegments" aria-label={ru ? "Фильтр ленты" : "Feed filter"}>
         {segments.map(segment => (
@@ -89,10 +154,14 @@ export default function FeedPage() {
 
       <section className="nativeFeedList" aria-label={ru ? "События Taste" : "Taste events"}>
         {activeSegment === "Following" && loadingLive ? <div className="nativeFeedSkeleton"><span className="skeleton" /><span className="skeleton" /></div> : null}
-        {activeSegment === "Following" && liveEvents.map(event => <LiveFeedCard event={event} ru={ru} key={event.id} />)}
-        {(showDemoFollowing || showDiscoverable) ? feedEvents.map(event => <TasteFeedCard event={event} key={event.id} />) : null}
+        {visibleLiveEvents.map(event => <LiveFeedCard event={event} ru={ru} key={event.id} />)}
+        {visibleDemoEvents.map(event => <TasteFeedCard event={event} key={event.id} />)}
 
-        {activeSegment === "Following" && !loadingLive && !hasFollowingContent ? (
+        {!loadingLive && query && !hasVisibleContent ? (
+          <div className="nativeFeedSearchEmpty"><Icon name="search" size={25} /><strong>{ru ? "В этой ленте такого человека нет" : "No matching person in this feed"}</strong><span>{ru ? "Попробуйте другое имя или переключите раздел." : "Try another name or switch sections."}</span></div>
+        ) : null}
+
+        {activeSegment === "Following" && !loadingLive && !hasFollowingContent && !query ? (
           <div className="nativeFeedEmpty">
             <span className="nativeFeedEmptyAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} /></span>
             <h2>{ru ? "Соберите свою ленту Taste" : "Build your Taste Feed"}</h2>
@@ -102,7 +171,7 @@ export default function FeedPage() {
           </div>
         ) : null}
 
-        {activeSegment === "Following" && hasFollowingContent ? (
+        {activeSegment === "Following" && hasFollowingContent && !query ? (
           <Link className="nativeWeeklySummary" href="/tastemaker/travis-scott">
             <span className="nativeWeeklySummaryAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" /></span>
             <span><small>{ru ? "Сводка за неделю" : "Weekly summary"}</small><strong>{ru ? "Taste Трэвиса: 8 значимых сигналов" : "Travis's Taste: 8 meaningful signals"}</strong></span>

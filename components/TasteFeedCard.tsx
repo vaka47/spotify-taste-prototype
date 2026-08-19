@@ -56,6 +56,7 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
           </div>
           <div className="nativeFeedTrackTitle">{event.track.title}</div>
           <div className="nativeFeedArtist">{event.track.artist}</div>
+          {event.authorNote ? <div className="nativeFeedAuthorNote">“{ru && event.id === "ev_recommended" ? "Обратите внимание на переход во второй половине." : event.authorNote}”</div> : null}
           <div className="nativeFeedSignal">
             <Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />
             {signals?.[event.kind] || event.humanSignal}
