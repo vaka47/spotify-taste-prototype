@@ -18,6 +18,11 @@ const funnel = [
   { key: "follows", value: hubMetrics.artistFollows, width: 18 },
 ] as const;
 
+function formatMetric(value: string, ru: boolean) {
+  if (!ru) return value;
+  return value.replace("M", " млн").replace("K", " тыс.").replace(".", ",");
+}
+
 export default function HubPage() {
   const router = useRouter();
   const eventCount = usePrototypeEventCount();
@@ -44,17 +49,17 @@ export default function HubPage() {
       </header>
 
       <section className="analyticsMetricGrid" aria-label={ru ? "Ключевые метрики" : "Key metrics"}>
-        <article><span>{ru ? "Подписчики Taste" : "Taste followers"}</span><strong>{hubMetrics.tasteFollowers}</strong><small>{ru ? "люди, выбравшие человеческий источник" : "people choosing a human source"}</small></article>
-        <article><span>{ru ? "Квалифицированные открытия" : "Qualified discoveries"}</span><strong>{hubMetrics.qualifiedDiscoveries}</strong><small>{ru ? "первый запуск + действие высокого намерения" : "first play + high-intent action"}</small></article>
-        <article><span>{ru ? "Сохранение после открытия" : "Post-discovery save rate"}</span><strong>{hubMetrics.saveRate}</strong><small>{ru ? "основной ранний показатель качества" : "primary early quality signal"}</small></article>
-        <article><span>{ru ? "Повтор через 28 дней" : "28-day repeat rate"}</span><strong>{hubMetrics.repeat28d}</strong><small>{ru ? "долгосрочная ценность рекомендации" : "long-term recommendation value"}</small></article>
+        <article><span>{ru ? "Подписчики Taste" : "Taste followers"}</span><strong>{formatMetric(hubMetrics.tasteFollowers, ru)}</strong><small>{ru ? "люди, выбравшие человеческий источник" : "people choosing a human source"}</small></article>
+        <article><span>{ru ? "Квалифицированные открытия" : "Qualified discoveries"}</span><strong>{formatMetric(hubMetrics.qualifiedDiscoveries, ru)}</strong><small>{ru ? "первое прослушивание и последующее осознанное действие" : "first play + high-intent action"}</small></article>
+        <article><span>{ru ? "Сохранение после открытия" : "Post-discovery save rate"}</span><strong>{formatMetric(hubMetrics.saveRate, ru)}</strong><small>{ru ? "основной ранний показатель качества" : "primary early quality signal"}</small></article>
+        <article><span>{ru ? "Повтор через 28 дней" : "28-day repeat rate"}</span><strong>{formatMetric(hubMetrics.repeat28d, ru)}</strong><small>{ru ? "долгосрочная ценность рекомендации" : "long-term recommendation value"}</small></article>
       </section>
 
       <section className="analyticsSplit section">
         <article className="analyticsSurface">
           <div className="nativeSectionHeader"><div><h2>{ru ? "Воронка влияния" : "Influence funnel"}</h2><p>{ru ? "Атрибуция заканчивается не на клике, а на подтверждённом намерении." : "Attribution continues beyond the click to verified intent."}</p></div></div>
           <div className="discoveryFunnel">
-            {funnel.map(item => <div className="funnelRow" key={item.key}><span>{funnelLabels[item.key]}</span><div><i style={{ width: `${item.width}%` }} /></div><strong>{item.value}</strong></div>)}
+            {funnel.map(item => <div className="funnelRow" key={item.key}><span>{funnelLabels[item.key]}</span><div><i style={{ width: `${item.width}%` }} /></div><strong>{formatMetric(item.value, ru)}</strong></div>)}
           </div>
           <p className="analyticsDefinition"><Icon name="info" size={17} />{ru ? "Окно атрибуции: первый запуск из Taste → сохранение, повтор или подписка в течение 28 дней." : "Attribution window: first play from Taste → save, repeat or artist follow within 28 days."}</p>
         </article>
@@ -63,7 +68,7 @@ export default function HubPage() {
           <div className="nativeSectionHeader"><div><h2>{ru ? "Контракт качества" : "Quality contract"}</h2><p>{ru ? "Правила, которые не дают человеческому влиянию превратиться в скрытое платное продвижение." : "Guardrails that keep human influence from becoming payola."}</p></div></div>
           <div className="integrityList">
             <div><Icon name="check" /><span><strong>{ru ? "Значимые сигналы" : "Meaningful signals"}</strong><small>{ru ? "Повторы, сохранения и явные рекомендации; разовые запуски скрыты." : "Repeats, saves and explicit recommendations; one-off plays stay private."}</small></span></div>
-            <div><Icon name="privacy" /><span><strong>{ru ? "Согласие и задержка" : "Consent and delay"}</strong><small>{ru ? "Opt-in, задержка 24 часа, скрытие треков и артистов." : "Opt-in, 24-hour delay, track and artist exclusions."}</small></span></div>
+            <div><Icon name="privacy" /><span><strong>{ru ? "Согласие и задержка" : "Consent and delay"}</strong><small>{ru ? "Только с согласия, задержка 24 часа, скрытие треков и артистов." : "Opt-in, 24-hour delay, track and artist exclusions."}</small></span></div>
             <div><Icon name="info" /><span><strong>{ru ? "Маркировка промо" : "Promotion disclosure"}</strong><small>{ru ? "Оплаченный сигнал всегда отделён от органической рекомендации." : "Paid signals are always separated from organic recommendations."}</small></span></div>
             <div><Icon name="hide" /><span><strong>{ru ? "Антифрод до экономики" : "Integrity before economics"}</strong><small>{ru ? "Подозрительные цепочки исключаются; выплаты не входят в MVP." : "Suspicious paths are excluded; payouts are outside the MVP."}</small></span></div>
           </div>
@@ -73,13 +78,13 @@ export default function HubPage() {
 
       <section className="analyticsSplit section">
         <article className="analyticsSurface">
-          <div className="nativeSectionHeader"><div><h2>{ru ? "Треки с подтверждённым влиянием" : "Top qualified discoveries"}</h2><p>{ru ? "Только открытия, после которых появилось действие высокого намерения." : "Only discoveries followed by a high-intent action."}</p></div></div>
+          <div className="nativeSectionHeader"><div><h2>{ru ? "Треки с подтверждённым влиянием" : "Top qualified discoveries"}</h2><p>{ru ? "Только открытия, после которых слушатель совершил осознанное действие." : "Only discoveries followed by a high-intent action."}</p></div></div>
           <div className="influencedList">
             {topInfluencedTracks.map(item => (
               <button className="influencedTrack" type="button" key={item.track.id} onClick={() => openTrack(item.track.id, item.track.slug)}>
                 <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="trackThumb" />
                 <div><span className="trackTitle">{item.track.artist} · {item.track.title}</span><div className="bar"><span style={{ width: `${item.share}%` }} /></div></div>
-                <strong>{item.qualifiedDiscoveries}</strong>
+                <strong>{formatMetric(item.qualifiedDiscoveries, ru)}</strong>
               </button>
             ))}
           </div>
