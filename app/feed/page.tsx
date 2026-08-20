@@ -168,7 +168,7 @@ export default function FeedPage() {
       <header className="nativePageHeader feedPageHeader">
         <h1>{ru ? "Лента Taste" : "Taste Feed"}</h1>
         <p>{ru ? "Рекомендации, повторы и открытия от людей, чьему вкусу вы доверяете." : "Recommendations, repeat listens and discoveries from people whose taste you trust."}</p>
-        <span className="nativeDataDisclosure"><Icon name="info" size={14} />{ru ? "Публичные профили пользователей используют авторизованные данные. Сигналы знаменитостей в демо иллюстративны." : "Public user profiles use authorized data. Celebrity signals in this demo are illustrative."}</span>
+        <span className="nativeDataDisclosure"><Icon name="info" size={14} />{ru ? "Публичные профили пользователей используют авторизованные данные. Сигналы знаменитостей показаны как иллюстрация." : "Public user profiles use authorized data. Celebrity signals in this demo are illustrative."}</span>
       </header>
 
       <div className="nativeFeedTools">

@@ -70,7 +70,7 @@ export default function PitchPage() {
             <div><span>Following</span><strong>{ru ? "Релизы артиста" : "Artist output"}</strong><small>{ru ? "Что артист выпустил" : "What the artist released"}</small></div>
             <div><span>Artist Pick</span><strong>{ru ? "Ручная редактура" : "Manual curation"}</strong><small>{ru ? "Один закреплённый выбор" : "One pinned selection"}</small></div>
             <div><span>Taste Profile</span><strong>{ru ? "Алгоритмическая модель меня" : "Algorithmic model of me"}</strong><small>{ru ? "Настраивает персонализацию" : "Tunes personalization"}</small></div>
-            <div className="pitchComparisonAnswer"><span>Follow Taste</span><strong>{ru ? "Кому я доверяю открытие" : "Who I trust for discovery"}</strong><small>{ru ? "Подписной, объяснимый сигнал влияния" : "Followable, explainable human influence"}</small></div>
+            <div className="pitchComparisonAnswer"><span>Follow Taste</span><strong>{ru ? "Кому я доверяю открытие" : "Who I trust for discovery"}</strong><small>{ru ? "Понятный сигнал влияния с отдельной подпиской" : "Followable, explainable human influence"}</small></div>
           </div>
           <div className="pitchSources"><span>{ru ? "Основано на действующих функциях Spotify:" : "Grounded in current Spotify surfaces:"}</span><a href="https://support.spotify.com/article/recent-activity/" target="_blank" rel="noreferrer">Recents</a><a href="https://support.spotify.com/article/listening-activity/" target="_blank" rel="noreferrer">Listening Activity</a><a href="https://newsroom.spotify.com/2026-03-13/taste-profile-beta-announcement/" target="_blank" rel="noreferrer">Taste Profile</a></div>
         </section> : null}
@@ -119,7 +119,7 @@ export default function PitchPage() {
         </section> : null}
 
         {slide === 6 ? <section className="pitchSlide">
-          <header className="pitchSlideHeader"><span className="pitchKicker">{ru ? "ИЗМЕРИМОЕ ВЛИЯНИЕ" : "MEASURABLE INFLUENCE"}</span><h2>{ru ? "Не ещё один счётчик кликов." : "Not another click counter."}</h2><p>{ru ? "Квалифицированное открытие показывает, превратилось ли человеческое влияние в устойчивое слушательское поведение." : "Qualified Discovery measures whether human influence became durable listener behavior."}</p></header>
+          <header className="pitchSlideHeader"><span className="pitchKicker">{ru ? "ИЗМЕРИМОЕ ВЛИЯНИЕ" : "MEASURABLE INFLUENCE"}</span><h2>{ru ? "Не просто ещё один счётчик кликов." : "Not another click counter."}</h2><p>{ru ? "Квалифицированное открытие показывает, превратилось ли человеческое влияние в устойчивое слушательское поведение." : "Qualified Discovery measures whether human influence became durable listener behavior."}</p></header>
           <div className="pitchFunnel">
             <div style={{ width: "100%" }}><span>{ru ? "Запуски из Taste" : "Taste-sourced starts"}</span><strong>{hubMetrics.attributedStarts}</strong></div>
             <div style={{ width: "78%" }}><span>{ru ? "Первые прослушивания" : "First listens"}</span><strong>{hubMetrics.firstListens}</strong></div>

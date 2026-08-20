@@ -94,8 +94,8 @@ export default function HubPage() {
             <div><dt>{ru ? "Основная метрика" : "Primary metric"}</dt><dd>{ru ? "Сохранения и повторы новых артистов" : "Saves and repeats of newly discovered artists"}</dd></div>
             <div><dt>{ru ? "Контроль риска" : "Guardrail"}</dt><dd>{ru ? "Скрытия, жалобы и доля промо-сигналов" : "Hides, reports and promoted-signal share"}</dd></div>
           </dl>
-          <div className="localProof"><span>{ru ? "Локальных демособытий" : "Local demo events"}</span><strong>{eventCount}</strong></div>
-          <Link className="nativePrimaryButton" href="/pitch">{ru ? "Открыть pitch для Spotify" : "Open Spotify pitch"}</Link>
+          <div className="localProof"><span>{ru ? "Событий в текущей демонстрации" : "Local demo events"}</span><strong>{eventCount}</strong></div>
+          <Link className="nativePrimaryButton" href="/pitch">{ru ? "Открыть презентацию для Spotify" : "Open Spotify pitch"}</Link>
         </article>
       </section>
 
