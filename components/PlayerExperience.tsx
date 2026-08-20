@@ -22,53 +22,47 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
       : null;
 
   return (
-    <main className="nativePlayerPage">
-      <header className="nativePlayerTop">
-        <Link className="nativeIconAction" href="/feed" aria-label={ru ? "Вернуться в ленту Taste" : "Back to Taste Feed"}><Icon name="chevronLeft" /></Link>
-        <div><small>{ru ? "ИЗ FOLLOW TASTE" : "PLAYING FROM FOLLOW TASTE"}</small><strong>{travis.name}</strong></div>
-        <button className="nativeIconAction" type="button" aria-label={ru ? "Параметры трека" : "Track options"} onClick={() => showToast(ru ? "Открыто меню трека" : "Track menu opened")}><Icon name="more" /></button>
+    <main className="spxPlayerPage">
+      <header className="spxPlayerTop">
+        <Link href="/feed" aria-label={ru ? "Вернуться в ленту" : "Back to Taste Feed"}><Icon name="chevronLeft" /></Link>
+        <div><small>{ru ? "ИГРАЕТ ИЗ TASTE" : "PLAYING FROM TASTE"}</small><strong>{travis.name}</strong></div>
+        <button type="button" aria-label={ru ? "Параметры трека" : "Track options"} onClick={() => showToast(ru ? "Меню трека открыто" : "Track menu opened")}><Icon name="more" /></button>
       </header>
 
-      <section className="nativePlayerLayout">
-        <div className="nativePlayerCoverWrap">
-          <TrackArtwork src={track.coverUrl} fallbackSrc={track.fallbackCoverUrl} alt={`${track.title} cover`} className="nativePlayerCover" />
-          {authorNote ? (
-            <div className="nativePlayerNote" role="note">
-              <Icon name="comment" size={16} />
-              <span><small>{ru ? "Комментарий Трэвиса" : "A note from Travis"}</small><strong>{authorNote}</strong></span>
-              <Icon name="volume" size={16} />
-            </div>
-          ) : null}
+      <section className="spxNowPlaying">
+        <div className="spxPlayerArtworkWrap">
+          <TrackArtwork src={track.coverUrl} fallbackSrc={track.fallbackCoverUrl} alt={`${track.title} cover`} className="spxPlayerArtwork" />
+          {authorNote ? <div className="spxArtworkNote" role="note"><span className="spxNoteAvatar"><img src={travis.avatarUrl} alt="" onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }} /></span><span><small>{ru ? "Комментарий Трэвиса" : "A note from Travis"}</small><strong>{authorNote}</strong></span><Icon name="volume" size={16} /></div> : null}
         </div>
 
-        <div className="nativePlayerDetails">
-          <div className="nativePlayerTitleRow">
-            <div><h1>{track.title}</h1><p>{track.artist}</p></div>
-            <button className="nativeIconAction saveTrackButton" type="button" aria-label={ru ? "Сохранить трек" : "Save track"} onClick={() => { recordAttributionEvent("save_intent", travis.id, track.id); showToast(ru ? "Трек сохранён · влияние учтено" : "Track saved · influence attributed"); }}><Icon name="save" /></button>
-          </div>
-
-          <Link className="nativeAttribution" href="/tastemaker/travis-scott">
-            <span className="nativeAttributionAvatar"><img src={travis.avatarUrl} alt="" onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }} /></span>
-            <span><small>{ru ? "Рекомендовано через Follow Taste" : "Recommended through Follow Taste"}</small><strong>{travis.name}</strong></span>
-            <Icon name="chevronRight" size={18} />
-          </Link>
-
-          <p className="nativePlayerDisclosure"><Icon name="info" size={14} />{ru ? "Иллюстративный Taste-сигнал · трек и плеер Spotify настоящие" : "Illustrative Taste signal · real Spotify track and player"}</p>
-
-          <SpotifyEmbed src={track.spotifyEmbedUrl} title={`Spotify: ${track.title}`} size="large" />
-
-          <div className="nativePlayerLinks">
-            <a href={track.spotifyUrl} target="_blank" rel="noreferrer"><Icon name="external" size={17} />{ru ? "Открыть в Spotify" : "Open in Spotify"}</a>
-            <button type="button" onClick={() => showToast(ru ? "Трек добавлен в очередь" : "Track added to queue")}><Icon name="feed" size={17} />{ru ? "В очередь" : "Add to queue"}</button>
-          </div>
+        <div className="spxPlayerTitle">
+          <div><h1>{track.title}</h1><p>{track.artist}</p></div>
+          <button type="button" aria-label={ru ? "Сохранить трек" : "Save track"} onClick={() => { recordAttributionEvent("save_intent", travis.id, track.id); showToast(ru ? "Сохранено · влияние учтено" : "Saved · influence attributed"); }}><Icon name="save" /></button>
         </div>
-      </section>
 
-      <section className="nativeWhySection">
-        <h2>{ru ? "Почему этот трек в вашей ленте" : "Why this is in your feed"}</h2>
-        {authorNote ? <div><Icon name="comment" /><span><strong>{ru ? "Трэвис рекомендует этот трек" : "Recommended by Travis"}</strong><small>“{authorNote}”</small></span></div> : null}
-        <div><Icon name="feed" /><span><strong>{ru ? "14 прослушиваний за неделю" : "14 plays this week"}</strong><small>{ru ? "Рекомендация подтверждена повторными прослушиваниями, а не одним случайным запуском." : "The recommendation is backed by repeat listening, not a one-off play."}</small></span></div>
-        <div><Icon name="user" /><span><strong>{ru ? "Квалифицированное открытие" : "Qualified discovery"}</strong><small>{ru ? "Первый запуск связывается с Трэвисом; сохранение или повтор подтверждают влияние." : "The first play is attributed to Travis; a save or repeat qualifies the influence."}</small></span></div>
+        <Link className="spxAttribution" href="/tastemaker/travis-scott">
+          <span><img src={travis.avatarUrl} alt="" onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }} /></span>
+          <span><strong>{ru ? "Найдено благодаря" : "Discovered through"} <em>{travis.name}</em></strong><small>{ru ? "Прослушивание учитывается в статистике влияния" : "This stream contributes to Influence Streams"}</small></span>
+          <Icon name="info" size={16} />
+        </Link>
+
+        <div className="spxOfficialPlayer">
+          <SpotifyEmbed src={track.spotifyEmbedUrl} title={`Spotify: ${track.title}`} size="compact" />
+        </div>
+
+        <div className="spxPlayerActions">
+          <button type="button" onClick={() => showToast(ru ? "Перемешивание включено" : "Shuffle on")} aria-label={ru ? "Перемешать" : "Shuffle"}><Icon name="spark" /></button>
+          <a href={track.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? "Открыть трек в Spotify" : "Open track in Spotify"}><Icon name="external" /></a>
+          <button type="button" onClick={() => showToast(ru ? "Добавлено в очередь" : "Added to queue")} aria-label={ru ? "Добавить в очередь" : "Add to queue"}><Icon name="feed" /></button>
+        </div>
+
+        <section className="spxWhy">
+          <h2>{ru ? "Почему вы это слышите" : "Why you're hearing this"}</h2>
+          <div><span><Icon name="play" size={17} /></span><p>{ru ? "Трэвис включал этот трек 14 раз за неделю" : "Travis played this 14 times this week"}</p></div>
+          {authorNote ? <div><span><Icon name="comment" size={17} /></span><p>{ru ? "Трэвис добавил к треку личный комментарий" : "Travis added a personal note to this track"}</p></div> : <div><span><Icon name="user" size={17} /></span><p>{ru ? "Вы подписаны на Taste Трэвиса" : "You follow Travis's Taste"}</p></div>}
+        </section>
+
+        <p className="spxPlayerDisclosure"><Icon name="info" size={13} />{ru ? "Сценарий рекомендации иллюстративный; трек и официальный плеер Spotify настоящие." : "Recommendation context is illustrative; the track and official Spotify player are real."}</p>
       </section>
     </main>
   );

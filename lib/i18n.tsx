@@ -7,6 +7,7 @@ export type Locale = "en" | "ru";
 const en: Record<string, string> = {
   "nav.overview": "Overview",
   "nav.home": "Home",
+  "nav.search": "Search",
   "nav.feed": "Taste Feed",
   "nav.public": "Shared Taste",
   "nav.tastemaker": "Artist Taste",
@@ -126,6 +127,7 @@ const en: Record<string, string> = {
 const ru: Record<string, string> = {
   "nav.overview": "Обзор",
   "nav.home": "Главная",
+  "nav.search": "Поиск",
   "nav.feed": "Лента Taste",
   "nav.public": "Опубликованный Taste",
   "nav.tastemaker": "Taste артиста",

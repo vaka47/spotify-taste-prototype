@@ -8,7 +8,6 @@ import { TasteFeedCard } from "@/components/TasteFeedCard";
 import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { feedEvents, travis } from "@/lib/mock-data";
-import { useFollowingTaste } from "@/lib/use-following-taste";
 import { useI18n } from "@/lib/i18n";
 import type { TasteQueueItem, TrackRef } from "@/types/taste";
 
@@ -42,28 +41,39 @@ function relativeTime(value: string, ru: boolean) {
   return ru ? `${Math.round(minutes / 1440)} дн назад` : `${Math.round(minutes / 1440)}d ago`;
 }
 
+function localizeDemoNote(note: string | null | undefined, ru: boolean) {
+  if (!note || !ru) return note;
+  if (note === "Listen for the switch in the second half.") return "Обратите внимание на переход во второй половине.";
+  if (note === "The opening leaves exactly the right amount of space.") return "Во вступлении ровно столько воздуха, сколько нужно.";
+  return note;
+}
+
 function LiveFeedCard({ event, ru }: { event: LiveFeedEvent; ru: boolean }) {
   const signal = event.authorNote
     ? (ru ? "Рекомендует с комментарием" : "Recommended with a note")
     : event.repeatCount > 1
       ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
-      : (ru ? "Осознанно опубликованный сигнал" : "Intentionally shared signal");
+      : (ru ? "Опубликовано в Taste" : "Shared to Taste");
+
   return (
-    <Link className="nativeLiveFeedCard" href={`/taste/${event.profile.handle}?event=${event.id}`}>
-      <span className="nativeFeedAvatar"><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></span>
-      <span className="nativeFeedContent">
-        <span className="nativeFeedPerson"><strong>{event.profile.name}</strong><small>{relativeTime(event.playedAt, ru)}</small></span>
-        <span className="nativeFeedTrack"><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="nativeFeedCover" /><span><strong>{event.track.title}</strong><small>{event.track.artist}</small>{event.authorNote ? <em>“{event.authorNote}”</em> : null}</span></span>
-        <span className="nativeFeedSignal"><Icon name={event.authorNote ? "comment" : "feed"} size={16} />{signal}</span>
+    <Link className="spxFeedEvent" href={`/taste/${event.profile.handle}?event=${event.id}`}>
+      <span className="spxFeedAvatar"><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></span>
+      <span className="spxFeedEventCopy">
+        <span className="spxFeedPerson"><strong>{event.profile.name}</strong>{event.profile.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</span>
+        <span className="spxFeedTime">{relativeTime(event.playedAt, ru)}</span>
+        <strong className="spxFeedTrackTitle">{event.track.title}</strong>
+        <span className="spxFeedArtist">{event.track.artist}</span>
+        {event.authorNote ? <em className="spxFeedNote">“{event.authorNote}”</em> : null}
       </span>
-      <span className="nativeFeedComment"><Icon name="comment" size={17} />{event.commentCount}</span>
+      <TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="spxFeedCover" />
+      <span className="spxFeedSignal"><Icon name={event.authorNote ? "comment" : "feed"} size={17} />{signal}</span>
+      <span className="spxFeedMore"><Icon name="more" size={20} /></span>
     </Link>
   );
 }
 
 export default function FeedPage() {
   const [activeSegment, setActiveSegment] = useState<(typeof segments)[number]>("Following");
-  const { following } = useFollowingTaste(travis.id);
   const { locale } = useI18n();
   const ru = locale === "ru";
   const [liveEvents, setLiveEvents] = useState<LiveFeedEvent[]>([]);
@@ -89,7 +99,6 @@ export default function FeedPage() {
       setSearchingPeople(false);
       return;
     }
-
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setSearchingPeople(true);
@@ -99,25 +108,18 @@ export default function FeedPage() {
         .catch(() => undefined)
         .finally(() => setSearchingPeople(false));
     }, 180);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
+    return () => { window.clearTimeout(timer); controller.abort(); };
   }, [query]);
 
   const normalizedQuery = query.trim().toLocaleLowerCase(locale);
   const matchesPerson = (name: string, handle = "") => !normalizedQuery || `${name} ${handle}`.toLocaleLowerCase(locale).includes(normalizedQuery);
-  const visibleLiveEvents = activeSegment === "Following"
-    ? liveEvents.filter(event => matchesPerson(event.profile.name, event.profile.handle))
-    : [];
-  const demoEventsForSegment = activeSegment === "Following"
-    ? (following ? feedEvents.filter(event => event.tastemaker.id === travis.id) : [])
-    : activeSegment === "Creators"
-      ? feedEvents.filter(event => event.tastemaker.slug === "tyler-the-creator")
+  const visibleLiveEvents = activeSegment === "Following" ? liveEvents.filter(event => matchesPerson(event.profile.name, event.profile.handle)) : [];
+  const demoEventsForSegment = activeSegment === "Creators"
+    ? feedEvents.filter(event => event.tastemaker.slug !== "travis-scott")
+    : activeSegment === "Artists"
+      ? feedEvents
       : feedEvents;
   const visibleDemoEvents = demoEventsForSegment.filter(event => matchesPerson(event.tastemaker.name, event.tastemaker.slug));
-  const hasFollowingContent = liveEvents.length > 0 || following;
   const hasVisibleContent = visibleLiveEvents.length > 0 || visibleDemoEvents.length > 0;
   const demoPersonMatches = normalizedQuery.length >= 2 && `${travis.name} ${travis.slug}`.toLocaleLowerCase(locale).includes(normalizedQuery);
   const hasPeopleResults = demoPersonMatches || peopleResults.length > 0;
@@ -147,7 +149,7 @@ export default function FeedPage() {
           ? (ru ? "Опубликовано с личным комментарием" : "Shared with a personal note")
           : event.repeatCount > 1
             ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
-            : (ru ? "Опубликованный Taste-сигнал" : "Shared Taste signal"),
+            : (ru ? "Опубликовано в Taste" : "Shared to Taste"),
         authorNote: event.authorNote,
       };
     });
@@ -158,88 +160,58 @@ export default function FeedPage() {
       signal: ru
         ? event.kind === "recommended" ? "Личная рекомендация" : event.kind === "on_repeat" ? "На повторе всю неделю" : event.kind === "saved_discovery" ? "Новое сохранение" : "Снова вернулся к треку"
         : event.humanSignal,
-      authorNote: event.authorNote,
+      authorNote: localizeDemoNote(event.authorNote, ru),
     }));
     return [...fromLive, ...fromDemo];
   }, [ru, visibleDemoEvents, visibleLiveEvents]);
 
   return (
-    <main className="page nativeFeedPage">
-      <header className="nativePageHeader feedPageHeader">
+    <main className="spxFeedPage">
+      <header className="spxFeedHeader">
         <h1>{ru ? "Лента Taste" : "Taste Feed"}</h1>
-        <p>{ru ? "Рекомендации, повторы и открытия от людей, чьему вкусу вы доверяете." : "Recommendations, repeat listens and discoveries from people whose taste you trust."}</p>
-        <span className="nativeDataDisclosure"><Icon name="info" size={14} />{ru ? "Публичные профили пользователей используют авторизованные данные. Сигналы знаменитостей показаны как иллюстрация." : "Public user profiles use authorized data. Celebrity signals in this demo are illustrative."}</span>
+        <div className="spxFeedTabs" aria-label={ru ? "Фильтр ленты" : "Feed filter"}>
+          {segments.map(segment => <button className={activeSegment === segment ? "active" : ""} type="button" aria-pressed={activeSegment === segment} key={segment} onClick={() => setActiveSegment(segment)}>{segmentLabels[segment]}</button>)}
+        </div>
+        <p>{ru ? "Недавние прослушивания людей, на чей музыкальный вкус вы подписаны" : "Live and recent listening from people you follow"}</p>
       </header>
 
-      <div className="nativeFeedTools">
-        <label className="nativePeopleSearch">
+      <div className="spxFeedTools" id="people-search">
+        <label className="spxPeopleSearch">
           <Icon name="search" size={18} />
           <input value={query} onChange={event => setQuery(event.target.value)} placeholder={ru ? "Найти человека или артиста" : "Find a person or artist"} aria-label={ru ? "Поиск по людям" : "Search people"} />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label={ru ? "Очистить поиск" : "Clear search"}><Icon name="close" size={17} /></button> : null}
         </label>
-        <TasteQueuePlayer
-          items={queueItems}
-          triggerLabel={ru ? "Слушать ленту" : "Play feed"}
-          triggerAriaLabel={ru ? "Слушать все рекомендации в текущей ленте" : "Play all recommendations in the current feed"}
-          triggerClassName="nativeFeedPlayButton"
-        />
+        <TasteQueuePlayer items={queueItems} triggerLabel={ru ? "Слушать ленту" : "Play feed"} triggerAriaLabel={ru ? "Слушать все рекомендации в ленте" : "Play all recommendations in the feed"} triggerClassName="spxFeedPlay" iconOnly />
       </div>
 
       {query.trim().length >= 2 ? (
-        <section className="nativePeopleResults" aria-label={ru ? "Найденные профили Taste" : "Taste profile results"}>
-          <div className="nativePeopleResultsHeader"><strong>{ru ? "Люди" : "People"}</strong>{searchingPeople ? <span>{ru ? "Поиск..." : "Searching..."}</span> : null}</div>
-          {demoPersonMatches ? (
-            <Link href="/tastemaker/travis-scott" className="nativePersonResult">
-              <span className="nativePersonAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} /></span>
-              <span><strong>{travis.name}<i className="verifiedDot"><Icon name="check" size={11} /></i></strong><small>{ru ? "Артист · иллюстративный Taste" : "Artist · illustrative Taste"}</small></span>
-              <Icon name="chevronRight" size={18} />
-            </Link>
-          ) : null}
-          {peopleResults.map(profile => (
-            <Link href={`/taste/${profile.handle}`} className="nativePersonResult" key={profile.handle}>
-              <span className="nativePersonAvatar"><AvatarImage src={profile.avatarUrl || ""} alt={profile.name} /></span>
-              <span><strong>{profile.name}{profile.verified ? <i className="verifiedDot"><Icon name="check" size={11} /></i> : null}</strong><small>@{profile.handle} · {profile.role}</small></span>
-              <span className="nativePersonResultMeta">{profile.following ? (ru ? "Вы подписаны" : "Following") : profile.followers ? `${profile.followers}` : ""}</span>
-              <Icon name="chevronRight" size={18} />
-            </Link>
-          ))}
+        <section className="spxPeopleResults" aria-label={ru ? "Найденные профили Taste" : "Taste profile results"}>
+          <div className="spxPeopleResultsHeader"><strong>{ru ? "Люди" : "People"}</strong>{searchingPeople ? <span>{ru ? "Ищем..." : "Searching..."}</span> : null}</div>
+          {demoPersonMatches ? <Link href="/tastemaker/travis-scott" className="spxPersonResult"><span className="spxPersonAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} /></span><span><strong>{travis.name}<i className="spxVerified"><Icon name="check" size={10} /></i></strong><small>{ru ? "Артист · демо Taste" : "Artist · Taste demo"}</small></span><Icon name="chevronRight" size={18} /></Link> : null}
+          {peopleResults.map(profile => <Link href={`/taste/${profile.handle}`} className="spxPersonResult" key={profile.handle}><span className="spxPersonAvatar"><AvatarImage src={profile.avatarUrl || ""} alt={profile.name} /></span><span><strong>{profile.name}{profile.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</strong><small>@{profile.handle} · {profile.role}</small></span><Icon name="chevronRight" size={18} /></Link>)}
           {!searchingPeople && !hasPeopleResults ? <p>{ru ? "Публичных профилей с таким именем пока нет." : "No public Taste profiles match this search yet."}</p> : null}
         </section>
       ) : null}
 
-      <div className="nativeSegments" aria-label={ru ? "Фильтр ленты" : "Feed filter"}>
-        {segments.map(segment => (
-          <button className={activeSegment === segment ? "active" : ""} type="button" aria-pressed={activeSegment === segment} key={segment} onClick={() => setActiveSegment(segment)}>{segmentLabels[segment]}</button>
-        ))}
-      </div>
-
-      <section className="nativeFeedList" aria-label={ru ? "События Taste" : "Taste events"}>
-        {activeSegment === "Following" && loadingLive ? <div className="nativeFeedSkeleton"><span className="skeleton" /><span className="skeleton" /></div> : null}
+      <section className="spxFeedList" aria-label={ru ? "События Taste" : "Taste events"}>
+        {activeSegment === "Following" && loadingLive ? <div className="spxFeedSkeleton"><span className="skeleton" /><span className="skeleton" /></div> : null}
         {visibleLiveEvents.map(event => <LiveFeedCard event={event} ru={ru} key={event.id} />)}
         {visibleDemoEvents.map(event => <TasteFeedCard event={event} key={event.id} />)}
 
-        {!loadingLive && query && !hasVisibleContent && !hasPeopleResults ? (
-          <div className="nativeFeedSearchEmpty"><Icon name="search" size={25} /><strong>{ru ? "В этой ленте такого человека нет" : "No matching person in this feed"}</strong><span>{ru ? "Попробуйте другое имя или переключите раздел." : "Try another name or switch sections."}</span></div>
-        ) : null}
+        {!loadingLive && query && !hasVisibleContent && !hasPeopleResults ? <div className="spxFeedEmpty"><Icon name="search" size={25} /><strong>{ru ? "Ничего не найдено" : "No matches"}</strong><span>{ru ? "Попробуйте другое имя или раздел." : "Try another name or section."}</span></div> : null}
 
-        {activeSegment === "Following" && !loadingLive && !hasFollowingContent && !query ? (
-          <div className="nativeFeedEmpty">
-            <span className="nativeFeedEmptyAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} /></span>
-            <h2>{ru ? "Соберите свою ленту Taste" : "Build your Taste Feed"}</h2>
-            <p>{ru ? "Подпишитесь на Taste Трэвиса, и его значимые музыкальные сигналы появятся здесь." : "Follow Travis's Taste and his meaningful listening signals will appear here."}</p>
-            <Link className="nativePrimaryButton" href="/tastemaker/travis-scott">{ru ? "Открыть Taste Трэвиса" : "Open Travis's Taste"}</Link>
-            {!connected ? <Link className="nativeTextLink" href="/my-taste">{ru ? "Подключить Spotify для ленты друзей" : "Connect Spotify for friends' activity"}</Link> : null}
-          </div>
-        ) : null}
-
-        {activeSegment === "Following" && hasFollowingContent && !query ? (
-          <Link className="nativeWeeklySummary" href="/tastemaker/travis-scott">
-            <span className="nativeWeeklySummaryAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" /></span>
-            <span><small>{ru ? "Сводка за неделю" : "Weekly summary"}</small><strong>{ru ? "Taste Трэвиса: 8 значимых сигналов" : "Travis's Taste: 8 meaningful signals"}</strong></span>
+        {activeSegment === "Following" && hasVisibleContent && !query ? (
+          <Link className="spxWeeklySummary" href="/tastemaker/travis-scott">
+            <span className="spxWeeklySummaryAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" /></span>
+            <span><strong>{ru ? "Для вас: вдохновлено Taste Трэвиса" : "Made for You: Inspired by Travis"}</strong><small>{ru ? "Живой микс из его музыкальных сигналов" : "A living mix built from his taste signal"}</small></span>
             <Icon name="chevronRight" />
           </Link>
         ) : null}
+
+        {!loadingLive && !hasVisibleContent && !query ? <div className="spxFeedEmpty"><Icon name="user" size={26} /><strong>{ru ? "Подписок пока нет" : "No Taste follows yet"}</strong><span>{ru ? "Найдите человека или артиста и подпишитесь на его Taste." : "Find a person or artist and follow their Taste."}</span>{!connected ? <Link className="spxPrimaryButton" href="/my-taste">{ru ? "Подключить Spotify" : "Connect Spotify"}</Link> : null}</div> : null}
       </section>
+
+      <p className="spxFeedDisclosure"><Icon name="info" size={13} />{ru ? "Профили пользователей используют разрешённые данные Spotify. История знаменитостей в демо иллюстративна." : "User profiles use authorized Spotify data. Celebrity listening shown here is illustrative."}</p>
     </main>
   );
 }

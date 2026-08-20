@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./spotify-native.css";
 import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { cookies, headers } from "next/headers";

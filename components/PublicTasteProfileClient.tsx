@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AvatarImage } from "@/components/AvatarImage";
-import { DemoBadge } from "@/components/DemoBadge";
 import { Icon } from "@/components/Icons";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
+import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n";
+import type { TasteQueueItem, TrackRef } from "@/types/taste";
 import {
   SOCIAL_COMMENTS_KEY,
   decodeSnapshot,
@@ -291,43 +292,46 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const comments = isReal
     ? (selectedServerEvent?.comments || [])
     : localComments.filter(comment => comment.profileHandle === profileHandle && comment.eventId === selectedDemoEvent?.id);
+  const profileQueue: TasteQueueItem[] = (isReal ? weeklyHistory : demoWeeklyHistory).map(item => {
+    const realItem = isReal ? item as ServerWeeklyTrack : null;
+    const demoItem = !isReal ? item as typeof demoWeeklyHistory[number] : null;
+    const rawTrack = realItem?.track || demoItem!.track;
+    const spotifyId = realItem ? rawTrack.id : rawTrack.id.replace(/^spotify_track_/, "");
+    const track: TrackRef = {
+      id: realItem ? `spotify_track_${rawTrack.id}` : rawTrack.id,
+      slug: spotifyId,
+      spotifyId,
+      spotifyUri: `spotify:track:${spotifyId}`,
+      spotifyUrl: rawTrack.spotifyUrl,
+      spotifyEmbedUrl: rawTrack.spotifyEmbedUrl,
+      title: rawTrack.title,
+      artist: rawTrack.artist,
+      coverUrl: rawTrack.coverUrl || "",
+      fallbackCoverUrl: "fallbackCoverUrl" in rawTrack ? rawTrack.fallbackCoverUrl : undefined,
+      origin: "spotify",
+    };
+    const event = !isReal ? demoProfile.events.find(value => value.id === demoItem!.eventId) : null;
+    return {
+      id: `profile_queue_${realItem?.eventId || demoItem!.eventId}`,
+      track,
+      tastemaker: { id: profileHandle, name: profileName, avatarUrl: avatarUrl || "", fallbackAvatarUrl: avatarFallbackUrl },
+      signal: locale === "ru" ? `${realItem?.playCount ?? demoItem!.playCount} повторов за неделю` : `${realItem?.playCount ?? demoItem!.playCount} plays this week`,
+      authorNote: isReal ? serverEvents.find(value => value.id === realItem?.eventId)?.authorNote : event?.authorComment,
+    };
+  });
 
   return (
-    <main className="page nativePublicProfilePage">
-      <section className="nativeUserHero">
-        <div className="nativeUserIdentity">
-          <div className="publicTasteAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={avatarFallbackUrl} alt={`${profileName} avatar`} /></div>
-          <div className="nativeUserIdentityCopy">
-            <span className="nativeSourceLabel">{isReal ? t("profile.live") : t("profile.demo")}</span>
-            <h1>{profileName}{verified ? <span className="verifiedDot" title="Verified Taste profile"><Icon name="check" size={13} /></span> : null}</h1>
-            <p className="profileMeta">@{profileHandle} · {role}</p>
-            <p className="publicTasteBio">{bio}</p>
-            <div className="nativeUserActions">
-              {serverProfile?.isOwner ? (
-                <Link className="nativePrimaryButton" href="/my-taste">{t("profile.own")}</Link>
-              ) : (
-                <button className={`nativeFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>{following ? t("profile.following") : t("profile.follow")}</button>
-              )}
-              <Link className="nativeIconAction" href="/notifications" aria-label={t("profile.inbox")}><Icon name="bell" /></Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="nativeUserStats">
-          <div><strong>{serverProfile?.followers ?? demoProfile.tasteFollowers}</strong><span>{t("my.followers")}</span></div>
-          <div><strong>{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</strong><span>{isReal ? t("profile.weeklyMinutes") : (locale === "ru" ? "Открытия через Taste" : "Taste-sourced starts")}</span></div>
-          <div><strong>{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</strong><span>{isReal ? t("profile.uniqueTracks") : (locale === "ru" ? "Квалифицированные открытия" : "Qualified discoveries")}</span></div>
-        </div>
+    <main className="spxPublicPage">
+      <section className="spxPublicHero">
+        <span className="spxPublicAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={avatarFallbackUrl} alt={`${profileName} avatar`} /></span>
+        <div className="spxPublicIdentity"><small>{isReal ? t("profile.live") : t("profile.demo")}</small><h1>{profileName}{verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</h1><p>@{profileHandle} · {role}</p><em>{bio}</em><div>{serverProfile?.isOwner ? <Link className="spxFollowButton" href="/my-taste">{t("profile.own")}</Link> : <button className={`spxFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>{following ? t("profile.following") : t("profile.follow")}</button>}<TasteQueuePlayer items={profileQueue} triggerLabel={locale === "ru" ? "Слушать Taste" : "Play Taste"} triggerAriaLabel={locale === "ru" ? `Слушать Taste ${profileName}` : `Play ${profileName}'s Taste`} triggerClassName="spxTastePlay" iconOnly /><Link className="spxPublicBell" href="/notifications" aria-label={t("profile.inbox")}><Icon name="bell" /></Link></div></div>
+        <div className="spxPublicStats"><div><strong>{serverProfile?.followers ?? demoProfile.tasteFollowers}</strong><span>{t("my.followers")}</span></div><div><strong>{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</strong><span>{isReal ? t("profile.weeklyMinutes") : (locale === "ru" ? "Открытия через Taste" : "Taste-sourced starts")}</span></div><div><strong>{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</strong><span>{isReal ? t("profile.uniqueTracks") : (locale === "ru" ? "Сохранения" : "Discovery saves")}</span></div></div>
       </section>
 
-      <section className="tasteSocialGrid section">
-        <div className="socialFeedColumn">
-          <div className="sectionHeader">
-            <div className="sectionTitleStack"><div className="eyebrow">{t("profile.history")}</div><h2>{locale === "ru" ? "Треки за последние 7 дней" : "Tracks from the last 7 days"}</h2></div>
-            <DemoBadge>{locale === "ru" ? `Треков: ${publicCount}` : `${publicCount} tracks`}</DemoBadge>
-          </div>
-          <p className="finePrint sourceDisclosure">{isReal ? t("profile.source") : t("common.demoData")}</p>
-          <div className="publicEventList">
+      <section className="spxPublicGrid">
+        <div className="spxPublicHistory">
+          <div className="spxSectionHeading"><h2>{locale === "ru" ? "История за 7 дней" : "Last 7 days"}</h2><span>{locale === "ru" ? `${publicCount} треков` : `${publicCount} tracks`}</span></div>
+          <div className="spxPublicList">
             {(isReal ? weeklyHistory : demoWeeklyHistory).map(item => {
               const realItem = isReal ? item as ServerWeeklyTrack : null;
               const demoItem = !isReal ? item as typeof demoWeeklyHistory[number] : null;
@@ -336,52 +340,36 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
               const eventId = realItem?.eventId || demoItem!.eventId;
               const active = eventId === selectedId;
               return (
-                <button className={`publicEventCard ${active ? "active" : ""}`} type="button" key={eventId} onClick={() => setSelectedId(eventId)}>
-                  <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="trackThumb" />
-                  <span className="publicEventText">
-                    <strong>{track.title}</strong><span>{track.artist}</span>
-                    <em>{realItem ? formatPlayedAt(realItem.lastPlayedAt, locale) : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>
-                  </span>
-                  <span className="historyMetrics">
-                    <span><strong>{realItem?.playCount ?? demoItem!.playCount}</strong>{locale === "ru" ? russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount) : "plays"}</span>
-                    <span><strong>{realItem?.popularity ?? demoItem!.popularity}</strong>{locale === "ru" ? "популярность" : "popularity"}</span>
-                  </span>
+                <button className={active ? "active" : ""} type="button" key={eventId} onClick={() => setSelectedId(eventId)}>
+                  <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="spxPublicTrackCover" />
+                  <span><strong>{track.title}</strong><small>{track.artist}</small><em>{realItem ? formatPlayedAt(realItem.lastPlayedAt, locale) : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em></span>
+                  <b>{realItem?.playCount ?? demoItem!.playCount}<small>{locale === "ru" ? russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount) : "plays"}</small></b>
+                  <Icon name="play" size={15} />
                 </button>
               );
             })}
-            {!publicCount ? <div className="emptyState">{t("profile.empty")}</div> : null}
+            {!publicCount ? <div className="spxFeedEmpty">{t("profile.empty")}</div> : null}
           </div>
         </div>
 
         {selectedTrack ? (
-          <aside className="panel socialPlayerPanel">
-            <div className="sectionHeader selectedTrackHeader">
-              <div><DemoBadge>{isReal ? t("common.spotifyData") : t("common.demoData")}</DemoBadge><h2>{selectedTrack.title}</h2><p className="muted">{selectedTrack.artist}</p></div>
-              <a className="iconButton" href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a>
-            </div>
+          <aside className="spxPublicPlayer">
+            <div className="spxPublicPlayerHead"><div><small>{isReal ? t("common.spotifyData") : t("common.demoData")}</small><h2>{selectedTrack.title}</h2><p>{selectedTrack.artist}</p></div><a href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a></div>
             <SpotifyEmbed src={selectedTrack.spotifyEmbedUrl} title={`Spotify: ${selectedTrack.title}`} />
-
-            <div className="authorNote"><div className="metricLabel"><Icon name="spark" size={17} />{t("profile.authorNote")}</div><p>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null) || t("profile.noNote")}</p></div>
-
-            <div className="commentComposer">
-              <label htmlFor="taste-comment">{t("profile.addComment")}</label>
-              <textarea id="taste-comment" value={commentText} onChange={event => setCommentText(event.target.value)} placeholder={t("profile.commentPlaceholder")} />
-              <button className="btn btnPrimary" type="button" onClick={addComment} disabled={submitting}><Icon name="feed" />{t("profile.postComment")}</button>
-              {isReal && !connected ? <p className="finePrint">{t("profile.loginToComment")}</p> : null}
-            </div>
-
-            <div className="commentList">
-              <div className="metricLabel">{t("profile.thread")}</div>
-              {(selectedServerEvent?.authorNote || selectedDemoEvent?.authorComment) ? <div className="commentBubble author"><strong>{profileName}</strong><span>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null)}</span></div> : null}
+            <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null) || t("profile.noNote")}</p></div>
+            <div className="spxPublicComposer"><label htmlFor="taste-comment">{t("profile.addComment")}</label><textarea id="taste-comment" value={commentText} onChange={event => setCommentText(event.target.value)} placeholder={t("profile.commentPlaceholder")} /><button type="button" onClick={addComment} disabled={submitting}>{t("profile.postComment")}</button>{isReal && !connected ? <p>{t("profile.loginToComment")}</p> : null}</div>
+            <div className="spxPublicComments"><strong>{t("profile.thread")}</strong>
+              {(selectedServerEvent?.authorNote || selectedDemoEvent?.authorComment) ? <div className="author"><strong>{profileName}</strong><span>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null)}</span></div> : null}
               {comments.map(comment => {
                 const serverComment = comment as ServerComment;
                 const localComment = comment as LocalComment;
-                return <div className="commentBubble" key={comment.id}><strong>{isReal ? serverComment.author_name || serverComment.authorName : localComment.author}</strong><span>{isReal ? serverComment.body : localComment.text}</span></div>;
+                return <div key={comment.id}><strong>{isReal ? serverComment.author_name || serverComment.authorName : localComment.author}</strong><span>{isReal ? serverComment.body : localComment.text}</span></div>;
               })}
             </div>
           </aside>
         ) : null}
       </section>
+      <p className="spxPublicDisclosure"><Icon name="info" size={13} />{isReal ? t("profile.source") : t("common.demoData")}</p>
     </main>
   );
 }

@@ -7,22 +7,27 @@ import { Icon } from "@/components/Icons";
 import { ToastProvider } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n";
 
-const navItems = [
-  { href: "/", labelKey: "nav.home", mobileKey: "nav.home", icon: "home" },
-  { href: "/feed", labelKey: "nav.feed", mobileKey: "nav.feed", icon: "feed" },
-  { href: "/tastemaker/travis-scott", labelKey: "nav.tastemaker", mobileKey: "nav.tastemaker", icon: "taste" },
-  { href: "/my-taste", labelKey: "nav.my", mobileKey: "nav.my", icon: "library" },
+const primaryItems = [
+  { href: "/feed", labelKey: "nav.home", icon: "home" },
+  { href: "/feed#people-search", labelKey: "nav.search", icon: "search" },
+  { href: "/my-taste", labelKey: "nav.my", icon: "library" },
+] as const;
+
+const tasteItems = [
+  { href: "/tastemaker/travis-scott", labelKey: "nav.tastemaker", icon: "taste" },
+  { href: "/hub", labelKey: "nav.hub", icon: "hub" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const cleanHref = href.split("#")[0];
+  if (cleanHref === "/feed") return pathname === "/" || pathname === "/feed";
+  return pathname === cleanHref || pathname.startsWith(`${cleanHref}/`);
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { locale, setLocale, t } = useI18n();
-  const current = navItems.find(item => isActive(pathname, item.href)) ?? navItems[0];
+  const current = [...primaryItems, ...tasteItems].find(item => isActive(pathname, item.href)) ?? primaryItems[0];
   const currentLabelKey = pathname.startsWith("/player/") ? "nav.player"
     : pathname.startsWith("/taste/") ? "nav.public"
     : pathname.startsWith("/notifications") ? "nav.inbox"
@@ -36,41 +41,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastProvider>
-      <div className="appShell">
-        <aside className="sidebar" aria-label="Primary navigation">
-          <Link href="/" className="brandMark" aria-label="Taste overview">
-            <span className="brandDisc" aria-hidden="true" />
-            <span>
-              <strong>Taste</strong>
-              <small>{t("shell.concept")}</small>
-            </span>
+      <div className={`appShell spxShell ${immersivePlayer ? "spxShellPlayer" : ""}`}>
+        <aside className="sidebar spxSidebar" aria-label={locale === "ru" ? "Основная навигация" : "Primary navigation"}>
+          <Link href="/feed" className="brandMark spxBrand" aria-label="Spotify Taste">
+            <span className="spxSpotifyMark" aria-hidden="true"><i /><i /><i /></span>
+            <span><strong>Spotify</strong><small>Taste concept</small></span>
           </Link>
-          <nav className="desktopNav">
-            {navItems.map(item => (
-              <Link key={item.href} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
+          <nav className="desktopNav spxPrimaryNav">
+            {primaryItems.map((item, index) => (
+              <Link key={`${item.href}-${index}`} href={item.href} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} />
                 <span>{t(item.labelKey)}</span>
               </Link>
             ))}
           </nav>
-          <div className="sidebarSectionLabel">{locale === "ru" ? "Ваши разделы" : "Your Spotify"}</div>
-          <nav className="desktopNav secondaryNav">
-            <Link href="/hub" className={isActive(pathname, "/hub") ? "active" : ""}>
-              <Icon name="hub" />
-              <span>{t("nav.hub")}</span>
-            </Link>
+          <div className="spxLibraryHead"><Icon name="library" size={20} /><strong>{locale === "ru" ? "Моя медиатека" : "Your Library"}</strong></div>
+          <nav className="desktopNav spxTasteNav">
+            {tasteItems.map(item => (
+              <Link key={item.href} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
+                <span className="spxNavTile"><Icon name={item.icon} size={18} /></span>
+                <span>{t(item.labelKey)}</span>
+              </Link>
+            ))}
             <Link href="/notifications" className={isActive(pathname, "/notifications") ? "active" : ""}>
-              <Icon name="bell" />
-              <span>{t("nav.inbox")}</span>
+              <span className="spxNavTile"><Icon name="bell" size={18} /></span><span>{t("nav.inbox")}</span>
             </Link>
             <Link href="/privacy" className={isActive(pathname, "/privacy") ? "active" : ""}>
-              <Icon name="privacy" />
-              <span>{t("nav.privacy")}</span>
+              <span className="spxNavTile"><Icon name="privacy" size={18} /></span><span>{t("nav.privacy")}</span>
             </Link>
           </nav>
         </aside>
-        <div className="mainColumn">
-          <header className="topBar">
+        <div className="mainColumn spxMainColumn">
+          <header className="topBar spxTopBar">
             <div className="historyControls" aria-label={locale === "ru" ? "Навигация" : "Navigation"}>
               <button type="button" className="topIconButton" aria-label={locale === "ru" ? "Назад" : "Back"} onClick={() => window.history.back()}><Icon name="chevronLeft" /></button>
               <button type="button" className="topIconButton" aria-label={locale === "ru" ? "Вперёд" : "Forward"} onClick={() => window.history.forward()}><Icon name="chevronRight" /></button>
@@ -86,16 +88,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           {children}
-          <footer className="footerNote">
-            {t("shell.disclaimer")}
-          </footer>
+          <footer className="footerNote spxFooter">{t("shell.disclaimer")}</footer>
         </div>
         {!immersivePlayer ? (
-          <nav className="mobileNav" aria-label="Mobile navigation">
-            {navItems.filter(item => ["/", "/feed", "/my-taste"].includes(item.href)).map(item => (
-              <Link key={item.href} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
-                <Icon name={item.icon} size={21} />
-                <span>{t(item.mobileKey)}</span>
+          <nav className="mobileNav spxMobileNav" aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
+            {primaryItems.map((item, index) => (
+              <Link key={`${item.href}-${index}`} href={item.href} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
+                <Icon name={item.icon} size={22} />
+                <span>{t(item.labelKey)}</span>
               </Link>
             ))}
           </nav>

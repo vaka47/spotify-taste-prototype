@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AvatarImage } from "@/components/AvatarImage";
-import { DemoBadge } from "@/components/DemoBadge";
 import { Icon } from "@/components/Icons";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
@@ -236,158 +235,54 @@ export function MyTasteClient() {
   const minutes7d = useMemo(() => Math.round(Number(user?.stats.duration_ms_7d || 0) / 60_000), [user]);
 
   return (
-    <main className="page">
-      <div className="myTasteHeader">
-        <div>
-          {state === "connected" ? <div className="eyebrow">{t("my.eyebrow")}</div> : null}
-          <h1 className="pageTitle">{state === "connected" ? t("my.title") : t("nav.my")}</h1>
-          <p className="lead">{state === "connected" ? t("my.lead") : (locale === "ru" ? "Подключите Spotify, чтобы публиковать значимые сигналы и подписываться на вкус друзей." : "Connect Spotify to publish meaningful signals and follow the taste of friends you trust.")}</p>
-        </div>
-        {state === "connected" ? (
-          <div className="buttonRow headerActions">
-            <button className="btn btnPrimary" type="button" onClick={sync} disabled={syncing}>
-              <Icon name="feed" />{syncing ? t("my.syncing") : t("my.sync")}
-            </button>
-            <button className="btn btnGhost" type="button" onClick={disconnect}>{t("my.disconnect")}</button>
-          </div>
-        ) : null}
-      </div>
+    <main className="spxMyTastePage">
+      <header className="spxMyTasteHeader">
+        <span>{state === "connected" ? (locale === "ru" ? "ВАШ ПУБЛИЧНЫЙ СИГНАЛ" : "YOUR PUBLIC TASTE SIGNAL") : "SPOTIFY TASTE"}</span>
+        <h1>{state === "connected" ? (locale === "ru" ? "Ваш Taste" : "Your Taste") : t("nav.my")}</h1>
+        <p>{state === "connected" ? (locale === "ru" ? "История, которую видят ваши подписчики" : "The listening history your followers can see") : (locale === "ru" ? "Подключите Spotify, чтобы делиться музыкой и подписываться на Taste друзей." : "Connect Spotify to share music and follow your friends' Taste.")}</p>
+      </header>
 
-      {error ? <section className="errorState section" role="alert"><strong>{locale === "ru" ? "Нужна проверка" : "Needs attention"}</strong><p>{error}</p></section> : null}
-
-      {state === "loading" ? <section className="panel section"><SkeletonRows /></section> : null}
+      {error ? <section className="spxError" role="alert"><Icon name="info" /><span><strong>{locale === "ru" ? "Не удалось выполнить действие" : "Action needed"}</strong><p>{error}</p></span></section> : null}
+      {state === "loading" ? <section className="spxLoading"><SkeletonRows /></section> : null}
 
       {state === "disconnected" || state === "error" ? (
-        <section className="nativeConnectExperience section">
-          <article className="nativeConnectPanel">
-            <div className="connectIcon"><Icon name="user" size={28} /></div>
-            <h2>{t("my.connect")}</h2>
-            <p>{t("my.disconnectedBody")}</p>
-            <a className={`btn btnPrimary ${!configured ? "disabled" : ""}`} href={configured ? "/api/auth/spotify/start?returnTo=/my-taste" : undefined} aria-disabled={!configured}>
-              <Icon name="user" />{t("my.connect")}
-            </a>
-          </article>
-          <aside className="nativeTrustPanel">
-            <div className="whyList">
-              <div className="whyItem"><span className="whyIcon"><Icon name="privacy" /></span><span>{t("my.noSecret")}</span></div>
-              <div className="whyItem"><span className="whyIcon"><Icon name="taste" /></span><span>{t("my.shareBody")}</span></div>
-            </div>
-          </aside>
+        <section className="spxConnectPanel">
+          <span><Icon name="user" size={30} /></span>
+          <div><h2>{t("my.connect")}</h2><p>{t("my.disconnectedBody")}</p><small><Icon name="privacy" size={14} />{t("my.noSecret")}</small></div>
+          <a className={`spxPrimaryButton ${!configured ? "disabled" : ""}`} href={configured ? "/api/auth/spotify/start?returnTo=/my-taste" : undefined} aria-disabled={!configured}>{t("my.connect")}</a>
         </section>
       ) : null}
 
       {state === "connected" && user ? (
         <>
-          <section className="accountHero section">
-            <div className="accountIdentity">
-              <div className="accountAvatar"><AvatarImage src={user.avatarUrl || ""} alt={user.displayName} /></div>
-              <div>
-                <DemoBadge>{t("common.spotifyData")}</DemoBadge>
-                <h2>{t("my.connectedAs", { name: user.displayName })}</h2>
-                <p className="muted">@{user.handle} · {t("my.lastSync")}: {user.lastSyncedAt ? formatDate(user.lastSyncedAt, locale) : t("my.never")}</p>
-              </div>
-            </div>
-            <div className="buttonRow">
-              <Link className="btn btnPrimary" href={`/taste/${user.handle}`}><Icon name="external" />{t("my.openProfile")}</Link>
-              <button className="btn btnSubtle" type="button" onClick={copyProfile}><Icon name="spark" />{t("my.copy")}</button>
-            </div>
+          <section className="spxOwnerHero">
+            <span className="spxOwnerAvatar"><AvatarImage src={user.avatarUrl || ""} alt={user.displayName} /></span>
+            <div className="spxOwnerCopy"><small>{t("common.spotifyData")}</small><h2>{user.displayName}</h2><p>@{user.handle} · {user.role}</p><em>{t("my.lastSync")}: {user.lastSyncedAt ? formatDate(user.lastSyncedAt, locale) : t("my.never")}</em></div>
+            <div className="spxOwnerActions"><button type="button" onClick={sync} disabled={syncing} aria-label={syncing ? t("my.syncing") : t("my.sync")}><Icon name="feed" /></button><Link href={`/taste/${user.handle}`} aria-label={t("my.openProfile")}><Icon name="external" /></Link><button type="button" onClick={copyProfile} aria-label={t("my.copy")}><Icon name="spark" /></button></div>
           </section>
 
-          <section className="grid4 section" aria-label="Taste account statistics">
-            <article className="metricCard"><div className="metricLabel">{t("my.followers")}</div><div className="metricNumber">{user.stats.followers}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
-            <article className="metricCard"><div className="metricLabel">{t("my.listens")}</div><div className="metricNumber">{user.stats.events}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
-            <article className="metricCard"><div className="metricLabel">{t("my.minutes")}</div><div className="metricNumber">{minutes7d}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
-            <article className="metricCard"><div className="metricLabel">{t("my.unique")}</div><div className="metricNumber">{user.stats.unique_tracks_7d}</div><div className="metricDelta">{t("profile.realStats")}</div></article>
+          <section className="spxOwnerStats" aria-label={locale === "ru" ? "Статистика Taste" : "Taste statistics"}>
+            <div><strong>{user.stats.followers}</strong><span>{t("my.followers")}</span></div>
+            <div><strong>{user.stats.events}</strong><span>{locale === "ru" ? "Сигналы" : "Taste signals"}</span></div>
+            <div><strong>{minutes7d}</strong><span>{locale === "ru" ? "Минут за 7 дней" : "Minutes in 7 days"}</span></div>
+            <div><strong>{user.stats.unique_tracks_7d}</strong><span>{locale === "ru" ? "Уникальные треки" : "Unique tracks"}</span></div>
           </section>
 
-          <section className="section weeklyHistorySection">
-            <div className="sectionHeader">
-              <div className="sectionTitleStack"><div className="eyebrow">Taste · 7 days</div><h2>{locale === "ru" ? "Ваша недельная история" : "Your weekly history"}</h2></div>
-              <DemoBadge>{locale === "ru" ? `Треков: ${weeklyHistory.length}` : `${weeklyHistory.length} tracks`}</DemoBadge>
-            </div>
-            {weeklyHistory.length ? (
-              <div className="weeklyTrackList">
-                {weeklyHistory.map((item, index) => (
-                  <a className="weeklyTrackRow" href={item.track.spotifyUrl} target="_blank" rel="noreferrer" key={item.track.id}>
-                    <span className="trackNumber">{index + 1}</span>
-                    <TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="trackThumb" />
-                    <span className="weeklyTrackCopy"><strong>{item.track.title}</strong><span>{item.track.artist}</span><em>{formatDate(item.lastPlayedAt, locale)}</em></span>
-                    <span className="weeklyTrackMetrics">
-                      <span className="weeklyTrackMetric"><strong>{item.playCount}</strong><span>{locale === "ru" ? "за 7 дней" : "7-day plays"}</span></span>
-                      <span className="weeklyTrackMetric"><strong>{item.popularity}</strong><span>{locale === "ru" ? "популярность" : "popularity"}</span></span>
-                    </span>
-                    <span className="rowOpenIcon"><Icon name="external" size={17} /></span>
-                  </a>
-                ))}
-              </div>
-            ) : <div className="emptyState">{t("my.empty")}</div>}
+          <section className="spxOwnerSection">
+            <div className="spxSectionHeading"><h2>{locale === "ru" ? "История за неделю" : "This week's listening"}</h2><span>{locale === "ru" ? "По повторам и популярности" : "By repeats, then popularity"}</span></div>
+            {weeklyHistory.length ? <div className="spxOwnerHistory">{weeklyHistory.map((item, index) => <a href={item.track.spotifyUrl} target="_blank" rel="noreferrer" key={item.track.id}><span>{index + 1}</span><TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="spxOwnerTrackCover" /><span><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{formatDate(item.lastPlayedAt, locale)}</em></span><b>{item.playCount}<small>{locale === "ru" ? "за 7 дней" : "plays"}</small></b><Icon name="external" size={16} /></a>)}</div> : <div className="spxFeedEmpty">{t("my.empty")}</div>}
           </section>
 
-          <section className="profileEditor section">
-            <div>
-              <div className="eyebrow">{t("my.profile")}</div>
-              <h2>{t("my.shareTitle")}</h2>
-              <p className="muted">{t("my.shareBody")}</p>
-            </div>
-            <div className="formGrid">
-              <label><span>{t("my.handle")}</span><input value={profileDraft.handle} onChange={event => setProfileDraft(current => ({ ...current, handle: event.target.value }))} /></label>
-              <label><span>{t("my.role")}</span><input value={profileDraft.role} onChange={event => setProfileDraft(current => ({ ...current, role: event.target.value }))} /></label>
-              <label className="formWide"><span>{t("my.bio")}</span><textarea value={profileDraft.bio} onChange={event => setProfileDraft(current => ({ ...current, bio: event.target.value }))} /></label>
-              <button className="btn btnPrimary formAction" type="button" onClick={updateProfile} disabled={savingProfile}><Icon name="check" />{t("my.updateProfile")}</button>
-            </div>
+          <section className="spxOwnerSection">
+            <div className="spxSectionHeading"><h2>{locale === "ru" ? "Что увидят подписчики" : "What followers see"}</h2><span>{locale === "ru" ? `Опубликовано: ${events.filter(event => event.isPublic).length}` : `${events.filter(event => event.isPublic).length} public`}</span></div>
+            {events.length ? <div className="spxOwnerEvents">{events.map(event => <article key={event.id}><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="spxOwnerTrackCover" /><div><strong>{event.track.title}</strong><small>{event.track.artist}</small><em>{formatDate(event.playedAt, locale)} · {t("profile.repeat", { count: event.repeatCount })}</em>{event.authorNote ? <p>“{event.authorNote}”</p> : null}</div><div><button className={event.isPublic ? "active" : ""} type="button" onClick={() => updateEvent(event.id, { isPublic: !event.isPublic })}><Icon name={event.isPublic ? "check" : "hide"} size={15} />{event.isPublic ? t("my.publish") : t("my.private")}</button><button type="button" onClick={() => { setNoteEventId(event.id); setNoteDraft(event.authorNote || ""); }}><Icon name="comment" size={15} />{event.authorNote ? t("my.editNote") : t("my.addNote")}</button></div>{noteEventId === event.id ? <div className="spxOwnerNote"><textarea value={noteDraft} onChange={change => setNoteDraft(change.target.value)} placeholder={t("my.notePlaceholder")} autoFocus /><button type="button" onClick={() => updateEvent(event.id, { authorNote: noteDraft })}>{t("common.save")}</button><button type="button" onClick={() => setNoteEventId(null)}>{t("common.cancel")}</button></div> : null}</article>)}</div> : <div className="spxFeedEmpty">{t("my.empty")}</div>}
           </section>
 
-          <section className="section">
-            <div className="sectionHeader">
-              <div><div className="eyebrow">{t("my.recent")}</div><h2>{t("profile.whatFollowersSee")}</h2></div>
-              <DemoBadge>{t("profile.publicEvents", { count: events.filter(event => event.isPublic).length })}</DemoBadge>
-            </div>
-            {events.length ? (
-              <div className="ownerEventList">
-                {events.map(event => (
-                  <article className="ownerEventCard" key={event.id}>
-                    <TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="trackThumb" />
-                    <div className="ownerEventMain">
-                      <strong>{event.track.title}</strong>
-                      <span>{event.track.artist}</span>
-                      <em>{formatDate(event.playedAt, locale)} · {t("profile.repeat", { count: event.repeatCount })}</em>
-                      {event.authorNote ? <p>{event.authorNote}</p> : null}
-                    </div>
-                    <div className="ownerEventActions">
-                      <button className={`visibilityButton ${event.isPublic ? "public" : ""}`} type="button" onClick={() => updateEvent(event.id, { isPublic: !event.isPublic })} aria-pressed={event.isPublic}>
-                        <Icon name={event.isPublic ? "check" : "hide"} size={17} />{event.isPublic ? t("my.publish") : t("my.private")}
-                      </button>
-                      <button className="btn btnSubtle btnCompact" type="button" onClick={() => { setNoteEventId(event.id); setNoteDraft(event.authorNote || ""); }}><Icon name="feed" size={17} />{event.authorNote ? t("my.editNote") : t("my.addNote")}</button>
-                    </div>
-                    {noteEventId === event.id ? (
-                      <div className="inlineNoteEditor">
-                        <textarea value={noteDraft} onChange={change => setNoteDraft(change.target.value)} placeholder={t("my.notePlaceholder")} autoFocus />
-                        <div className="buttonRow">
-                          <button className="btn btnPrimary btnCompact" type="button" onClick={() => updateEvent(event.id, { authorNote: noteDraft })}>{t("common.save")}</button>
-                          <button className="btn btnSubtle btnCompact" type="button" onClick={() => setNoteEventId(null)}>{t("common.cancel")}</button>
-                        </div>
-                      </div>
-                    ) : null}
-                  </article>
-                ))}
-              </div>
-            ) : <div className="emptyState">{t("my.empty")}</div>}
-          </section>
-
-          {user.topTracks?.length ? (
-            <section className="panel section">
-              <div className="sectionHeader"><h2>{locale === "ru" ? "Топ треков за короткий период" : "Short-term top tracks"}</h2><DemoBadge>{t("common.spotifyData")}</DemoBadge></div>
-              <div className="spotifyList compactSpotifyList">
-                {user.topTracks.slice(0, 8).map(track => (
-                  <a className="spotifyRow" href={track.external_urls?.spotify} target="_blank" rel="noreferrer" key={track.id}>
-                    <TrackArtwork src={track.album?.images?.[1]?.url || track.album?.images?.[0]?.url || ""} alt={`${track.name} cover`} className="spotifyThumb" />
-                    <div className="rowGrow"><div className="trackTitle">{track.name}</div><div className="trackArtist">{track.artists?.map(artist => artist.name).join(", ")}</div></div>
-                    <Icon name="external" size={18} />
-                  </a>
-                ))}
-              </div>
-            </section>
-          ) : null}
+          <details className="spxOwnerSettings">
+            <summary>{locale === "ru" ? "Профиль и настройки" : "Profile and settings"}</summary>
+            <div className="spxOwnerForm"><label><span>{t("my.handle")}</span><input value={profileDraft.handle} onChange={event => setProfileDraft(current => ({ ...current, handle: event.target.value }))} /></label><label><span>{t("my.role")}</span><input value={profileDraft.role} onChange={event => setProfileDraft(current => ({ ...current, role: event.target.value }))} /></label><label className="wide"><span>{t("my.bio")}</span><textarea value={profileDraft.bio} onChange={event => setProfileDraft(current => ({ ...current, bio: event.target.value }))} /></label><button type="button" onClick={updateProfile} disabled={savingProfile}>{t("my.updateProfile")}</button></div>
+            <div className="spxOwnerSettingsLinks"><Link href="/privacy"><Icon name="privacy" size={16} />{t("nav.privacy")}</Link><button type="button" onClick={disconnect}>{t("my.disconnect")}</button></div>
+          </details>
         </>
       ) : null}
     </main>

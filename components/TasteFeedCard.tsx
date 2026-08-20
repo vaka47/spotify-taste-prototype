@@ -12,11 +12,18 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
   const router = useRouter();
   const { locale } = useI18n();
   const ru = locale === "ru";
-  const labels = ru ? { recommended: "Рекомендует", on_repeat: "На повторе", saved_discovery: "Сохранённое открытие", rediscovered: "Вернулся к треку" } : kindLabels;
+  const localizedNote = ru && event.authorNote === "Listen for the switch in the second half."
+    ? "Обратите внимание на переход во второй половине."
+    : ru && event.authorNote === "The opening leaves exactly the right amount of space."
+      ? "Во вступлении ровно столько воздуха, сколько нужно."
+      : event.authorNote;
+  const labels = ru
+    ? { recommended: "Рекомендация", on_repeat: "На повторе", saved_discovery: "Новое открытие", rediscovered: "Снова слушает" }
+    : kindLabels;
   const signals = ru ? {
     recommended: "Добавил комментарий после 14 прослушиваний",
     on_repeat: "11 прослушиваний за эту неделю",
-    saved_discovery: "Сохранено после первого прослушивания",
+    saved_discovery: "Сегодня впервые сохранил этот трек",
     rediscovered: "Вернулся к треку спустя 4 месяца",
   } : null;
   const timestamp = ru
@@ -34,49 +41,27 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
   }
 
   return (
-    <article className="nativeFeedCard">
-      <button className="nativeFeedCardMain" type="button" onClick={openTrack}>
-        <div className="nativeFeedAvatarWrap">
-          <div className="nativeFeedAvatar">
-            <img
-              className="avatarImage"
-              src={event.tastemaker.avatarUrl}
-              alt={`${event.tastemaker.name} artist image from Spotify`}
-              onError={imageEvent => {
-                if (event.tastemaker.fallbackAvatarUrl) imageEvent.currentTarget.src = event.tastemaker.fallbackAvatarUrl;
-              }}
-            />
-          </div>
-        </div>
-        <div className="nativeFeedText">
-          <div className="nativeFeedMeta">
-            <strong>{event.tastemaker.name}</strong>
-            <span>{timestamp}</span>
-            <span className="nativeStatus">{labels[event.kind]}</span>
-          </div>
-          <div className="nativeFeedTrackTitle">{event.track.title}</div>
-          <div className="nativeFeedArtist">{event.track.artist}</div>
-          {event.authorNote ? <div className="nativeFeedAuthorNote">“{ru && event.id === "ev_recommended" ? "Обратите внимание на переход во второй половине." : event.authorNote}”</div> : null}
-          <div className="nativeFeedSignal">
-            <Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />
-            {signals?.[event.kind] || event.humanSignal}
-          </div>
-        </div>
-        <TrackArtwork
-          src={event.track.coverUrl}
-          fallbackSrc={event.track.fallbackCoverUrl}
-          alt={`${event.track.title} album cover from Spotify`}
-          className="nativeFeedCover"
-        />
+    <article className="spxFeedEvent">
+      <button className="spxFeedEventMain" type="button" onClick={openTrack}>
+        <span className="spxFeedAvatar">
+          <img
+            className="avatarImage"
+            src={event.tastemaker.avatarUrl}
+            alt={event.tastemaker.name}
+            onError={imageEvent => { if (event.tastemaker.fallbackAvatarUrl) imageEvent.currentTarget.src = event.tastemaker.fallbackAvatarUrl; }}
+          />
+        </span>
+        <span className="spxFeedEventCopy">
+          <span className="spxFeedPerson"><strong>{event.tastemaker.name}</strong>{event.tastemaker.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</span>
+          <span className="spxFeedTime">{timestamp} · <em>{labels[event.kind]}</em></span>
+          <strong className="spxFeedTrackTitle">{event.track.title}</strong>
+          <span className="spxFeedArtist">{event.track.artist}</span>
+          {localizedNote ? <em className="spxFeedNote">“{localizedNote}”</em> : null}
+        </span>
+        <TrackArtwork src={event.track.coverUrl} fallbackSrc={event.track.fallbackCoverUrl} alt={`${event.track.title} cover`} className="spxFeedCover" />
+        <span className="spxFeedSignal"><Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />{signals?.[event.kind] || event.humanSignal}</span>
       </button>
-      <button
-        className="nativeMoreButton"
-        type="button"
-        aria-label={`Open Taste options for ${event.track.title}`}
-        onClick={openTrack}
-      >
-        <Icon name="more" />
-      </button>
+      <button className="spxFeedMore" type="button" aria-label={ru ? `Открыть ${event.track.title}` : `Open ${event.track.title}`} onClick={openTrack}><Icon name="more" /></button>
     </article>
   );
 }
