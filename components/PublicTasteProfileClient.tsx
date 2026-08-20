@@ -103,6 +103,15 @@ function formatPlayedAt(value: string, locale: "en" | "ru") {
   return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "short" }).format(date);
 }
 
+function russianRepeatLabel(value: number) {
+  const mod100 = value % 100;
+  const mod10 = value % 10;
+  if (mod100 >= 11 && mod100 <= 14) return "повторов";
+  if (mod10 === 1) return "повтор";
+  if (mod10 >= 2 && mod10 <= 4) return "повтора";
+  return "повторов";
+}
+
 export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const searchParams = useSearchParams();
   const { locale, t } = useI18n();
@@ -334,7 +343,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
                     <em>{realItem ? formatPlayedAt(realItem.lastPlayedAt, locale) : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>
                   </span>
                   <span className="historyMetrics">
-                    <span><strong>{realItem?.playCount ?? demoItem!.playCount}</strong>{locale === "ru" ? "повторов" : "plays"}</span>
+                    <span><strong>{realItem?.playCount ?? demoItem!.playCount}</strong>{locale === "ru" ? russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount) : "plays"}</span>
                     <span><strong>{realItem?.popularity ?? demoItem!.popularity}</strong>{locale === "ru" ? "популярность" : "popularity"}</span>
                   </span>
                 </button>

@@ -52,7 +52,7 @@ export default function HubPage() {
 
       <section className="analyticsSplit section">
         <article className="analyticsSurface">
-          <div className="nativeSectionHeader"><div><h2>{ru ? "Фаннел влияния" : "Influence funnel"}</h2><p>{ru ? "Атрибуция заканчивается не на клике, а на подтверждённом намерении." : "Attribution continues beyond the click to verified intent."}</p></div></div>
+          <div className="nativeSectionHeader"><div><h2>{ru ? "Воронка влияния" : "Influence funnel"}</h2><p>{ru ? "Атрибуция заканчивается не на клике, а на подтверждённом намерении." : "Attribution continues beyond the click to verified intent."}</p></div></div>
           <div className="discoveryFunnel">
             {funnel.map(item => <div className="funnelRow" key={item.key}><span>{funnelLabels[item.key]}</span><div><i style={{ width: `${item.width}%` }} /></div><strong>{item.value}</strong></div>)}
           </div>
@@ -60,7 +60,7 @@ export default function HubPage() {
         </article>
 
         <article className="analyticsSurface">
-          <div className="nativeSectionHeader"><div><h2>{ru ? "Контракт качества" : "Quality contract"}</h2><p>{ru ? "Правила, без которых человеческое влияние превращается в payola." : "Guardrails that keep human influence from becoming payola."}</p></div></div>
+          <div className="nativeSectionHeader"><div><h2>{ru ? "Контракт качества" : "Quality contract"}</h2><p>{ru ? "Правила, которые не дают человеческому влиянию превратиться в скрытое платное продвижение." : "Guardrails that keep human influence from becoming payola."}</p></div></div>
           <div className="integrityList">
             <div><Icon name="check" /><span><strong>{ru ? "Значимые сигналы" : "Meaningful signals"}</strong><small>{ru ? "Повторы, сохранения и явные рекомендации; разовые запуски скрыты." : "Repeats, saves and explicit recommendations; one-off plays stay private."}</small></span></div>
             <div><Icon name="privacy" /><span><strong>{ru ? "Согласие и задержка" : "Consent and delay"}</strong><small>{ru ? "Opt-in, задержка 24 часа, скрытие треков и артистов." : "Opt-in, 24-hour delay, track and artist exclusions."}</small></span></div>
@@ -92,9 +92,9 @@ export default function HubPage() {
             <div><dt>{ru ? "Аудитория" : "Audience"}</dt><dd>{ru ? "10 тыс. приглашённых слушателей" : "10K invited listeners"}</dd></div>
             <div><dt>{ru ? "Срок" : "Duration"}</dt><dd>{ru ? "4 недели" : "4 weeks"}</dd></div>
             <div><dt>{ru ? "Основная метрика" : "Primary metric"}</dt><dd>{ru ? "Сохранения и повторы новых артистов" : "Saves and repeats of newly discovered artists"}</dd></div>
-            <div><dt>{ru ? "Guardrail" : "Guardrail"}</dt><dd>{ru ? "Скрытия, жалобы и доля промо-сигналов" : "Hides, reports and promoted-signal share"}</dd></div>
+            <div><dt>{ru ? "Контроль риска" : "Guardrail"}</dt><dd>{ru ? "Скрытия, жалобы и доля промо-сигналов" : "Hides, reports and promoted-signal share"}</dd></div>
           </dl>
-          <div className="localProof"><span>{ru ? "Локальных demo-событий" : "Local demo events"}</span><strong>{eventCount}</strong></div>
+          <div className="localProof"><span>{ru ? "Локальных демособытий" : "Local demo events"}</span><strong>{eventCount}</strong></div>
           <Link className="nativePrimaryButton" href="/pitch">{ru ? "Открыть pitch для Spotify" : "Open Spotify pitch"}</Link>
         </article>
       </section>

@@ -137,7 +137,7 @@ export default function PitchPage() {
             <div><span>10K</span><strong>{ru ? "слушателей" : "listeners"}</strong><small>{ru ? "Приглашённая аудитория с активным музыкальным discovery." : "Invited listeners with active discovery behavior."}</small></div>
             <div><span>4</span><strong>{ru ? "недели" : "weeks"}</strong><small>{ru ? "Достаточно, чтобы измерить сохранения и ранние повторы." : "Enough to measure saves and early repeat behavior."}</small></div>
           </div>
-          <div className="pitchPilotMeasure"><div><Icon name="check" /><span><strong>{ru ? "Успех" : "Success"}</strong><small>{ru ? "Рост сохранений и повторов новых артистов относительно контрольного discovery." : "Lift in saves and repeats of new artists versus control discovery."}</small></span></div><div><Icon name="privacy" /><span><strong>Guardrails</strong><small>{ru ? "Скрытия, жалобы, отключение sharing и доля промо-сигналов." : "Hides, reports, sharing opt-outs and promoted-signal share."}</small></span></div></div>
+          <div className="pitchPilotMeasure"><div><Icon name="check" /><span><strong>{ru ? "Успех" : "Success"}</strong><small>{ru ? "Рост сохранений и повторов новых артистов относительно контрольных рекомендаций." : "Lift in saves and repeats of new artists versus control discovery."}</small></span></div><div><Icon name="privacy" /><span><strong>{ru ? "Контроль риска" : "Guardrails"}</strong><small>{ru ? "Скрытия, жалобы, отключение публикации и доля промо-сигналов." : "Hides, reports, sharing opt-outs and promoted-signal share."}</small></span></div></div>
         </section> : null}
 
         {slide === 8 ? <section className="pitchSlide pitchAskSlide">
