@@ -8343,6 +8343,32 @@ select:disabled {
     grid-template-columns: 42px minmax(0, 1fr) auto;
   }
 
+  .nativePrivacyPage > .nativeSectionHeader {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .nativePrivacyPage > .nativeSectionHeader .demoBadge {
+    justify-self: start;
+  }
+
+  .nativePrivacyPage .privacyConnect {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .nativePrivacyPage .privacyConnect .privacyIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .nativePrivacyPage .privacyConnect .btn {
+    grid-column: 1;
+  }
+
   .nativePrivacyPage .privacyTextControl {
     grid-template-columns: 42px minmax(0, 1fr);
   }
