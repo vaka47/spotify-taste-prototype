@@ -71,7 +71,7 @@ export default function ArtistOnboardingPage() {
             </div>
             <div className="onboardingArtistRow">
               <AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} />
-              <span><strong>{travis.name}</strong><small>{ru ? "Spotify for Artists · Editor" : "Spotify for Artists · Editor"}</small></span>
+              <span><strong>{travis.name}</strong><small>{ru ? "Spotify for Artists · Редактор" : "Spotify for Artists · Editor"}</small></span>
               <span className="onboardingVerified"><Icon name="check" size={15} />{ru ? "Права подтверждены" : "Access verified"}</span>
             </div>
             <div className="onboardingStageActions"><button className="nativeOutlineButton" type="button" onClick={() => setStep(0)}>{ru ? "Назад" : "Back"}</button><button className="nativePrimaryButton" type="button" onClick={next}>{ru ? "Выбрать профиль" : "Select profile"}<Icon name="chevronRight" size={17} /></button></div>

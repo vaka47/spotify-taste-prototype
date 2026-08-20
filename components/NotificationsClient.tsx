@@ -64,7 +64,7 @@ export function NotificationsClient() {
   return (
     <main className="page pageNarrow nativeNotificationsPage">
       <div className="nativeSectionHeader">
-        <div><h1 className="pageTitle">{t("nav.inbox")}</h1><p>{t("inbox.lead")}</p></div>
+        <div><h1 className="pageTitle">{t("nav.inbox")}</h1><p>{connected ? t("inbox.lead") : (locale === "ru" ? "До подключения здесь показаны примеры уведомлений. После входа появятся события от ваших подписок." : "Demo examples are shown until you connect. After sign-in, notifications will come from people you follow.")}</p></div>
         <DemoBadge>{t("inbox.unread", { count: unread })}</DemoBadge>
       </div>
 

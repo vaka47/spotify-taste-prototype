@@ -12,6 +12,11 @@ const routes: Record<string, string> = {
   player: "/player/euphoria",
   profile: "/taste/vaka47",
   privacy: "/privacy",
+  notifications: "/notifications",
+  onboarding: "/artist-onboarding",
+  hub: "/hub",
+  pitch: "/pitch",
+  myTaste: "/my-taste",
 };
 
 export default async function MobileQaPage({ searchParams }: { searchParams: Promise<{ view?: string }> }) {
