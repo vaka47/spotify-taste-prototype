@@ -20,7 +20,7 @@ const funnel = [
 
 function formatMetric(value: string, ru: boolean) {
   if (!ru) return value;
-  return value.replace("M", " млн").replace("K", " тыс.").replace(".", ",");
+  return value.replace(".", ",").replace("M", " млн").replace("K", " тыс.");
 }
 
 export default function HubPage() {
