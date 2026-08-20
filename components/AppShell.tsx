@@ -38,10 +38,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <ToastProvider>
       <div className="appShell">
         <aside className="sidebar" aria-label="Primary navigation">
-          <Link href="/" className="brandMark" aria-label="Follow Taste overview">
+          <Link href="/" className="brandMark" aria-label="Taste overview">
             <span className="brandDisc" aria-hidden="true" />
             <span>
-              <strong>Follow Taste</strong>
+              <strong>Taste</strong>
               <small>{t("shell.concept")}</small>
             </span>
           </Link>
@@ -55,6 +55,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="sidebarSectionLabel">{locale === "ru" ? "Ваши разделы" : "Your Spotify"}</div>
           <nav className="desktopNav secondaryNav">
+            <Link href="/hub" className={isActive(pathname, "/hub") ? "active" : ""}>
+              <Icon name="hub" />
+              <span>{t("nav.hub")}</span>
+            </Link>
             <Link href="/notifications" className={isActive(pathname, "/notifications") ? "active" : ""}>
               <Icon name="bell" />
               <span>{t("nav.inbox")}</span>
@@ -64,9 +68,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span>{t("nav.privacy")}</span>
             </Link>
           </nav>
-          <div className="sidebarFooter">
-            <p>{t("shell.independent")}</p>
-          </div>
         </aside>
         <div className="mainColumn">
           <header className="topBar">

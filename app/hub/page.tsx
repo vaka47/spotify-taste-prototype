@@ -98,6 +98,37 @@ export default function HubPage() {
           <Link className="nativePrimaryButton" href="/pitch">{ru ? "Открыть pitch для Spotify" : "Open Spotify pitch"}</Link>
         </article>
       </section>
+
+      <section className="creatorEconomics section" aria-labelledby="taste-economics-title">
+        <div className="nativeSectionHeader creatorEconomicsHeader">
+          <div>
+            <h2 id="taste-economics-title">{ru ? "Экономика Taste" : "Taste economics"}</h2>
+            <p>{ru ? "Гипотеза для пилота: вознаграждать подтверждённое влияние, не уменьшая роялти правообладателей." : "Pilot hypothesis: reward verified influence without reducing rights-holder royalties."}</p>
+          </div>
+          <DemoBadge>{ru ? "Иллюстративная экономика · не данные Spotify" : "Illustrative economics · not Spotify data"}</DemoBadge>
+        </div>
+
+        <div className="creatorEconomicsGrid">
+          <article className="economicsPrimary">
+            <span>{ru ? "Оценочный доход от Taste" : "Estimated Taste earnings"}</span>
+            <strong>$18,420</strong>
+            <small>{ru ? "Гипотетическая выплата за месяц" : "Hypothetical monthly payout"}</small>
+            <ol>
+              <li><b>1</b><span><strong>{ru ? "Spotify формирует Tastemaker Pool" : "Spotify funds a Tastemaker Pool"}</strong><small>{ru ? "Отдельно от расчёта роялти артистов и правообладателей." : "Separate from artist and rights-holder royalty accounting."}</small></span></li>
+              <li><b>2</b><span><strong>{ru ? "Доля зависит от подтверждённого влияния" : "Verified influence creates a pool share"}</strong><small>{ru ? "Учитываются открытия, сохранения, повторы и подписки на артиста." : "Qualified discoveries, saves, repeats and artist follows are weighted."}</small></span></li>
+              <li><b>3</b><span><strong>{ru ? "Тейстмейкер получает вознаграждение" : "The tastemaker earns a payout"}</strong><small>{ru ? "Только после антифрод-проверки и обязательной маркировки промо." : "Only after integrity checks and mandatory promotion disclosure."}</small></span></li>
+            </ol>
+          </article>
+
+          <article className="economicsExperiments">
+            <h3>{ru ? "Порядок экспериментов" : "Experiment sequence"}</h3>
+            <div className="economicsExperiment recommended"><span className="experimentRadio" /><span><strong>Tastemaker Pool</strong><small>{ru ? "Первый тест: бесплатный доступ для слушателей и вознаграждение за качество открытий." : "First test: free listener access and rewards based on discovery quality."}</small></span></div>
+            <div className="economicsExperiment"><span className="experimentRadio" /><span><strong>Taste+</strong><small>{ru ? "Дополнительный уровень с более глубокой историей, миксами и социальными функциями." : "An add-on with deeper history, living mixes and richer social discovery."}</small></span></div>
+            <div className="economicsExperiment"><span className="experimentRadio" /><span><strong>{ru ? "Подписка на отдельный Taste" : "Per-tastemaker subscription"}</strong><small>{ru ? "Поздний эксперимент с высоким риском для аутентичности сигнала." : "A later experiment with a higher authenticity risk."}</small></span></div>
+            <p><Icon name="info" size={16} />{ru ? "В MVP нет выплат и платных размещений. Сначала доказываем прирост качественных открытий." : "The MVP has no payouts or paid placements. First prove incremental discovery quality."}</p>
+          </article>
+        </div>
+      </section>
     </main>
   );
 }

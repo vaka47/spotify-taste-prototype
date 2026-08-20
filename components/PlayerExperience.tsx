@@ -15,6 +15,11 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
   const { showToast } = useToast();
   const { locale } = useI18n();
   const ru = locale === "ru";
+  const authorNote = trackSlug === "euphoria"
+    ? (ru ? "Обратите внимание на переход во второй половине." : "Listen for the switch in the second half.")
+    : trackSlug === "iykyk"
+      ? (ru ? "Во вступлении ровно столько воздуха, сколько нужно." : "The opening leaves exactly the right amount of space.")
+      : null;
 
   return (
     <main className="nativePlayerPage">
@@ -25,7 +30,16 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
       </header>
 
       <section className="nativePlayerLayout">
-        <TrackArtwork src={track.coverUrl} fallbackSrc={track.fallbackCoverUrl} alt={`${track.title} cover`} className="nativePlayerCover" />
+        <div className="nativePlayerCoverWrap">
+          <TrackArtwork src={track.coverUrl} fallbackSrc={track.fallbackCoverUrl} alt={`${track.title} cover`} className="nativePlayerCover" />
+          {authorNote ? (
+            <div className="nativePlayerNote" role="note">
+              <Icon name="comment" size={16} />
+              <span><small>{ru ? "Комментарий Трэвиса" : "A note from Travis"}</small><strong>{authorNote}</strong></span>
+              <Icon name="volume" size={16} />
+            </div>
+          ) : null}
+        </div>
 
         <div className="nativePlayerDetails">
           <div className="nativePlayerTitleRow">
@@ -39,6 +53,8 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
             <Icon name="chevronRight" size={18} />
           </Link>
 
+          <p className="nativePlayerDisclosure"><Icon name="info" size={14} />{ru ? "Иллюстративный Taste-сигнал · трек и плеер Spotify настоящие" : "Illustrative Taste signal · real Spotify track and player"}</p>
+
           <SpotifyEmbed src={track.spotifyEmbedUrl} title={`Spotify: ${track.title}`} size="large" />
 
           <div className="nativePlayerLinks">
@@ -50,7 +66,7 @@ export function PlayerExperience({ trackSlug }: { trackSlug: string }) {
 
       <section className="nativeWhySection">
         <h2>{ru ? "Почему этот трек в вашей ленте" : "Why this is in your feed"}</h2>
-        <div><Icon name="comment" /><span><strong>{ru ? "Трэвис рекомендует этот трек" : "Recommended by Travis"}</strong><small>{ru ? "«Обратите внимание на переход во второй половине»." : "“Listen for the switch in the second half.”"}</small></span></div>
+        {authorNote ? <div><Icon name="comment" /><span><strong>{ru ? "Трэвис рекомендует этот трек" : "Recommended by Travis"}</strong><small>“{authorNote}”</small></span></div> : null}
         <div><Icon name="feed" /><span><strong>{ru ? "14 прослушиваний за неделю" : "14 plays this week"}</strong><small>{ru ? "Рекомендация подтверждена повторными прослушиваниями, а не одним случайным запуском." : "The recommendation is backed by repeat listening, not a one-off play."}</small></span></div>
         <div><Icon name="user" /><span><strong>{ru ? "Квалифицированное открытие" : "Qualified discovery"}</strong><small>{ru ? "Первый запуск связывается с Трэвисом; сохранение или повтор подтверждают влияние." : "The first play is attributed to Travis; a save or repeat qualifies the influence."}</small></span></div>
       </section>

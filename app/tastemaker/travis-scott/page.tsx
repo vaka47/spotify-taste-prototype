@@ -8,7 +8,7 @@ import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
-import { tracks, travis, travisWeeklyHistory } from "@/lib/mock-data";
+import { inspiredMixes, recentlyDiscoveredTracks, tracks, travis, travisWeeklyHistory } from "@/lib/mock-data";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import { useFollowingTaste } from "@/lib/use-following-taste";
 import type { WeeklyTrackSignal } from "@/types/taste";
@@ -158,6 +158,8 @@ export default function TravisTastePage() {
               </button>
             </header>
 
+            <div className="tasteDemoDisclosure"><Icon name="info" size={15} />{ru ? "История Трэвиса показана как иллюстрация продукта. Треки, обложки и ссылки Spotify настоящие; данные о его прослушиваниях не являются реальными." : "Travis's history is an illustrative product scenario. Tracks, artwork and Spotify links are real; his listening data is not."}</div>
+
             <div className="tasteTrustLine">
               <span><Icon name="privacy" size={16} />{ru ? "Только с согласия" : "Opt-in only"}</span>
               <span><Icon name="clock" size={16} />{ru ? "Задержка 24 часа" : "24h delay"}</span>
@@ -198,6 +200,36 @@ export default function TravisTastePage() {
                 </div>
               ))}
             </div>
+
+            <section className="tasteDiscoverySection">
+              <div className="nativeSectionHeader">
+                <div><h2>{ru ? "Недавние открытия" : "Recently discovered"}</h2><p>{ru ? "Треки, которые впервые появились в Taste-сигнале на этой неделе." : "Tracks that first appeared in this Taste signal this week."}</p></div>
+              </div>
+              <div className="nativeShelf tasteDiscoveryShelf">
+                {recentlyDiscoveredTracks.map(item => (
+                  <Link className="nativeShelfItem" href={`/player/${item.track.slug}`} key={item.track.id}>
+                    <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="nativeShelfCover" />
+                    <strong>{item.track.title}</strong>
+                    <span>{item.track.artist}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+
+            <section className="tasteMixSection">
+              <div className="nativeSectionHeader">
+                <div><h2>{ru ? "Вдохновлено Taste Трэвиса" : "Inspired by Travis's Taste"}</h2><p>{ru ? "Живые миксы, собранные из его добровольно опубликованных сигналов." : "Living mixes built from his opt-in Taste signals."}</p></div>
+              </div>
+              <div className="tasteMixGrid">
+                {inspiredMixes.map(mix => (
+                  <Link className="tasteMixItem" href={mix.href} key={mix.id}>
+                    <TrackArtwork src={mix.coverUrl} fallbackSrc={mix.fallbackCoverUrl} alt={`${mix.title} cover`} className="tasteMixCover" />
+                    <span><small>{ru ? "Иллюстративный микс" : "Illustrative mix"}</small><strong>{mix.title}</strong><em>{ru ? "Собрано из сигналов Taste" : mix.subtitle}</em></span>
+                    <Icon name="play" size={18} />
+                  </Link>
+                ))}
+              </div>
+            </section>
 
             <div className="artistTeamEntry">
               <span><Icon name="check" size={17} /><span><strong>{ru ? "Вы представляете артиста?" : "Represent this artist?"}</strong><small>{ru ? "Подключите Taste через подтверждённую команду Spotify for Artists." : "Activate Taste through the verified Spotify for Artists team."}</small></span></span>
