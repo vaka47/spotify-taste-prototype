@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icons";
+import { AvatarImage } from "@/components/AvatarImage";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { kindLabels } from "@/lib/format";
 import { recordTrackOpen } from "@/lib/prototype-events";
@@ -44,12 +45,7 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
     <article className="spxFeedEvent">
       <button className="spxFeedEventMain" type="button" onClick={openTrack}>
         <span className="spxFeedAvatar">
-          <img
-            className="avatarImage"
-            src={event.tastemaker.avatarUrl}
-            alt={event.tastemaker.name}
-            onError={imageEvent => { if (event.tastemaker.fallbackAvatarUrl) imageEvent.currentTarget.src = event.tastemaker.fallbackAvatarUrl; }}
-          />
+          <AvatarImage src={event.tastemaker.avatarUrl} fallbackSrc={event.tastemaker.fallbackAvatarUrl} alt={event.tastemaker.name} />
         </span>
         <span className="spxFeedEventCopy">
           <span className="spxFeedPerson"><strong>{event.tastemaker.name}</strong>{event.tastemaker.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</span>

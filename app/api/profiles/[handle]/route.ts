@@ -69,6 +69,11 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
     )
     select ranked.*, latest.id as event_id, latest.title, latest.artist, latest.album_name,
       latest.cover_url, latest.spotify_url, latest.duration_ms
+      , (select max(prior.played_at) from taste_events prior
+          where prior.user_id = ${profile.id} and prior.track_id = ranked.track_id
+            and prior.played_at <= now() - interval '7 days'
+            and (${isOwner} or (prior.is_public and prior.played_at <= now() - make_interval(hours => ${profile.share_delay_hours})))
+        ) as previous_played_at
     from ranked
     join lateral (
       select id, title, artist, album_name, cover_url, spotify_url, duration_ms
@@ -125,6 +130,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
       playCount: row.play_count,
       popularity: row.popularity,
       lastPlayedAt: row.last_played_at,
+      previousPlayedAt: row.previous_played_at,
       totalDurationMs: Number(row.total_duration_ms),
     })),
     events: events.map(event => ({

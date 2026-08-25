@@ -241,6 +241,16 @@ export function TasteQueuePlayer({
           </div>
 
           <div className="tasteQueueEmbed">
+            <a
+              className="tasteQueueEmbedFallback"
+              href={current.track.spotifyUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${ru ? "Открыть в Spotify" : "Open in Spotify"}: ${current.track.title}`}
+            >
+              <span><Icon name="play" size={18} /></span>
+              <span><strong>{current.track.title}</strong><small>{ru ? "Открыть в Spotify" : "Open in Spotify"}</small></span>
+            </a>
             <div className="tasteQueueEmbedController" ref={embedTargetRef} />
             {!controllerReady ? (
               <iframe

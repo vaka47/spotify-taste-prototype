@@ -8,19 +8,27 @@ import { ToastProvider } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n";
 
 const primaryItems = [
-  { href: "/feed", labelKey: "nav.home", icon: "home" },
+  { href: "/", labelKey: "nav.home", icon: "home" },
   { href: "/feed#people-search", labelKey: "nav.search", icon: "search" },
   { href: "/my-taste", labelKey: "nav.my", icon: "library" },
 ] as const;
 
 const tasteItems = [
+  { href: "/feed", labelKey: "nav.feed", icon: "feed" },
   { href: "/tastemaker/travis-scott", labelKey: "nav.tastemaker", icon: "taste" },
   { href: "/hub", labelKey: "nav.hub", icon: "hub" },
 ] as const;
 
+const mobileItems = [
+  { href: "/feed", labelKey: "nav.home", icon: "home" },
+  { href: "/feed#people-search", labelKey: "nav.search", icon: "search" },
+  { href: "/my-taste", labelKey: "nav.my", icon: "library" },
+] as const;
+
 function isActive(pathname: string, href: string) {
   const cleanHref = href.split("#")[0];
-  if (cleanHref === "/feed") return pathname === "/" || pathname === "/feed";
+  if (cleanHref === "/") return pathname === "/";
+  if (cleanHref === "/feed") return pathname === "/feed";
   return pathname === cleanHref || pathname.startsWith(`${cleanHref}/`);
 }
 
@@ -34,6 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : pathname.startsWith("/privacy") ? "nav.privacy"
     : pathname.startsWith("/artist-onboarding") ? "nav.onboarding"
     : pathname.startsWith("/hub") ? "nav.hub"
+    : pathname === "/feed" ? "nav.feed"
     : current.labelKey;
   const immersivePlayer = pathname.startsWith("/player/");
 
@@ -92,7 +101,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         {!immersivePlayer ? (
           <nav className="mobileNav spxMobileNav" aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
-            {primaryItems.map((item, index) => (
+            {mobileItems.map((item, index) => (
               <Link key={`${item.href}-${index}`} href={item.href} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} size={22} />
                 <span>{t(item.labelKey)}</span>

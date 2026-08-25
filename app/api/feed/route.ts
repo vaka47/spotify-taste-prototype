@@ -17,6 +17,7 @@ export async function GET() {
     select e.id, e.track_id, e.title, e.artist, e.cover_url, e.spotify_url, e.played_at, e.author_note,
       u.handle, u.display_name, u.avatar_url, u.verified,
       (select count(*)::int from taste_events r where r.user_id = e.user_id and r.track_id = e.track_id and r.played_at > now() - interval '7 days') as repeat_count,
+      (select max(prior.played_at) from taste_events prior where prior.user_id = e.user_id and prior.track_id = e.track_id and prior.played_at < e.played_at - interval '7 days') as previous_played_at,
       (select count(*)::int from taste_comments c where c.event_id = e.id) as comment_count
     from taste_follows f
     join taste_users u on u.id = f.followed_id
@@ -35,6 +36,7 @@ export async function GET() {
       playedAt: event.played_at,
       authorNote: event.author_note,
       repeatCount: event.repeat_count,
+      previousPlayedAt: event.previous_played_at,
       commentCount: event.comment_count,
     })),
   });

@@ -1,4 +1,4 @@
-import { tracks, travis } from "@/lib/mock-data";
+import { tracks } from "@/lib/mock-data";
 
 export type PublicTasteTrack = {
   id: string;
@@ -70,9 +70,8 @@ export const seededTasteProfiles: Record<string, PublicTasteProfile> = {
     name: "Ivan Safonov",
     role: "Product taste curator",
     bio: "Opt-in recommendations, repeats and discoveries shared with the people who follow my taste.",
-    avatarUrl: travis.avatarUrl,
-    fallbackAvatarUrl: travis.fallbackAvatarUrl,
-    verified: true,
+    avatarUrl: "",
+    verified: false,
     tasteFollowers: "18.4K",
     influenceStreams: "842K",
     discoverySaves: "96K",
@@ -127,9 +126,8 @@ export const seededTasteProfiles: Record<string, PublicTasteProfile> = {
     name: "Maya Chen",
     role: "DJ and selector",
     bio: "A seeded second profile showing how non-celebrity tastemakers can monetize influence.",
-    avatarUrl: tracks.chamber.coverUrl,
-    fallbackAvatarUrl: tracks.chamber.fallbackCoverUrl,
-    verified: true,
+    avatarUrl: "",
+    verified: false,
     tasteFollowers: "82K",
     influenceStreams: "3.1M",
     discoverySaves: "410K",

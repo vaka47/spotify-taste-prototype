@@ -17,6 +17,23 @@
 html,
 body { background: var(--spx-bg); }
 
+.srOnly {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+}
+
+.spotifyEmbed { position: relative; overflow: hidden; }
+.spotifyEmbedFallback { position: absolute; inset: 0; z-index: 0; display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 12px; background: #282828; padding: 14px; color: #fff; }
+.spotifyEmbedFallback > span:first-child { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; background: #fff; color: #000; font-size: 15px; }
+.spotifyEmbedFallback > span:last-child { display: grid; min-width: 0; gap: 4px; }
+.spotifyEmbedFallback strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.spotifyEmbedFallback small { color: #b3b3b3; font-size: 10px; }
+.spotifyEmbed iframe { position: relative; z-index: 1; background: transparent; }
+
 .spxShell { min-height: 100svh; background: var(--spx-bg); }
 
 .spxSidebar {
@@ -106,7 +123,7 @@ body { background: var(--spx-bg); }
   color: #fff;
 }
 
-.spxTasteNav a:first-child .spxNavTile { background: var(--spx-green); color: #000; }
+.spxTasteNav a.active .spxNavTile { background: var(--spx-green); color: #000; }
 
 .spxMainColumn {
   min-height: 100svh;
@@ -296,7 +313,7 @@ a.spxFeedEvent {
 .spxFeedTime em { color: var(--spx-green); font-style: normal; }
 .spxFeedTrackTitle { margin-top: 8px; overflow-wrap: anywhere; font-size: 18px; line-height: 1.2; }
 .spxFeedArtist { overflow: hidden; color: var(--spx-subtext); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.spxFeedNote { margin-top: 6px; overflow: hidden; color: #dedede; font-size: 12px; font-style: normal; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.spxFeedNote { display: -webkit-box; margin-top: 6px; overflow: hidden; color: #dedede; font-size: 12px; font-style: normal; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 
 .spxFeedCover {
   display: block;
@@ -379,11 +396,11 @@ a.spxFeedEvent {
 
 .spxArtistHero > img {
   position: absolute;
-  inset: 0 0 0 auto;
-  width: min(66%, 720px);
+  inset: 0;
+  width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 30%;
+  object-position: center 28%;
   filter: saturate(.72) contrast(1.08);
 }
 
@@ -391,7 +408,7 @@ a.spxFeedEvent {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, #050505 0, rgba(5, 5, 5, .94) 28%, rgba(5, 5, 5, .25) 68%, rgba(5, 5, 5, .05) 100%),
+    linear-gradient(90deg, rgba(5, 5, 5, .9) 0, rgba(5, 5, 5, .55) 31%, rgba(5, 5, 5, .08) 72%, rgba(5, 5, 5, .18) 100%),
     linear-gradient(0deg, #090909 0, transparent 45%);
 }
 
@@ -436,20 +453,15 @@ a.spxFeedEvent {
 
 .spxTasteIntro {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(260px, .92fr);
-  min-height: 260px;
-  align-items: stretch;
-  margin-top: 26px;
-  border: 1px solid rgba(30, 215, 96, .18);
-  border-radius: 8px;
-  background: linear-gradient(110deg, #14271b, #111713 54%, #122218);
-  overflow: hidden;
+  min-height: 0;
+  margin-top: 12px;
+  border-bottom: 1px solid var(--spx-line);
 }
 
-.spxTasteIntroCopy { display: grid; align-content: center; padding: 38px; }
-.spxTasteIntroCopy h2 { max-width: 520px; margin: 0; color: #fff; font-size: 31px; line-height: 1.1; }
-.spxTasteIntroCopy p { max-width: 560px; margin: 14px 0 0; color: #b9b9b9; font-size: 16px; line-height: 1.48; }
-.spxTasteIntroActions { display: flex; align-items: center; gap: 12px; margin-top: 24px; }
+.spxTasteIntroCopy { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 25px 0 27px; }
+.spxTasteIntroCopy h2 { max-width: 520px; margin: 0; color: #fff; font-size: 27px; line-height: 1.1; }
+.spxTasteIntroCopy p { max-width: 600px; margin: 8px 0 0; color: #b9b9b9; font-size: 14px; line-height: 1.48; }
+.spxTasteIntroActions { display: flex; grid-column: 2; grid-row: 1 / 3; align-items: center; gap: 11px; margin-left: 30px; }
 
 .spxFollowButton {
   min-height: 44px;
@@ -466,10 +478,10 @@ a.spxFeedEvent {
 .spxTastePlay { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(255, 255, 255, .35); border-radius: 50%; background: rgba(0, 0, 0, .28); color: #fff; }
 .spxTastePlay:hover { border-color: #fff; transform: scale(1.04); }
 
-.spxTasteIntroArt { position: relative; min-height: 260px; overflow: hidden; }
-.spxTasteIntroArt img { width: 100%; height: 100%; object-fit: cover; opacity: .72; }
-.spxTasteIntroArt::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, #111713, transparent 42%); }
-.spxTasteIntroArt > span { position: absolute; right: 24px; bottom: 22px; z-index: 2; display: grid; width: 84px; height: 84px; place-items: center; border: 1px solid rgba(30, 215, 96, .5); border-radius: 50%; background: rgba(5, 20, 10, .7); color: var(--spx-green); }
+.spxTasteFollowers { display: grid; min-width: 94px; gap: 1px; border: 0; background: transparent; padding: 5px 0 5px 8px; color: #fff; text-align: left; }
+.spxTasteFollowers strong { font-size: 14px; }
+.spxTasteFollowers span { color: var(--spx-subtext); font-size: 9px; white-space: nowrap; }
+.spxTasteFollowers:hover span { color: #fff; text-decoration: underline; }
 
 .spxArtistSection { margin-top: 34px; }
 .spxSectionHeading { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
@@ -810,8 +822,10 @@ a.spxFeedEvent {
 .spxOwnerActions button:disabled { opacity: .45; }
 
 .spxOwnerStats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 14px; border: 1px solid var(--spx-line); border-radius: 8px; background: #141414; }
-.spxOwnerStats div { display: grid; min-width: 0; gap: 6px; border-right: 1px solid var(--spx-line); padding: 18px; }
-.spxOwnerStats div:last-child { border-right: 0; }
+.spxOwnerStats div,
+.spxOwnerStats > button { display: grid; min-width: 0; gap: 6px; border: 0; border-right: 1px solid var(--spx-line); background: transparent; padding: 18px; color: #fff; text-align: left; }
+.spxOwnerStats > :last-child { border-right: 0; }
+.spxOwnerStats > button:hover { background: rgba(255, 255, 255, .05); }
 .spxOwnerStats strong { font-size: 28px; }
 .spxOwnerStats span { color: var(--spx-subtext); font-size: 10px; line-height: 1.3; }
 
@@ -840,9 +854,12 @@ a.spxFeedEvent {
 .spxOwnerEvents article > div:nth-child(2) em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .spxOwnerEvents article > div:nth-child(2) small { color: var(--spx-subtext); font-size: 11px; }
 .spxOwnerEvents article > div:nth-child(2) em { color: #828282; font-size: 9px; font-style: normal; }
+.spxOwnerEvents article > div:nth-child(2) em b { font-weight: 700; font-style: normal; }
+.spxOwnerEvents article > div:nth-child(2) em b.isPublic { color: var(--spx-green); }
+.spxOwnerEvents article > div:nth-child(2) em b.isPrivate { color: #aaa; }
 .spxOwnerEvents article > div:nth-child(2) p { margin: 5px 0 0; color: #d3d3d3; font-size: 11px; line-height: 1.4; }
 .spxOwnerEvents article > div:nth-child(3) { display: flex; gap: 7px; }
-.spxOwnerEvents article > div:nth-child(3) button { display: inline-flex; min-height: 34px; align-items: center; gap: 6px; border: 1px solid #4a4a4a; border-radius: 999px; background: transparent; padding: 0 12px; color: #d1d1d1; font-size: 10px; font-weight: 700; }
+.spxOwnerEvents article > div:nth-child(3) button { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid #4a4a4a; border-radius: 50%; background: transparent; padding: 0; color: #d1d1d1; }
 .spxOwnerEvents article > div:nth-child(3) button.active { border-color: rgba(30, 215, 96, .5); color: var(--spx-green); }
 .spxOwnerNote { display: grid; grid-column: 2 / 4; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; }
 .spxOwnerNote textarea { min-width: 0; min-height: 70px; border: 1px solid #444; border-radius: 7px; outline: 0; background: #1e1e1e; padding: 11px; color: #fff; resize: vertical; }
@@ -889,10 +906,12 @@ a.spxFeedEvent {
 .spxPublicIdentity > div { display: flex; align-items: center; gap: 9px; margin-top: 12px; }
 .spxPublicBell { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--spx-line); border-radius: 50%; color: #fff; }
 
-.spxPublicStats { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 4px; border-top: 1px solid var(--spx-line); }
-.spxPublicStats div { display: grid; gap: 5px; border-right: 1px solid var(--spx-line); padding: 18px 18px 0 0; }
-.spxPublicStats div:not(:first-child) { padding-left: 18px; }
-.spxPublicStats div:last-child { border-right: 0; }
+.spxPublicStats { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 4px; border-top: 1px solid var(--spx-line); }
+.spxPublicStats div,
+.spxPublicStats button { display: grid; gap: 5px; border: 0; border-right: 1px solid var(--spx-line); background: transparent; padding: 18px 18px 0 0; color: #fff; text-align: left; }
+.spxPublicStats > :not(:first-child) { padding-left: 18px; }
+.spxPublicStats > :last-child { border-right: 0; }
+.spxPublicStats button:hover span { color: #fff; text-decoration: underline; }
 .spxPublicStats strong { font-size: 25px; white-space: nowrap; }
 .spxPublicStats span { color: var(--spx-subtext); font-size: 10px; }
 
@@ -924,19 +943,40 @@ a.spxFeedEvent {
 .spxPublicNote { border-left: 2px solid var(--spx-green); background: rgba(30, 215, 96, .06); padding: 11px 12px; }
 .spxPublicNote > span { display: flex; align-items: center; gap: 7px; color: var(--spx-green); font-size: 10px; font-weight: 800; }
 .spxPublicNote p { margin: 7px 0 0; color: #d6d6d6; font-size: 12px; line-height: 1.45; }
-.spxPublicComposer { display: grid; gap: 7px; }
-.spxPublicComposer label { color: #c8c8c8; font-size: 11px; font-weight: 700; }
-.spxPublicComposer textarea { min-height: 72px; border: 1px solid #434343; border-radius: 7px; outline: 0; background: #222; padding: 10px; color: #fff; resize: vertical; }
-.spxPublicComposer textarea:focus { border-color: #fff; }
-.spxPublicComposer button { justify-self: start; min-height: 36px; border: 0; border-radius: 999px; background: var(--spx-green); padding: 0 15px; color: #000; font-size: 11px; font-weight: 800; }
+.spxPublicComposer { display: grid; grid-template-columns: minmax(0, 1fr) 38px; gap: 7px; }
+.spxPublicComposer input { min-width: 0; height: 38px; border: 1px solid #434343; border-radius: 999px; outline: 0; background: #222; padding: 0 14px; color: #fff; }
+.spxPublicComposer input:focus { border-color: #fff; }
+.spxPublicComposer button { display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 50%; background: var(--spx-green); padding: 0; color: #000; }
 .spxPublicComposer button:disabled { opacity: .45; }
-.spxPublicComposer > p { margin: 0; color: #8a8a8a; font-size: 9px; }
+.spxPublicComposer > p { grid-column: 1 / -1; margin: 0; color: #8a8a8a; font-size: 9px; }
 .spxPublicComments { display: grid; gap: 8px; border-top: 1px solid var(--spx-line); padding-top: 13px; }
 .spxPublicComments > strong { color: var(--spx-subtext); font-size: 10px; }
-.spxPublicComments > div { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 8px; border-radius: 6px; background: #222; padding: 9px; font-size: 10px; }
+.spxPublicComments > div { display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: start; gap: 9px; border-radius: 6px; background: #222; padding: 9px; font-size: 10px; }
 .spxPublicComments > div.author { border-left: 2px solid var(--spx-green); }
-.spxPublicComments > div span { color: #c8c8c8; line-height: 1.4; }
+.spxPublicComments > div > span:last-child { display: grid; min-width: 0; gap: 3px; }
+.spxPublicComments > div small { color: #c8c8c8; font-size: 10px; line-height: 1.4; }
+.spxCommentAvatar { display: block; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; }
 .spxPublicDisclosure { display: flex; align-items: flex-start; gap: 7px; margin-top: 14px; color: #777; font-size: 9px; }
+
+/* Connections list */
+
+.spxConnectionsBackdrop { position: fixed; inset: 0; z-index: 140; display: grid; place-items: center; background: rgba(0, 0, 0, .72); padding: 20px; backdrop-filter: blur(8px); }
+.spxConnectionsDialog { width: min(480px, 100%); max-height: min(660px, calc(100svh - 40px)); overflow: hidden; border: 1px solid var(--spx-line); border-radius: 8px; background: #181818; box-shadow: 0 24px 80px rgba(0, 0, 0, .55); }
+.spxConnectionsDialog > header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 10px; }
+.spxConnectionsDialog h2 { margin: 0; font-size: 21px; }
+.spxConnectionsDialog > header button { display: grid; width: 36px; height: 36px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #bbb; }
+.spxConnectionsDialog > header button:hover { background: #292929; color: #fff; }
+.spxConnectionsTabs { display: flex; gap: 20px; border-bottom: 1px solid var(--spx-line); padding: 0 20px; }
+.spxConnectionsTabs button { height: 42px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #aaa; font-size: 13px; font-weight: 700; }
+.spxConnectionsTabs button.active { border-color: var(--spx-green); color: #fff; }
+.spxConnectionsList { max-height: 520px; overflow-y: auto; padding: 8px; }
+.spxConnectionsList > a { display: grid; grid-template-columns: 46px minmax(0, 1fr) 20px; align-items: center; gap: 12px; border-radius: 5px; padding: 9px 10px; color: #fff; }
+.spxConnectionsList > a:hover { background: #242424; }
+.spxConnectionsList > a > span:first-child { width: 46px; height: 46px; border-radius: 50%; overflow: hidden; }
+.spxConnectionsList > a > span:nth-child(2) { display: grid; min-width: 0; gap: 3px; }
+.spxConnectionsList strong { display: flex; min-width: 0; align-items: center; gap: 6px; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.spxConnectionsList small { overflow: hidden; color: var(--spx-subtext); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.spxConnectionsStatus { margin: 24px; color: var(--spx-subtext); font-size: 13px; text-align: center; }
 
 /* Shared playable Taste queue */
 
@@ -978,9 +1018,16 @@ a.spxFeedEvent {
 .tasteQueueSource small { color: #868686; }
 .tasteQueueSource b { overflow: hidden; color: #d8d8d8; text-overflow: ellipsis; }
 .tasteQueueNowPlaying > p { overflow: hidden; margin: 3px 0 0; color: var(--spx-green); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-.tasteQueueEmbed { grid-area: embed; min-width: 0; min-height: 80px; overflow: hidden; }
+.tasteQueueEmbed { position: relative; grid-area: embed; min-width: 0; min-height: 80px; overflow: hidden; border-radius: 6px; background: #282828; }
+.tasteQueueEmbedFallback { position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; gap: 11px; padding: 12px 14px; color: #fff; }
+.tasteQueueEmbedFallback > span:first-child { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 50%; background: #fff; color: #000; }
+.tasteQueueEmbedFallback > span:last-child { display: grid; min-width: 0; gap: 3px; }
+.tasteQueueEmbedFallback strong,
+.tasteQueueEmbedFallback small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tasteQueueEmbedFallback strong { font-size: 12px; }
+.tasteQueueEmbedFallback small { color: #b3b3b3; font-size: 9px; }
 .tasteQueueEmbed iframe,
-.tasteQueueEmbedController { display: block; width: 100%; height: 80px; border: 0; border-radius: 6px; overflow: hidden; }
+.tasteQueueEmbedController { position: relative; z-index: 1; display: block; width: 100%; height: 80px; border: 0; border-radius: 6px; overflow: hidden; }
 .tasteQueueActions { display: flex; grid-area: actions; align-items: center; gap: 3px; border: 0; padding: 0; }
 .tasteQueueActions button { display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #c4c4c4; }
 .tasteQueueActions button:hover,
@@ -1041,7 +1088,7 @@ a.spxFeedEvent {
   .spxPrimaryNav a,
   .spxTasteNav a,
   .spxLibraryHead { justify-content: center; padding-inline: 0; }
-  .spxArtistHero > img { width: 72%; }
+  .spxArtistHero > img { width: 100%; }
 
   .spxPlayerPage { padding-inline: 18px; }
   .spxHubPage { width: min(900px, calc(100vw - var(--spx-sidebar) - 40px)); }
@@ -1124,8 +1171,8 @@ a.spxFeedEvent {
   .spxOwnerCopy h2 { font-size: 25px; }
   .spxOwnerActions { grid-column: 2; }
   .spxOwnerStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .spxOwnerStats div:nth-child(2) { border-right: 0; }
-  .spxOwnerStats div:nth-child(-n+2) { border-bottom: 1px solid var(--spx-line); }
+  .spxOwnerStats > :nth-child(2) { border-right: 0; }
+  .spxOwnerStats > :nth-child(-n+2) { border-bottom: 1px solid var(--spx-line); }
   .spxOwnerHistory > a { grid-template-columns: 20px 48px minmax(0, 1fr) 58px; }
   .spxOwnerTrackCover { width: 48px; height: 48px; }
   .spxOwnerHistory > a > svg { display: none; }
@@ -1216,24 +1263,21 @@ a.spxFeedEvent {
 
   .spxArtistPage { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   .spxArtistHero { height: 360px; }
-  .spxArtistHero > img { width: 76%; object-position: center; }
-  .spxArtistHeroShade { background: linear-gradient(90deg, #050505 0, rgba(5, 5, 5, .82) 30%, rgba(5, 5, 5, .08) 80%), linear-gradient(0deg, #090909 0, transparent 56%); }
+  .spxArtistHero > img { width: 100%; object-position: center 24%; }
+  .spxArtistHeroShade { background: linear-gradient(90deg, rgba(5, 5, 5, .64) 0, rgba(5, 5, 5, .18) 72%), linear-gradient(0deg, #090909 0, rgba(9, 9, 9, .08) 66%); }
   .spxArtistHeroCopy { right: 18px; bottom: 28px; left: 18px; }
   .spxArtistHeroCopy h1 { margin-top: 10px; font-size: 48px; }
   .spxArtistHeroCopy p { font-size: 13px; }
   .spxArtistTabs { gap: 26px; padding-inline: 18px; }
   .spxArtistTabs button { height: 54px; }
   .spxArtistBody { width: calc(100% - 28px); }
-  .spxTasteIntro { grid-template-columns: minmax(0, 1fr) 128px; min-height: 222px; margin-top: 18px; }
-  .spxTasteIntroCopy { padding: 24px 10px 24px 22px; }
+  .spxTasteIntro { min-height: 0; margin-top: 8px; }
+  .spxTasteIntroCopy { grid-template-columns: 1fr; padding: 22px 0 24px; }
   .spxTasteIntroCopy h2 { font-size: 24px; }
   .spxTasteIntroCopy p { margin-top: 10px; font-size: 13px; }
-  .spxTasteIntroActions { margin-top: 18px; }
+  .spxTasteIntroActions { grid-column: 1; grid-row: auto; flex-wrap: wrap; margin: 18px 0 0; }
   .spxFollowButton { min-height: 40px; padding-inline: 18px; font-size: 12px; }
   .spxTastePlay { width: 40px; height: 40px; }
-  .spxTasteIntroArt { min-height: 222px; }
-  .spxTasteIntroArt > span { right: 12px; bottom: 14px; width: 58px; height: 58px; }
-  .spxTasteIntroArt > span svg { width: 40px; height: 40px; }
   .spxArtistSection { margin-top: 28px; }
   .spxSectionHeading h2 { font-size: 20px; }
   .spxRepeatMain { grid-template-columns: 22px 50px minmax(0, 1fr); gap: 10px; padding: 9px 78px 9px 3px; }
@@ -1265,10 +1309,8 @@ a.spxFeedEvent {
   .spxArtistHeroCopy h1 { font-size: 42px; }
   .spxArtistHeroCopy > span { font-size: 10px; }
   .spxArtistTabs { gap: 22px; }
-  .spxTasteIntro { grid-template-columns: minmax(0, 1fr) 104px; }
-  .spxTasteIntroCopy { padding-left: 18px; }
+  .spxTasteIntroCopy { padding-inline: 0; }
   .spxTasteIntroCopy h2 { font-size: 21px; }
-  .spxTasteIntroArt > span { display: none; }
   .spxRepeatMain { padding-right: 72px; }
 
   .spxPlayerPage { padding-inline: 14px; }
@@ -1311,10 +1353,12 @@ a.spxFeedEvent {
   .spxPublicIdentity > p { font-size: 11px; }
   .spxPublicIdentity > em { grid-column: 1 / -1; }
   .spxPublicIdentity > div { flex-wrap: wrap; }
-  .spxPublicStats { grid-template-columns: 1fr; }
+  .spxPublicStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .spxPublicStats div,
-  .spxPublicStats div:not(:first-child) { grid-template-columns: 68px minmax(0, 1fr); align-items: baseline; border-right: 0; border-bottom: 1px solid var(--spx-line); padding: 10px 0; }
-  .spxPublicStats div:last-child { border-bottom: 0; }
+  .spxPublicStats button,
+  .spxPublicStats > :not(:first-child) { align-items: baseline; border-right: 1px solid var(--spx-line); border-bottom: 1px solid var(--spx-line); padding: 12px 10px; }
+  .spxPublicStats > :nth-child(2n) { border-right: 0; }
+  .spxPublicStats > :nth-last-child(-n+2) { border-bottom: 0; }
   .spxPublicList > button { grid-template-columns: 48px minmax(0, 1fr) 52px; }
   .spxPublicTrackCover { width: 48px; height: 48px; }
   .spxPublicList > button > svg { display: none; }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AvatarImage } from "@/components/AvatarImage";
+import { ConnectionsDialog, type ConnectionProfile } from "@/components/ConnectionsDialog";
 import { Icon } from "@/components/Icons";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
@@ -64,6 +65,7 @@ type ServerWeeklyTrack = {
   playCount: number;
   popularity: number;
   lastPlayedAt: string;
+  previousPlayedAt: string | null;
   totalDurationMs: number;
   track: ServerEvent["track"];
 };
@@ -107,10 +109,20 @@ function formatPlayedAt(value: string, locale: "en" | "ru") {
 function russianRepeatLabel(value: number) {
   const mod100 = value % 100;
   const mod10 = value % 10;
-  if (mod100 >= 11 && mod100 <= 14) return "повторов";
-  if (mod10 === 1) return "повтор";
-  if (mod10 >= 2 && mod10 <= 4) return "повтора";
-  return "повторов";
+  if (mod100 >= 11 && mod100 <= 14) return "прослушиваний";
+  if (mod10 === 1) return "прослушивание";
+  if (mod10 >= 2 && mod10 <= 4) return "прослушивания";
+  return "прослушиваний";
+}
+
+function returnSignal(previous: string | null | undefined, latest: string, locale: "en" | "ru") {
+  if (!previous) return "";
+  const days = Math.max(1, Math.round((new Date(latest).getTime() - new Date(previous).getTime()) / 86_400_000));
+  if (days >= 60) {
+    const months = Math.round(days / 30);
+    return locale === "ru" ? `Вернулся спустя ${months} мес.` : `Back after ${months} months`;
+  }
+  return locale === "ru" ? `Вернулся спустя ${days} дн.` : `Back after ${days} days`;
 }
 
 export function PublicTasteProfileClient({ handle }: { handle: string }) {
@@ -131,6 +143,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const [localComments, setLocalComments] = useState<LocalComment[]>([]);
   const [connected, setConnected] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [connectionType, setConnectionType] = useState<"followers" | "following" | null>(null);
 
   const load = useCallback(async () => {
     setState("loading");
@@ -286,6 +299,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const avatarFallbackUrl = isReal ? undefined : demoProfile.fallbackAvatarUrl;
   const useLocalizedSeedCopy = !isReal && demoProfile.source === "seeded";
   const role = isReal ? serverProfile?.role : (useLocalizedSeedCopy ? demoRu?.role : demoProfile.role) || demoProfile.role;
+  const roleLabel = locale === "ru" && role === "Spotify listener" ? "слушатель Spotify" : role;
   const bio = isReal ? serverProfile?.bio : (useLocalizedSeedCopy ? demoRu?.bio : demoProfile.bio) || demoProfile.bio;
   const verified = isReal ? Boolean(serverProfile?.verified) : demoProfile.verified;
   const publicCount = isReal ? weeklyHistory.length : demoWeeklyHistory.length;
@@ -315,17 +329,31 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
       id: `profile_queue_${realItem?.eventId || demoItem!.eventId}`,
       track,
       tastemaker: { id: profileHandle, name: profileName, avatarUrl: avatarUrl || "", fallbackAvatarUrl: avatarFallbackUrl },
-      signal: locale === "ru" ? `${realItem?.playCount ?? demoItem!.playCount} повторов за неделю` : `${realItem?.playCount ?? demoItem!.playCount} plays this week`,
+      signal: locale === "ru" ? `${realItem?.playCount ?? demoItem!.playCount} ${russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount)} за неделю` : `${realItem?.playCount ?? demoItem!.playCount} plays this week`,
       authorNote: isReal ? serverEvents.find(value => value.id === realItem?.eventId)?.authorNote : event?.authorComment,
     };
   });
+  const demoConnections: ConnectionProfile[] = connectionType === "following"
+    ? [
+        { handle: "travis-scott", name: "Travis Scott", avatarUrl: "/avatars/travis-official.jpg", role: locale === "ru" ? "Артист" : "Artist", verified: true, href: "/tastemaker/travis-scott" },
+        { handle: "doechii", name: "Doechii", avatarUrl: "/avatars/doechii.jpg", role: locale === "ru" ? "Артист" : "Artist", verified: true, href: "https://open.spotify.com/artist/4E2rKHVDssGJm2SCDOMMJB" },
+      ]
+    : [
+        { handle: "vaka47", name: "Vaka47", avatarUrl: null, role: "Spotify listener" },
+        { handle: "maya", name: "Maya Chen", avatarUrl: "", role: locale === "ru" ? "Музыкальный автор" : "Music creator" },
+      ];
 
   return (
     <main className="spxPublicPage">
       <section className="spxPublicHero">
         <span className="spxPublicAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={avatarFallbackUrl} alt={`${profileName} avatar`} /></span>
-        <div className="spxPublicIdentity"><small>{isReal ? t("profile.live") : t("profile.demo")}</small><h1>{profileName}{verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</h1><p>@{profileHandle} · {role}</p><em>{bio}</em><div>{serverProfile?.isOwner ? <Link className="spxFollowButton" href="/my-taste">{t("profile.own")}</Link> : <button className={`spxFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>{following ? t("profile.following") : t("profile.follow")}</button>}<TasteQueuePlayer items={profileQueue} triggerLabel={locale === "ru" ? "Слушать Taste" : "Play Taste"} triggerAriaLabel={locale === "ru" ? `Слушать Taste ${profileName}` : `Play ${profileName}'s Taste`} triggerClassName="spxTastePlay" iconOnly /><Link className="spxPublicBell" href="/notifications" aria-label={t("profile.inbox")}><Icon name="bell" /></Link></div></div>
-        <div className="spxPublicStats"><div><strong>{serverProfile?.followers ?? demoProfile.tasteFollowers}</strong><span>{t("my.followers")}</span></div><div><strong>{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</strong><span>{isReal ? t("profile.weeklyMinutes") : (locale === "ru" ? "Открытия через Taste" : "Taste-sourced starts")}</span></div><div><strong>{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</strong><span>{isReal ? t("profile.uniqueTracks") : (locale === "ru" ? "Сохранения" : "Discovery saves")}</span></div></div>
+        <div className="spxPublicIdentity"><small>{isReal ? t("profile.live") : t("profile.demo")}</small><h1>{profileName}{verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</h1><p>@{profileHandle} · {roleLabel}</p><em>{bio}</em><div>{serverProfile?.isOwner ? <Link className="spxFollowButton" href="/my-taste">{t("profile.own")}</Link> : <button className={`spxFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>{following ? t("profile.following") : t("profile.follow")}</button>}<TasteQueuePlayer items={profileQueue} triggerLabel={locale === "ru" ? "Слушать Taste" : "Play Taste"} triggerAriaLabel={locale === "ru" ? `Слушать Taste ${profileName}` : `Play ${profileName}'s Taste`} triggerClassName="spxTastePlay" iconOnly /><Link className="spxPublicBell" href="/notifications" aria-label={t("profile.inbox")}><Icon name="bell" /></Link></div></div>
+        <div className="spxPublicStats">
+          <button type="button" onClick={() => setConnectionType("followers")}><strong>{serverProfile?.followers ?? demoProfile.tasteFollowers}</strong><span>{t("my.followers")}</span></button>
+          <button type="button" onClick={() => setConnectionType("following")}><strong>{isReal ? serverProfile?.following : 18}</strong><span>{locale === "ru" ? "Подписки" : "Following"}</span></button>
+          <div><strong>{isReal ? Math.round((serverProfile?.durationMs7d || 0) / 60_000) : demoProfile.influenceStreams}</strong><span>{isReal ? t("profile.weeklyMinutes") : (locale === "ru" ? "Открытия через Taste" : "Taste-sourced starts")}</span></div>
+          <div><strong>{isReal ? serverProfile?.uniqueTracks7d : demoProfile.discoverySaves}</strong><span>{isReal ? t("profile.uniqueTracks") : (locale === "ru" ? "Сохранения" : "Discovery saves")}</span></div>
+        </div>
       </section>
 
       <section className="spxPublicGrid">
@@ -342,7 +370,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
               return (
                 <button className={active ? "active" : ""} type="button" key={eventId} onClick={() => setSelectedId(eventId)}>
                   <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="spxPublicTrackCover" />
-                  <span><strong>{track.title}</strong><small>{track.artist}</small><em>{realItem ? formatPlayedAt(realItem.lastPlayedAt, locale) : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em></span>
+                  <span><strong>{track.title}</strong><small>{track.artist}</small><em>{realItem ? `${returnSignal(realItem.previousPlayedAt, realItem.lastPlayedAt, locale) || (realItem.playCount > 1 ? (locale === "ru" ? "На повторе" : "On repeat") : (locale === "ru" ? "Одно прослушивание" : "Played once"))} · ${formatPlayedAt(realItem.lastPlayedAt, locale)}` : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em></span>
                   <b>{realItem?.playCount ?? demoItem!.playCount}<small>{locale === "ru" ? russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount) : "plays"}</small></b>
                   <Icon name="play" size={15} />
                 </button>
@@ -357,19 +385,28 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
             <div className="spxPublicPlayerHead"><div><small>{isReal ? t("common.spotifyData") : t("common.demoData")}</small><h2>{selectedTrack.title}</h2><p>{selectedTrack.artist}</p></div><a href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a></div>
             <SpotifyEmbed src={selectedTrack.spotifyEmbedUrl} title={`Spotify: ${selectedTrack.title}`} />
             <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null) || t("profile.noNote")}</p></div>
-            <div className="spxPublicComposer"><label htmlFor="taste-comment">{t("profile.addComment")}</label><textarea id="taste-comment" value={commentText} onChange={event => setCommentText(event.target.value)} placeholder={t("profile.commentPlaceholder")} /><button type="button" onClick={addComment} disabled={submitting}>{t("profile.postComment")}</button>{isReal && !connected ? <p>{t("profile.loginToComment")}</p> : null}</div>
+            <div className="spxPublicComposer"><label className="srOnly" htmlFor="taste-comment">{t("profile.addComment")}</label><input id="taste-comment" value={commentText} onChange={event => setCommentText(event.target.value)} placeholder={t("profile.commentPlaceholder")} /><button type="button" onClick={addComment} disabled={submitting || commentText.trim().length < 2} aria-label={t("profile.postComment")}><Icon name="chevronRight" size={17} /></button>{isReal && !connected ? <p>{t("profile.loginToComment")}</p> : null}</div>
             <div className="spxPublicComments"><strong>{t("profile.thread")}</strong>
-              {(selectedServerEvent?.authorNote || selectedDemoEvent?.authorComment) ? <div className="author"><strong>{profileName}</strong><span>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null)}</span></div> : null}
+              {(selectedServerEvent?.authorNote || selectedDemoEvent?.authorComment) ? <div className="author"><span className="spxCommentAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={avatarFallbackUrl} alt={profileName} /></span><span><strong>{profileName}</strong><small>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null)}</small></span></div> : null}
               {comments.map(comment => {
                 const serverComment = comment as ServerComment;
                 const localComment = comment as LocalComment;
-                return <div key={comment.id}><strong>{isReal ? serverComment.author_name || serverComment.authorName : localComment.author}</strong><span>{isReal ? serverComment.body : localComment.text}</span></div>;
+                const authorName = isReal ? serverComment.author_name || serverComment.authorName || (locale === "ru" ? "Слушатель" : "Listener") : localComment.author;
+                const authorAvatar = isReal ? serverComment.author_avatar || serverComment.authorAvatar || "" : "";
+                return <div key={comment.id}><span className="spxCommentAvatar"><AvatarImage src={authorAvatar} alt={authorName} /></span><span><strong>{authorName}</strong><small>{isReal ? serverComment.body : localComment.text}</small></span></div>;
               })}
             </div>
           </aside>
         ) : null}
       </section>
       <p className="spxPublicDisclosure"><Icon name="info" size={13} />{isReal ? t("profile.source") : t("common.demoData")}</p>
+      <ConnectionsDialog
+        open={connectionType !== null}
+        onClose={() => setConnectionType(null)}
+        handle={isReal ? profileHandle : undefined}
+        initialType={connectionType || "followers"}
+        demoProfiles={demoConnections}
+      />
     </main>
   );
 }

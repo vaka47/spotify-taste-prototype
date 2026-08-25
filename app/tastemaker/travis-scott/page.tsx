@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/Icons";
+import { ConnectionsDialog } from "@/components/ConnectionsDialog";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
-import { inspiredMixes, recentlyDiscoveredTracks, tracks, travis, travisWeeklyHistory } from "@/lib/mock-data";
+import { doechii, inspiredMixes, recentlyDiscoveredTracks, tracks, travis, travisWeeklyHistory, tyler } from "@/lib/mock-data";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import { useFollowingTaste } from "@/lib/use-following-taste";
 import type { WeeklyTrackSignal } from "@/types/taste";
@@ -56,7 +57,8 @@ export default function TravisTastePage() {
   const [showAll, setShowAll] = useState(false);
   const [discussion, setDiscussion] = useState<WeeklyTrackSignal | null>(null);
   const [comment, setComment] = useState("");
-  const [postedComments, setPostedComments] = useState<string[]>([]);
+  const [postedComments, setPostedComments] = useState<Record<string, string[]>>({});
+  const [followersOpen, setFollowersOpen] = useState(false);
 
   function toggleFollow() {
     toggle();
@@ -72,11 +74,22 @@ export default function TravisTastePage() {
 
   function publishComment() {
     const value = comment.trim();
-    if (!value) return;
-    setPostedComments(current => [value, ...current]);
+    if (!value || !discussion) return;
+    setPostedComments(current => ({ ...current, [discussion.track.id]: [value, ...(current[discussion.track.id] || [])] }));
     setComment("");
     showToast(ru ? "Комментарий опубликован" : "Comment posted");
   }
+
+  function toggleDiscussion(item: WeeklyTrackSignal) {
+    setComment("");
+    setDiscussion(current => current?.track.id === item.track.id ? null : item);
+  }
+
+  useEffect(() => {
+    if (!discussion) return;
+    const frame = window.requestAnimationFrame(() => document.querySelector("[data-artist-discussion]")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [discussion]);
 
   const tabLabels: Record<ArtistTab, string> = ru
     ? { music: "Музыка", events: "Концерты", merch: "Мерч", taste: "Taste" }
@@ -93,7 +106,7 @@ export default function TravisTastePage() {
   return (
     <main className="spxArtistPage">
       <section className="spxArtistHero">
-        <img src={travis.avatarUrl} alt="Travis Scott" onError={event => { if (travis.fallbackAvatarUrl) event.currentTarget.src = travis.fallbackAvatarUrl; }} />
+        <img src="/avatars/travis-official.jpg" alt="Travis Scott" />
         <div className="spxArtistHeroShade" />
         <div className="spxArtistHeroCopy">
           <span><i><Icon name="check" size={11} /></i>{ru ? "Подтверждённый исполнитель" : "Verified artist"}</span>
@@ -111,14 +124,14 @@ export default function TravisTastePage() {
           <>
             <section className="spxTasteIntro">
               <div className="spxTasteIntroCopy">
-                <h2>{ru ? "Подписаться на Taste Трэвиса" : "Follow Travis's Taste"}</h2>
-                <p>{ru ? "Узнавайте, что слушает Трэвис, и находите музыку через его опубликованную активность." : "See what Travis is listening to and discover music through the activity he chooses to share."}</p>
+                <h2>{ru ? "Taste Трэвиса" : "Travis's Taste"}</h2>
+                <p>{ru ? "Его опубликованная история прослушиваний, открытия и комментарии." : "His shared listening history, discoveries, and notes."}</p>
                 <div className="spxTasteIntroActions">
                   <button className={`spxFollowButton ${following ? "active" : ""}`} type="button" onClick={toggleFollow}>{following ? (ru ? "Вы подписаны" : "Following") : (ru ? "Подписаться" : "Follow Taste")}</button>
                   <TasteQueuePlayer items={tasteQueue} triggerLabel={ru ? "Слушать Taste" : "Play Taste"} triggerAriaLabel={ru ? "Слушать историю Taste Трэвиса" : "Play Travis's Taste history"} triggerClassName="spxTastePlay" iconOnly />
+                  <button className="spxTasteFollowers" type="button" onClick={() => setFollowersOpen(true)}><strong>4,2 млн</strong><span>{ru ? "подписчиков Taste" : "Taste followers"}</span></button>
                 </div>
               </div>
-              <div className="spxTasteIntroArt"><img src="/avatars/travis_demo.jpg" alt="" /><span><Icon name="taste" size={62} /></span></div>
             </section>
 
             <section className="spxArtistSection">
@@ -129,19 +142,19 @@ export default function TravisTastePage() {
                     <button className="spxRepeatMain" type="button" onClick={() => openTrack(item)}>
                       <span className="spxTrackIndex">{index + 1}</span>
                       <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxRepeatCover" />
-                      <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em></span>
+                      <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{signalLabel(item.kind, ru)} · {localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em></span>
                       <span className="spxRepeatPlay"><Icon name="play" size={17} /></span>
                     </button>
-                    <button className={`spxRowComment ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => setDiscussion(current => current?.track.id === item.track.id ? null : item)} aria-label={ru ? `Комментарии к ${item.track.title}` : `Comments on ${item.track.title}`}><Icon name="comment" size={17} /></button>
+                    <button className={`spxRowComment ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Комментарии к ${item.track.title}` : `Comments on ${item.track.title}`}><Icon name="comment" size={17} /></button>
                     <button className="spxRowMore" type="button" onClick={() => openTrack(item)} aria-label={ru ? "Ещё" : "More"}><Icon name="more" size={18} /></button>
                   </article>
                 ))}
               </div>
               {discussion ? (
-                <div className="spxDiscussion">
+                <div className="spxDiscussion" data-artist-discussion>
                   <div className="spxDiscussionHead"><TrackArtwork src={discussion.track.coverUrl} fallbackSrc={discussion.track.fallbackCoverUrl} alt="" className="spxDiscussionCover" /><span><strong>{discussion.track.title}</strong><small>{discussion.track.artist}</small></span><button type="button" onClick={() => setDiscussion(null)} aria-label={ru ? "Закрыть" : "Close"}><Icon name="close" size={18} /></button></div>
                   <blockquote><strong>{travis.name}</strong><p>{discussion.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : discussion.authorNote) : (ru ? "Возвращался к этому треку несколько раз за неделю." : "Kept returning to this track throughout the week.")}</p></blockquote>
-                  {postedComments.map((value, index) => <p className="spxPostedComment" key={`${value}-${index}`}><strong>{ru ? "Вы" : "You"}</strong>{value}</p>)}
+                  {(postedComments[discussion.track.id] || []).map((value, index) => <p className="spxPostedComment" key={`${value}-${index}`}><strong>{ru ? "Вы" : "You"}</strong>{value}</p>)}
                   <div className="spxCommentComposer"><input value={comment} onChange={event => setComment(event.target.value)} placeholder={ru ? "Добавить комментарий" : "Add a comment"} /><button type="button" onClick={publishComment} disabled={!comment.trim()}>{ru ? "Отправить" : "Post"}</button></div>
                 </div>
               ) : null}
@@ -173,6 +186,17 @@ export default function TravisTastePage() {
         {activeTab === "events" ? <section className="spxArtistEmpty"><Icon name="clock" size={28} /><h2>{ru ? "Ближайшие концерты" : "Upcoming events"}</h2><p>{ru ? "Актуальные даты и билеты доступны в официальном профиле Spotify." : "Current dates and tickets are available from the official Spotify profile."}</p><a href={travis.spotifyUrl} target="_blank" rel="noreferrer">{ru ? "Открыть в Spotify" : "Open in Spotify"}</a></section> : null}
         {activeTab === "merch" ? <section className="spxArtistEmpty"><Icon name="library" size={28} /><h2>{ru ? "Мерч артиста" : "Artist merch"}</h2><p>{ru ? "Официальные товары доступны на странице артиста Spotify." : "Official items are available from the artist's Spotify page."}</p><a href={travis.spotifyUrl} target="_blank" rel="noreferrer">{ru ? "Открыть в Spotify" : "Open in Spotify"}</a></section> : null}
       </div>
+      <ConnectionsDialog
+        open={followersOpen}
+        onClose={() => setFollowersOpen(false)}
+        initialType="followers"
+        singleType
+        demoProfiles={[
+          { handle: "doechii", name: doechii.name, avatarUrl: doechii.avatarUrl, fallbackAvatarUrl: doechii.fallbackAvatarUrl, role: ru ? "Артист" : "Artist", verified: true, href: doechii.spotifyUrl },
+          { handle: "tyler-the-creator", name: tyler.name, avatarUrl: tyler.avatarUrl, fallbackAvatarUrl: tyler.fallbackAvatarUrl, role: ru ? "Артист и автор" : "Artist and creator", verified: true, href: tyler.spotifyUrl },
+          { handle: "vaka47", name: "Vaka47", avatarUrl: "/avatars/vaka47.jpg", role: ru ? "Слушатель Spotify" : "Spotify listener" },
+        ]}
+      />
     </main>
   );
 }

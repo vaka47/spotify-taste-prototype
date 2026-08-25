@@ -20,6 +20,7 @@ type LiveFeedEvent = {
   playedAt: string;
   authorNote: string | null;
   repeatCount: number;
+  previousPlayedAt: string | null;
   commentCount: number;
 };
 
@@ -48,9 +49,18 @@ function localizeDemoNote(note: string | null | undefined, ru: boolean) {
   return note;
 }
 
+function returnSignal(previous: string | null, latest: string, ru: boolean) {
+  if (!previous) return "";
+  const days = Math.max(1, Math.round((new Date(latest).getTime() - new Date(previous).getTime()) / 86_400_000));
+  if (days >= 60) return ru ? `Вернулся спустя ${Math.round(days / 30)} мес.` : `Back after ${Math.round(days / 30)} months`;
+  return ru ? `Вернулся спустя ${days} дн.` : `Back after ${days} days`;
+}
+
 function LiveFeedCard({ event, ru }: { event: LiveFeedEvent; ru: boolean }) {
   const signal = event.authorNote
     ? (ru ? "Рекомендует с комментарием" : "Recommended with a note")
+    : returnSignal(event.previousPlayedAt, event.playedAt, ru)
+      ? returnSignal(event.previousPlayedAt, event.playedAt, ru)
     : event.repeatCount > 1
       ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
       : (ru ? "Опубликовано в Taste" : "Shared to Taste");
@@ -115,11 +125,11 @@ export default function FeedPage() {
   const matchesPerson = (name: string, handle = "") => !normalizedQuery || `${name} ${handle}`.toLocaleLowerCase(locale).includes(normalizedQuery);
   const visibleLiveEvents = activeSegment === "Following" ? liveEvents.filter(event => matchesPerson(event.profile.name, event.profile.handle)) : [];
   const demoEventsForSegment = activeSegment === "Creators"
-    ? feedEvents.filter(event => event.tastemaker.slug !== "travis-scott")
+    ? feedEvents.filter(event => event.tastemaker.slug === "tyler-the-creator")
     : activeSegment === "Artists"
-      ? feedEvents
+      ? feedEvents.filter(event => event.tastemaker.slug !== "tyler-the-creator")
       : feedEvents;
-  const visibleDemoEvents = demoEventsForSegment.filter(event => matchesPerson(event.tastemaker.name, event.tastemaker.slug));
+  const visibleDemoEvents = (!connected || liveEvents.length === 0 ? demoEventsForSegment : []).filter(event => matchesPerson(event.tastemaker.name, event.tastemaker.slug));
   const hasVisibleContent = visibleLiveEvents.length > 0 || visibleDemoEvents.length > 0;
   const demoPersonMatches = normalizedQuery.length >= 2 && `${travis.name} ${travis.slug}`.toLocaleLowerCase(locale).includes(normalizedQuery);
   const hasPeopleResults = demoPersonMatches || peopleResults.length > 0;
@@ -147,6 +157,8 @@ export default function FeedPage() {
         tastemaker: { id: event.profile.handle, name: event.profile.name, avatarUrl: event.profile.avatarUrl || "" },
         signal: event.authorNote
           ? (ru ? "Опубликовано с личным комментарием" : "Shared with a personal note")
+          : returnSignal(event.previousPlayedAt, event.playedAt, ru)
+            ? returnSignal(event.previousPlayedAt, event.playedAt, ru)
           : event.repeatCount > 1
             ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
             : (ru ? "Опубликовано в Taste" : "Shared to Taste"),
@@ -194,7 +206,6 @@ export default function FeedPage() {
       ) : null}
 
       <section className="spxFeedList" aria-label={ru ? "События Taste" : "Taste events"}>
-        {activeSegment === "Following" && loadingLive ? <div className="spxFeedSkeleton"><span className="skeleton" /><span className="skeleton" /></div> : null}
         {visibleLiveEvents.map(event => <LiveFeedCard event={event} ru={ru} key={event.id} />)}
         {visibleDemoEvents.map(event => <TasteFeedCard event={event} key={event.id} />)}
 
