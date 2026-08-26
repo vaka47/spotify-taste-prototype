@@ -5511,11 +5511,6 @@ select:disabled {
   opacity: .28;
 }
 
-.tasteQueueActions .tasteQueuePlayPause {
-  background: #fff;
-  color: #000;
-}
-
 .tasteQueueMobileNote {
   display: none;
 }

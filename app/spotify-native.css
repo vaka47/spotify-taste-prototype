@@ -147,6 +147,7 @@ body { background: var(--spx-bg); }
 .spxTopBar .accountButton { border: 0; background: #000; color: #fff; }
 .spxFooter { opacity: .62; }
 .spxMobileNav { display: none; }
+.spxMobileLanguage { display: none; }
 
 /* Taste Feed */
 
@@ -829,6 +830,13 @@ a.spxFeedEvent {
 .spxOwnerStats strong { font-size: 28px; }
 .spxOwnerStats span { color: var(--spx-subtext); font-size: 10px; line-height: 1.3; }
 
+.spxOwnerTabs { display: flex; gap: 28px; margin-top: 22px; border-bottom: 1px solid var(--spx-line); }
+.spxOwnerTabs button { display: inline-flex; height: 44px; align-items: center; gap: 7px; border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 0 2px; color: #a7a7a7; font-size: 12px; font-weight: 700; }
+.spxOwnerTabs button:hover { color: #fff; }
+.spxOwnerTabs button.active { border-color: var(--spx-green); color: #fff; }
+.spxOwnerTabs small { min-width: 19px; border-radius: 999px; background: #2a2a2a; padding: 2px 6px; color: #cfcfcf; font-size: 8px; text-align: center; }
+.spxOwnerTabs button.active small { background: rgba(30, 215, 96, .15); color: var(--spx-green); }
+
 .spxOwnerSection { margin-top: 30px; }
 .spxOwnerHistory,
 .spxOwnerEvents { border-top: 1px solid var(--spx-line); }
@@ -868,6 +876,7 @@ a.spxFeedEvent {
 
 .spxOwnerSettings { margin-top: 28px; border-top: 1px solid var(--spx-line); padding-top: 18px; }
 .spxOwnerSettings summary { cursor: pointer; color: #d7d7d7; font-size: 13px; font-weight: 800; }
+.spxOwnerSettingsPanel { border-top: 0; padding-top: 0; }
 .spxOwnerForm { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
 .spxOwnerForm label { display: grid; min-width: 0; gap: 6px; color: var(--spx-subtext); font-size: 10px; }
 .spxOwnerForm label.wide { grid-column: 1 / -1; }
@@ -1033,7 +1042,6 @@ a.spxFeedEvent {
 .tasteQueueActions button:hover,
 .tasteQueueActions button.active { background: rgba(255, 255, 255, .08); color: #fff; }
 .tasteQueueActions button:disabled { opacity: .28; }
-.tasteQueueActions .tasteQueuePlayPause { width: 42px; height: 42px; background: #fff; color: #000; }
 .tasteQueueMobileNote { display: none; }
 
 /* Secondary native settings surfaces */
@@ -1126,6 +1134,16 @@ a.spxFeedEvent {
     padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
     backdrop-filter: blur(14px);
   }
+
+  .spxMobileLanguage { position: fixed; top: max(12px, env(safe-area-inset-top)); right: 12px; z-index: 91; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(255, 255, 255, .18); border-radius: 50%; background: rgba(18, 18, 18, .88); color: #fff; font-size: 9px; font-weight: 800; backdrop-filter: blur(12px); }
+  .spxMobileLanguage:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .spxFeedHeader h1,
+  .spxHubHeader h1,
+  .spxMyTasteHeader h1,
+  .spxPublicIdentity h1,
+  .artistOnboardingPage .onboardingHeader h1,
+  .notificationsPage .pageTitle,
+  .privacyPage .pageTitle { width: fit-content; max-width: calc(100% - 52px); }
   .spxMobileNav a {
     display: grid;
     min-width: 0;
@@ -1173,6 +1191,8 @@ a.spxFeedEvent {
   .spxOwnerStats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .spxOwnerStats > :nth-child(2) { border-right: 0; }
   .spxOwnerStats > :nth-child(-n+2) { border-bottom: 1px solid var(--spx-line); }
+  .spxOwnerTabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+  .spxOwnerTabs button { justify-content: center; padding-inline: 5px; }
   .spxOwnerHistory > a { grid-template-columns: 20px 48px minmax(0, 1fr) 58px; }
   .spxOwnerTrackCover { width: 48px; height: 48px; }
   .spxOwnerHistory > a > svg { display: none; }

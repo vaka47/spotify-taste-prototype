@@ -64,6 +64,7 @@ type WeeklyTrack = {
 type SessionResponse = { configured: boolean; user: SessionUser | null };
 type ProfileResponse = { events: TasteEvent[]; weeklyHistory: WeeklyTrack[] };
 type ViewState = "loading" | "disconnected" | "connected" | "error";
+type OwnerTab = "listening" | "shared" | "settings";
 
 function formatDate(value: string | null, locale: "en" | "ru") {
   if (!value) return "";
@@ -125,6 +126,7 @@ export function MyTasteClient() {
   const [noteEventId, setNoteEventId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [connectionType, setConnectionType] = useState<"followers" | "following" | null>(null);
+  const [activeTab, setActiveTab] = useState<OwnerTab>("listening");
   const autoSyncStarted = useRef(false);
 
   const load = useCallback(async () => {
@@ -295,21 +297,27 @@ export function MyTasteClient() {
             <div><strong>{user.stats.unique_tracks_7d}</strong><span>{locale === "ru" ? "Уникальные треки" : "Unique tracks"}</span></div>
           </section>
 
-          <section className="spxOwnerSection">
+          <nav className="spxOwnerTabs" role="tablist" aria-label={locale === "ru" ? "Разделы вашего Taste" : "Your Taste sections"}>
+            <button id="owner-tab-listening" type="button" role="tab" aria-controls="owner-panel-listening" aria-selected={activeTab === "listening"} className={activeTab === "listening" ? "active" : ""} onClick={() => setActiveTab("listening")}>{locale === "ru" ? "История" : "Listening"}</button>
+            <button id="owner-tab-shared" type="button" role="tab" aria-controls="owner-panel-shared" aria-selected={activeTab === "shared"} className={activeTab === "shared" ? "active" : ""} onClick={() => setActiveTab("shared")}><span>{locale === "ru" ? "Публикации" : "Shared"}</span><small>{events.filter(event => event.isPublic).length}</small></button>
+            <button id="owner-tab-settings" type="button" role="tab" aria-controls="owner-panel-settings" aria-selected={activeTab === "settings"} className={activeTab === "settings" ? "active" : ""} onClick={() => setActiveTab("settings")}>{locale === "ru" ? "Настройки" : "Settings"}</button>
+          </nav>
+
+          {activeTab === "listening" ? <section id="owner-panel-listening" className="spxOwnerSection" role="tabpanel" aria-labelledby="owner-tab-listening">
             <div className="spxSectionHeading"><h2>{locale === "ru" ? "История за неделю" : "This week's listening"}</h2><span>{locale === "ru" ? "По повторам и популярности" : "By repeats, then popularity"}</span></div>
             {weeklyHistory.length ? <div className="spxOwnerHistory">{weeklyHistory.map((item, index) => <a href={item.track.spotifyUrl} target="_blank" rel="noreferrer" key={item.track.id}><span>{index + 1}</span><TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="spxOwnerTrackCover" /><span><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{weeklyBehavior(item, locale)} · {formatDate(item.lastPlayedAt, locale)}</em></span><b>{item.playCount}<small>{locale === "ru" ? "прослушиваний" : "plays"}</small></b><Icon name="external" size={16} /></a>)}</div> : <div className="spxFeedEmpty">{t("my.empty")}</div>}
-          </section>
+          </section> : null}
 
-          <section className="spxOwnerSection">
+          {activeTab === "shared" ? <section id="owner-panel-shared" className="spxOwnerSection" role="tabpanel" aria-labelledby="owner-tab-shared">
             <div className="spxSectionHeading"><h2>{locale === "ru" ? "Что увидят подписчики" : "What followers see"}</h2><span>{locale === "ru" ? `Опубликовано: ${events.filter(event => event.isPublic).length}` : `${events.filter(event => event.isPublic).length} public`}</span></div>
             {events.length ? <div className="spxOwnerEvents">{events.map(event => <article key={event.id}><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="spxOwnerTrackCover" /><div><strong>{event.track.title}</strong><small>{event.track.artist}</small><em>{formatDate(event.playedAt, locale)} · {weeklyPlayCount(event.repeatCount, locale)} · <b className={event.isPublic ? "isPublic" : "isPrivate"}>{event.isPublic ? (locale === "ru" ? "В ленте" : "In feed") : (locale === "ru" ? "Скрыто" : "Hidden")}</b></em>{event.authorNote ? <p>“{event.authorNote}”</p> : null}</div><div><button className={event.isPublic ? "active" : ""} type="button" title={event.isPublic ? (locale === "ru" ? "Скрыть из ленты" : "Hide from feed") : (locale === "ru" ? "Опубликовать в ленте" : "Publish to feed")} aria-label={event.isPublic ? (locale === "ru" ? "Скрыть из ленты" : "Hide from feed") : (locale === "ru" ? "Опубликовать в ленте" : "Publish to feed")} onClick={() => updateEvent(event.id, { isPublic: !event.isPublic })}><Icon name={event.isPublic ? "check" : "hide"} size={17} /></button><button type="button" title={event.authorNote ? t("my.editNote") : t("my.addNote")} aria-label={event.authorNote ? t("my.editNote") : t("my.addNote")} onClick={() => { setNoteEventId(event.id); setNoteDraft(event.authorNote || ""); }}><Icon name="comment" size={17} /></button></div>{noteEventId === event.id ? <div className="spxOwnerNote" data-note-editor={event.id}><textarea value={noteDraft} onChange={change => setNoteDraft(change.target.value)} placeholder={t("my.notePlaceholder")} autoFocus /><button type="button" onClick={() => updateEvent(event.id, { authorNote: noteDraft })}>{t("common.save")}</button><button type="button" onClick={() => setNoteEventId(null)}>{t("common.cancel")}</button></div> : null}</article>)}</div> : <div className="spxFeedEmpty">{t("my.empty")}</div>}
-          </section>
+          </section> : null}
 
-          <details className="spxOwnerSettings">
-            <summary>{locale === "ru" ? "Профиль и настройки" : "Profile and settings"}</summary>
+          {activeTab === "settings" ? <section id="owner-panel-settings" className="spxOwnerSettings spxOwnerSettingsPanel" role="tabpanel" aria-labelledby="owner-tab-settings">
+            <div className="spxSectionHeading"><h2>{locale === "ru" ? "Профиль и настройки" : "Profile and settings"}</h2><span>{locale === "ru" ? "Публичный профиль и приватность" : "Public profile and privacy"}</span></div>
             <div className="spxOwnerForm"><label><span>{t("my.handle")}</span><input value={profileDraft.handle} onChange={event => setProfileDraft(current => ({ ...current, handle: event.target.value }))} /></label><label><span>{t("my.role")}</span><input value={profileDraft.role} onChange={event => setProfileDraft(current => ({ ...current, role: event.target.value }))} /></label><label className="wide"><span>{t("my.bio")}</span><textarea value={profileDraft.bio} onChange={event => setProfileDraft(current => ({ ...current, bio: event.target.value }))} /></label><button type="button" onClick={updateProfile} disabled={savingProfile}>{t("my.updateProfile")}</button></div>
             <div className="spxOwnerSettingsLinks"><Link href="/privacy"><Icon name="privacy" size={16} />{t("nav.privacy")}</Link><button type="button" onClick={disconnect}>{t("my.disconnect")}</button></div>
-          </details>
+          </section> : null}
           <ConnectionsDialog open={connectionType !== null} onClose={() => setConnectionType(null)} handle={user.handle} initialType={connectionType || "followers"} />
         </>
       ) : null}

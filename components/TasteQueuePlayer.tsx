@@ -106,7 +106,6 @@ export function TasteQueuePlayer({
   const ru = locale === "ru";
   const [open, setOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [paused, setPaused] = useState(true);
   const [controllerReady, setControllerReady] = useState(false);
   const [commentSound, setCommentSound] = useState(true);
   const embedTargetRef = useRef<HTMLDivElement | null>(null);
@@ -145,7 +144,6 @@ export function TasteQueuePlayer({
           controller.play();
         });
         controller.addListener("playback_started", () => {
-          setPaused(false);
           advanceLockRef.current = false;
           const activeItem = itemsRef.current[activeIndexRef.current];
           if (activeItem?.authorNote && cuePlayedRef.current !== activeItem.id && soundEnabledRef.current && audioContextRef.current) {
@@ -154,7 +152,6 @@ export function TasteQueuePlayer({
           }
         });
         controller.addListener("playback_update", event => {
-          setPaused(event.data.isPaused);
           const nearEnd = event.data.duration > 0 && event.data.position >= event.data.duration - 1250;
           if (!event.data.isPaused && nearEnd && !advanceLockRef.current) {
             const nextIndex = activeIndexRef.current + 1;
@@ -197,19 +194,11 @@ export function TasteQueuePlayer({
     setCurrentIndex(index);
   }
 
-  function togglePlayback() {
-    const controller = controllerRef.current;
-    if (!controller) return;
-    if (paused) controller.resume();
-    else controller.pause();
-  }
-
   function closeQueue() {
     controllerRef.current?.pause();
     controllerRef.current?.destroy();
     controllerRef.current = null;
     setControllerReady(false);
-    setPaused(true);
     setOpen(false);
   }
 
@@ -265,7 +254,6 @@ export function TasteQueuePlayer({
 
           <div className="tasteQueueActions">
             <button type="button" onClick={() => goTo(currentIndex - 1)} disabled={currentIndex === 0} aria-label={ru ? "Предыдущий трек" : "Previous track"}><Icon name="chevronLeft" /></button>
-            <button className="tasteQueuePlayPause" type="button" onClick={togglePlayback} aria-label={paused ? (ru ? "Продолжить" : "Resume") : (ru ? "Пауза" : "Pause")}><Icon name={paused ? "play" : "pause"} /></button>
             <button type="button" onClick={() => goTo(currentIndex + 1)} disabled={currentIndex === items.length - 1} aria-label={ru ? "Следующий трек" : "Next track"}><Icon name="chevronRight" /></button>
             <button className={commentSound ? "active" : ""} type="button" onClick={() => setCommentSound(value => !value)} aria-label={commentSound ? (ru ? "Выключить звук комментариев" : "Mute comment cue") : (ru ? "Включить звук комментариев" : "Enable comment cue")} title={ru ? "Звук комментариев" : "Comment sound"}><Icon name={commentSound ? "volume" : "volumeOff"} /></button>
             <button type="button" onClick={closeQueue} aria-label={ru ? "Закрыть очередь" : "Close queue"}><Icon name="close" /></button>

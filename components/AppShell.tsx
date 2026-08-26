@@ -99,6 +99,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
           <footer className="footerNote spxFooter">{t("shell.disclaimer")}</footer>
         </div>
+        {!immersivePlayer ? <button className="spxMobileLanguage" type="button" onClick={() => setLocale(locale === "en" ? "ru" : "en")} aria-label={locale === "en" ? "Switch to Russian" : "Переключить на английский"}>{locale === "en" ? "RU" : "EN"}</button> : null}
         {!immersivePlayer ? (
           <nav className="mobileNav spxMobileNav" aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
             {mobileItems.map((item, index) => (

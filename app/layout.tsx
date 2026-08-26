@@ -2,7 +2,7 @@ import "./globals.css";
 import "./spotify-native.css";
 import type React from "react";
 import type { Metadata, Viewport } from "next";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/AppShell";
 import { LocaleProvider, type Locale } from "@/lib/i18n";
 
@@ -18,8 +18,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieLocale = (await cookies()).get("spotify_taste_locale")?.value;
-  const browserLanguages = (await headers()).get("accept-language") || "";
-  const initialLocale: Locale = cookieLocale === "ru" || (cookieLocale !== "en" && /(^|,)\s*ru\b/i.test(browserLanguages)) ? "ru" : "en";
+  const initialLocale: Locale = cookieLocale === "ru" ? "ru" : "en";
   return (
     <html lang={initialLocale}>
       <body>
