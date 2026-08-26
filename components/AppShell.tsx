@@ -46,6 +46,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : current.labelKey;
   const immersivePlayer = pathname.startsWith("/player/");
 
+  function openSearch(event: React.MouseEvent<HTMLAnchorElement>) {
+    if (pathname !== "/feed") return;
+    event.preventDefault();
+    const input = document.getElementById("people-search-input") as HTMLInputElement | null;
+    input?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => input?.focus(), 180);
+  }
+
   if (pathname === "/pitch") return <ToastProvider>{children}</ToastProvider>;
 
   return (
@@ -58,7 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <nav className="desktopNav spxPrimaryNav">
             {primaryItems.map((item, index) => (
-              <Link key={`${item.href}-${index}`} href={item.href} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
+              <Link key={`${item.href}-${index}`} href={item.href} onClick={index === 1 ? openSearch : undefined} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} />
                 <span>{t(item.labelKey)}</span>
               </Link>
@@ -103,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {!immersivePlayer ? (
           <nav className="mobileNav spxMobileNav" aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
             {mobileItems.map((item, index) => (
-              <Link key={`${item.href}-${index}`} href={item.href} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
+              <Link key={`${item.href}-${index}`} href={item.href} onClick={index === 1 ? openSearch : undefined} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} size={22} />
                 <span>{t(item.labelKey)}</span>
               </Link>

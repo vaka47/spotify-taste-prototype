@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     client_id: getServerConfig().spotifyClientId,
     response_type: "code",
     redirect_uri: redirectUri,
-    scope: "user-read-recently-played user-top-read user-read-private",
+    scope: "user-read-recently-played user-top-read user-read-private user-read-email streaming user-read-playback-state user-modify-playback-state",
     code_challenge_method: "S256",
     code_challenge: challenge,
     state,

@@ -103,6 +103,13 @@ export default function FeedPage() {
   }, []);
 
   useEffect(() => {
+    if (window.location.hash !== "#people-search") return;
+    const input = document.getElementById("people-search-input") as HTMLInputElement | null;
+    input?.scrollIntoView({ block: "center" });
+    window.setTimeout(() => input?.focus(), 120);
+  }, []);
+
+  useEffect(() => {
     const value = query.trim();
     if (value.length < 2) {
       setPeopleResults([]);
@@ -190,7 +197,7 @@ export default function FeedPage() {
       <div className="spxFeedTools" id="people-search">
         <label className="spxPeopleSearch">
           <Icon name="search" size={18} />
-          <input value={query} onChange={event => setQuery(event.target.value)} placeholder={ru ? "Найти человека или артиста" : "Find a person or artist"} aria-label={ru ? "Поиск по людям" : "Search people"} />
+          <input id="people-search-input" value={query} onChange={event => setQuery(event.target.value)} placeholder={ru ? "Найти человека или артиста" : "Find a person or artist"} aria-label={ru ? "Поиск по людям" : "Search people"} />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label={ru ? "Очистить поиск" : "Clear search"}><Icon name="close" size={17} /></button> : null}
         </label>
         <TasteQueuePlayer items={queueItems} triggerLabel={ru ? "Слушать ленту" : "Play feed"} triggerAriaLabel={ru ? "Слушать все рекомендации в ленте" : "Play all recommendations in the feed"} triggerClassName="spxFeedPlay" iconOnly />
