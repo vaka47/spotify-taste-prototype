@@ -5,11 +5,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/Icons";
 import { ToastProvider } from "@/components/ToastProvider";
+import { TastePlaybackProvider } from "@/components/TasteQueuePlayer";
 import { useI18n } from "@/lib/i18n";
 
 const primaryItems = [
   { href: "/", labelKey: "nav.home", icon: "home" },
-  { href: "/feed#people-search", labelKey: "nav.search", icon: "search" },
+  { href: "/search", labelKey: "nav.search", icon: "search" },
   { href: "/my-taste", labelKey: "nav.my", icon: "library" },
 ] as const;
 
@@ -20,8 +21,8 @@ const tasteItems = [
 ] as const;
 
 const mobileItems = [
-  { href: "/feed", labelKey: "nav.home", icon: "home" },
-  { href: "/feed#people-search", labelKey: "nav.search", icon: "search" },
+  { href: "/", labelKey: "nav.home", icon: "home" },
+  { href: "/search", labelKey: "nav.search", icon: "search" },
   { href: "/my-taste", labelKey: "nav.my", icon: "library" },
 ] as const;
 
@@ -46,18 +47,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : current.labelKey;
   const immersivePlayer = pathname.startsWith("/player/");
 
-  function openSearch(event: React.MouseEvent<HTMLAnchorElement>) {
-    if (pathname !== "/feed") return;
-    event.preventDefault();
-    const input = document.getElementById("people-search-input") as HTMLInputElement | null;
-    input?.scrollIntoView({ behavior: "smooth", block: "center" });
-    window.setTimeout(() => input?.focus(), 180);
-  }
-
   if (pathname === "/pitch") return <ToastProvider>{children}</ToastProvider>;
 
   return (
     <ToastProvider>
+      <TastePlaybackProvider>
       <div className={`appShell spxShell ${immersivePlayer ? "spxShellPlayer" : ""}`}>
         <aside className="sidebar spxSidebar" aria-label={locale === "ru" ? "Основная навигация" : "Primary navigation"}>
           <Link href="/feed" className="brandMark spxBrand" aria-label="Spotify Taste">
@@ -66,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
           <nav className="desktopNav spxPrimaryNav">
             {primaryItems.map((item, index) => (
-              <Link key={`${item.href}-${index}`} href={item.href} onClick={index === 1 ? openSearch : undefined} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
+              <Link key={`${item.href}-${index}`} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} />
                 <span>{t(item.labelKey)}</span>
               </Link>
@@ -111,7 +105,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {!immersivePlayer ? (
           <nav className="mobileNav spxMobileNav" aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
             {mobileItems.map((item, index) => (
-              <Link key={`${item.href}-${index}`} href={item.href} onClick={index === 1 ? openSearch : undefined} className={index !== 1 && isActive(pathname, item.href) ? "active" : ""}>
+              <Link key={`${item.href}-${index}`} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} size={22} />
                 <span>{t(item.labelKey)}</span>
               </Link>
@@ -119,6 +113,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </nav>
         ) : null}
       </div>
+      </TastePlaybackProvider>
     </ToastProvider>
   );
 }

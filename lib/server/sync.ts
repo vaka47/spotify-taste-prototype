@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { db, ensureSchema } from "@/lib/server/db";
-import { spotifyApi, userAccessToken, type SpotifyProfile } from "@/lib/server/spotify";
+import { availableSpotifyHandle, spotifyApi, userAccessToken, type SpotifyProfile } from "@/lib/server/spotify";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_RECENT_PAGES = 12;
@@ -60,7 +60,7 @@ export async function syncSpotifyUser(userId: string, options: { force?: boolean
     where id = ${userId}
       and (sync_locked_until is null or sync_locked_until < now())
       and (${Boolean(options.force)} or last_synced_at is null or last_synced_at < now() - (${staleMinutes} * interval '1 minute'))
-    returning id, display_name
+    returning id, display_name, handle
   `;
   if (!lease.length) return { ok: true, skipped: true, inserted: 0, total: 0 };
 
@@ -123,8 +123,13 @@ export async function syncSpotifyUser(userId: string, options: { force?: boolean
       }
     }
 
+    const nextHandle = await availableSpotifyHandle(spotifyProfile.display_name, userId);
+    if (lease[0].handle !== nextHandle) {
+      await db()`insert into taste_handle_aliases (alias, user_id) values (${lease[0].handle}, ${userId}) on conflict (alias) do nothing`;
+    }
     await db()`
       update taste_users set
+        handle = ${nextHandle},
         display_name = ${spotifyProfile.display_name || lease[0].display_name},
         avatar_url = ${spotifyProfile.images?.[0]?.url || null},
         country = ${spotifyProfile.country || null},

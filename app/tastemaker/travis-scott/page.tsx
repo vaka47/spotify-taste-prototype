@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Icon } from "@/components/Icons";
 import { ConnectionsDialog } from "@/components/ConnectionsDialog";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
-import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
+import { TasteQueuePlayer, useTastePlayback } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
 import { doechii, inspiredMixes, recentlyDiscoveredTracks, tracks, travis, travisWeeklyHistory, tyler } from "@/lib/mock-data";
@@ -48,7 +47,7 @@ function signalLabel(kind: WeeklyTrackSignal["kind"], ru: boolean) {
 }
 
 export default function TravisTastePage() {
-  const router = useRouter();
+  const { playQueue, activeItemId } = useTastePlayback();
   const { following, toggle } = useFollowingTaste(travis.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
@@ -69,7 +68,7 @@ export default function TravisTastePage() {
 
   function openTrack(item: WeeklyTrackSignal) {
     recordTrackOpen(travis.id, item.track.id);
-    router.push(`/player/${item.track.slug}`);
+    playQueue(tasteQueue, Math.max(0, tasteQueue.findIndex(queueItem => queueItem.track.id === item.track.id)));
   }
 
   function publishComment() {
@@ -100,6 +99,13 @@ export default function TravisTastePage() {
     tastemaker: travis,
     signal: ru ? `${item.plays} ${repeatWord(item.plays)} за неделю · ${signalLabel(item.kind, true)}` : `${item.plays} plays this week · ${signalLabel(item.kind, false)}`,
     authorNote: item.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : item.authorNote) : null,
+  }));
+  const discoveryQueue = recentlyDiscoveredTracks.map(item => ({
+    id: `travis_discovery_${item.track.id}`,
+    track: item.track,
+    tastemaker: travis,
+    signal: ru ? "Недавнее открытие Трэвиса" : "Recently discovered by Travis",
+    authorNote: null,
   }));
   const weeklyRows = showAll ? travisWeeklyHistory : travisWeeklyHistory.slice(0, 3);
 
@@ -138,15 +144,15 @@ export default function TravisTastePage() {
               <div className="spxSectionHeading"><h2>{ru ? "На повторе на этой неделе" : "On Repeat This Week"}</h2><button type="button" onClick={() => setShowAll(value => !value)}>{showAll ? (ru ? "Свернуть" : "Show less") : (ru ? "Все 8 треков" : "See all 8")}</button></div>
               <div className="spxRepeatList">
                 {weeklyRows.map((item, index) => (
-                  <article className="spxRepeatRow" key={item.track.id}>
+                  <article className={`${activeItemId === `travis_queue_${item.track.id}` ? "spxRepeatRow playing" : "spxRepeatRow"}`} key={item.track.id}>
                     <button className="spxRepeatMain" type="button" onClick={() => openTrack(item)}>
                       <span className="spxTrackIndex">{index + 1}</span>
                       <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxRepeatCover" />
-                      <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{signalLabel(item.kind, ru)} · {localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em></span>
+                      <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{signalLabel(item.kind, ru)} · {localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em>{item.authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{ru ? "Комментарий Трэвиса" : "Travis note"}</i> : null}</span>
                       <span className="spxRepeatPlay"><Icon name="play" size={17} /></span>
                     </button>
-                    <button className={`spxRowComment ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Комментарии к ${item.track.title}` : `Comments on ${item.track.title}`}><Icon name="comment" size={17} /></button>
-                    <button className="spxRowMore" type="button" onClick={() => openTrack(item)} aria-label={ru ? "Ещё" : "More"}><Icon name="more" size={18} /></button>
+                    <button className={`spxRowComment ${item.authorNote ? "hasNote" : ""} ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Обсуждение ${item.track.title}` : `Discussion for ${item.track.title}`}><Icon name="comment" size={17} /></button>
+                    <a className="spxRowMore" href={item.track.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? "Открыть в Spotify" : "Open in Spotify"}><Icon name="more" size={18} /></a>
                   </article>
                 ))}
               </div>
@@ -163,7 +169,7 @@ export default function TravisTastePage() {
             <section className="spxArtistSection">
               <div className="spxSectionHeading"><h2>{ru ? "Недавние открытия" : "Recently Discovered"}</h2><span>{ru ? "За 7 дней" : "Last 7 days"}</span></div>
               <div className="spxDiscoveryShelf">
-                {recentlyDiscoveredTracks.map(item => <Link href={`/player/${item.track.slug}`} key={item.track.id}><TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxDiscoveryCover" /><strong>{item.track.title}</strong><small>{item.track.artist}</small></Link>)}
+                {recentlyDiscoveredTracks.map((item, index) => <button type="button" onClick={() => playQueue(discoveryQueue, index)} key={item.track.id}><TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxDiscoveryCover" /><strong>{item.track.title}</strong><small>{item.track.artist}</small></button>)}
               </div>
             </section>
 

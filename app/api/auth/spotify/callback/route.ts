@@ -3,7 +3,7 @@ import { appOrigin } from "@/lib/server/config";
 import { encryptSecret, verifyPayload } from "@/lib/server/crypto";
 import { db, ensureSchema } from "@/lib/server/db";
 import { createSession } from "@/lib/server/session";
-import { exchangeCode, normalizedHandle, spotifyApi, type SpotifyProfile } from "@/lib/server/spotify";
+import { availableSpotifyHandle, exchangeCode, spotifyApi, type SpotifyProfile } from "@/lib/server/spotify";
 
 export const runtime = "nodejs";
 
@@ -23,8 +23,9 @@ export async function GET(request: NextRequest) {
   try {
     const token = await exchangeCode(code, payload.verifier, `${origin}/api/auth/spotify/callback`);
     const profile = await spotifyApi<SpotifyProfile>(token.access_token, "/me");
-    const handle = normalizedHandle(profile.display_name, profile.id);
     await ensureSchema();
+    const previous = await db()`select handle from taste_users where id = ${profile.id} limit 1`;
+    const handle = await availableSpotifyHandle(profile.display_name, profile.id);
     await db()`
       insert into taste_users (
         id, handle, display_name, avatar_url, country, spotify_url, product,
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
         ${new Date(Date.now() + token.expires_in * 1000)}, ${token.scope || ""}
       )
       on conflict (id) do update set
+        handle = excluded.handle,
         display_name = excluded.display_name,
         avatar_url = excluded.avatar_url,
         country = excluded.country,
@@ -47,6 +49,9 @@ export async function GET(request: NextRequest) {
         spotify_scope = excluded.spotify_scope,
         updated_at = now()
     `;
+    if (previous[0]?.handle && previous[0].handle !== handle) {
+      await db()`insert into taste_handle_aliases (alias, user_id) values (${previous[0].handle}, ${profile.id}) on conflict (alias) do nothing`;
+    }
     await createSession(profile.id);
     const response = NextResponse.redirect(`${origin}${payload.returnTo}?connected=1`);
     response.cookies.delete("spotify_taste_oauth");

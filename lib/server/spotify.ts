@@ -95,11 +95,24 @@ export async function spotifyApi<T>(accessToken: string, path: string): Promise<
 }
 
 export function normalizedHandle(displayName: string | undefined, spotifyId: string) {
-  const base = (displayName || "listener")
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[^a-z0-9]+/g, "-")
+  return (displayName || spotifyId)
+    .normalize("NFKC")
+    .trim()
+    .toLocaleLowerCase("en-US")
+    .replace(/\s+/g, "-")
+    .replace(/[^\p{L}\p{N}_-]+/gu, "")
+    .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
-    .slice(0, 28) || "listener";
-  return `${base}-${spotifyId.slice(0, 6).toLowerCase()}`;
+    .slice(0, 40) || spotifyId.toLocaleLowerCase("en-US");
+}
+
+export async function availableSpotifyHandle(displayName: string | undefined, spotifyId: string) {
+  const preferred = normalizedHandle(displayName, spotifyId);
+  const conflict = await db()`
+    select u.id from taste_users u
+    where u.id <> ${spotifyId}
+      and (u.handle = ${preferred} or exists(select 1 from taste_handle_aliases a where a.alias = ${preferred} and a.user_id = u.id))
+    limit 1
+  `;
+  return conflict.length ? spotifyId.toLocaleLowerCase("en-US") : preferred;
 }

@@ -68,6 +68,14 @@ async function createSchema() {
     )
   `;
   await sql`
+    create table if not exists taste_handle_aliases (
+      alias text primary key,
+      user_id text not null references taste_users(id) on delete cascade,
+      created_at timestamptz not null default now()
+    )
+  `;
+  await sql`create index if not exists taste_handle_aliases_user_idx on taste_handle_aliases(user_id)`;
+  await sql`
     create table if not exists taste_events (
       id text primary key,
       user_id text not null references taste_users(id) on delete cascade,

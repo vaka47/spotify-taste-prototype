@@ -6,8 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { AvatarImage } from "@/components/AvatarImage";
 import { ConnectionsDialog, type ConnectionProfile } from "@/components/ConnectionsDialog";
 import { Icon } from "@/components/Icons";
-import { SpotifyEmbed } from "@/components/SpotifyEmbed";
-import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
+import { TasteQueuePlayer, useTastePlayback } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n";
@@ -129,6 +128,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const searchParams = useSearchParams();
   const { locale, t } = useI18n();
   const { showToast } = useToast();
+  const { playQueue, activeItemId } = useTastePlayback();
   const snapshot = useMemo(() => decodeSnapshot(searchParams.get("snapshot")), [searchParams]);
   const requestedEventId = searchParams.get("event");
   const demoProfile = useMemo(() => snapshot ? profileFromSnapshot(snapshot) : (seededTasteProfiles[handle] ?? fallbackProfile(handle)), [handle, snapshot]);
@@ -187,6 +187,11 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   }, [demoProfile, handle, hasKnownDemo, requestedEventId]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    if (!serverProfile?.handle || serverProfile.handle === handle) return;
+    window.history.replaceState(window.history.state, "", `/taste/${encodeURIComponent(serverProfile.handle)}${window.location.search}${window.location.hash}`);
+  }, [handle, serverProfile?.handle]);
 
   const isReal = Boolean(serverProfile);
   const selectedServerEvent = serverEvents.find(event => event.id === selectedId) || serverEvents[0];
@@ -339,8 +344,8 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         { handle: "doechii", name: "Doechii", avatarUrl: "/avatars/doechii.jpg", role: locale === "ru" ? "Артист" : "Artist", verified: true, href: "https://open.spotify.com/artist/4E2rKHVDssGJm2SCDOMMJB" },
       ]
     : [
-        { handle: "vaka47", name: "Vaka47", avatarUrl: null, role: "Spotify listener" },
-        { handle: "maya", name: "Maya Chen", avatarUrl: "", role: locale === "ru" ? "Музыкальный автор" : "Music creator" },
+        { handle: "vaka47", name: "Vaka47", avatarUrl: "/avatars/vaka47.jpg", role: "Spotify listener" },
+        { handle: "maya", name: "Maya Chen", avatarUrl: "/avatars/maya-chen.png", role: locale === "ru" ? "Музыкальный автор" : "Music creator" },
       ];
 
   return (
@@ -360,17 +365,20 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         <div className="spxPublicHistory">
           <div className="spxSectionHeading"><h2>{locale === "ru" ? "История за 7 дней" : "Last 7 days"}</h2><span>{locale === "ru" ? `${publicCount} треков` : `${publicCount} tracks`}</span></div>
           <div className="spxPublicList">
-            {(isReal ? weeklyHistory : demoWeeklyHistory).map(item => {
+            {(isReal ? weeklyHistory : demoWeeklyHistory).map((item, index) => {
               const realItem = isReal ? item as ServerWeeklyTrack : null;
               const demoItem = !isReal ? item as typeof demoWeeklyHistory[number] : null;
               const demoEvent = !isReal ? demoProfile.events.find(event => event.id === demoItem!.eventId)! : null;
               const track = realItem?.track || demoItem!.track;
               const eventId = realItem?.eventId || demoItem!.eventId;
               const active = eventId === selectedId;
+              const authorNote = isReal
+                ? serverEvents.find(event => event.id === eventId)?.authorNote
+                : demoRu?.notes[demoEvent!.id] || demoEvent!.authorComment;
               return (
-                <button className={active ? "active" : ""} type="button" key={eventId} onClick={() => setSelectedId(eventId)}>
+                <button className={`${active ? "active" : ""} ${activeItemId === `profile_queue_${eventId}` ? "playing" : ""}`} type="button" key={eventId} onClick={() => { setSelectedId(eventId); playQueue(profileQueue, index); }}>
                   <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="spxPublicTrackCover" />
-                  <span><strong>{track.title}</strong><small>{track.artist}</small><em>{realItem ? `${returnSignal(realItem.previousPlayedAt, realItem.lastPlayedAt, locale) || (realItem.playCount > 1 ? (locale === "ru" ? "На повторе" : "On repeat") : (locale === "ru" ? "Одно прослушивание" : "Played once"))} · ${formatPlayedAt(realItem.lastPlayedAt, locale)}` : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em></span>
+                  <span><strong>{track.title}</strong><small>{track.artist}</small><em>{realItem ? `${returnSignal(realItem.previousPlayedAt, realItem.lastPlayedAt, locale) || (realItem.playCount > 1 ? (locale === "ru" ? "На повторе" : "On repeat") : (locale === "ru" ? "Одно прослушивание" : "Played once"))} · ${formatPlayedAt(realItem.lastPlayedAt, locale)}` : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>{authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{locale === "ru" ? "Комментарий" : "Note"}</i> : null}</span>
                   <b>{realItem?.playCount ?? demoItem!.playCount}<small>{locale === "ru" ? russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount) : "plays"}</small></b>
                   <Icon name="play" size={15} />
                 </button>
@@ -383,7 +391,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         {selectedTrack ? (
           <aside className="spxPublicPlayer">
             <div className="spxPublicPlayerHead"><div><small>{isReal ? t("common.spotifyData") : t("common.demoData")}</small><h2>{selectedTrack.title}</h2><p>{selectedTrack.artist}</p></div><a href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a></div>
-            <SpotifyEmbed src={selectedTrack.spotifyEmbedUrl} title={`Spotify: ${selectedTrack.title}`} />
             <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null) || t("profile.noNote")}</p></div>
             <div className="spxPublicComposer"><label className="srOnly" htmlFor="taste-comment">{t("profile.addComment")}</label><input id="taste-comment" value={commentText} onChange={event => setCommentText(event.target.value)} placeholder={t("profile.commentPlaceholder")} /><button type="button" onClick={addComment} disabled={submitting || commentText.trim().length < 2} aria-label={t("profile.postComment")}><Icon name="chevronRight" size={17} /></button>{isReal && !connected ? <p>{t("profile.loginToComment")}</p> : null}</div>
             <div className="spxPublicComments"><strong>{t("profile.thread")}</strong>

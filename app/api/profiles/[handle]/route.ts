@@ -16,7 +16,11 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
       (select count(*)::int from taste_follows where followed_id = u.id) as followers,
       (select count(*)::int from taste_follows where follower_id = u.id) as following,
       exists(select 1 from taste_follows where follower_id = ${viewer?.id || ""} and followed_id = u.id) as viewer_follows
-    from taste_users u where u.handle = ${handle} limit 1
+    from taste_users u
+    where u.handle = ${handle}
+      or exists(select 1 from taste_handle_aliases a where a.alias = ${handle} and a.user_id = u.id)
+    order by case when u.handle = ${handle} then 0 else 1 end
+    limit 1
   `;
   const profile = profiles[0];
   if (!profile) return NextResponse.json({ error: "not_found" }, { status: 404 });
@@ -28,6 +32,11 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
   } catch (error) {
     console.error("Background profile sync failed", error);
   }
+
+  const [freshProfile] = await db()`
+    select handle, display_name, avatar_url, role, bio, verified, last_synced_at
+    from taste_users where id = ${profile.id} limit 1
+  `;
 
   const [stats] = await db()`
     select
@@ -108,18 +117,18 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
   return NextResponse.json({
     profile: {
       id: profile.id,
-      handle: profile.handle,
-      name: profile.display_name,
-      avatarUrl: profile.avatar_url,
-      role: profile.role,
-      bio: profile.bio,
-      verified: profile.verified,
+      handle: freshProfile?.handle || profile.handle,
+      name: freshProfile?.display_name || profile.display_name,
+      avatarUrl: freshProfile?.avatar_url || profile.avatar_url,
+      role: freshProfile?.role || profile.role,
+      bio: freshProfile?.bio || profile.bio,
+      verified: freshProfile?.verified ?? profile.verified,
       followers: profile.followers,
       following: profile.following,
       totalEvents: stats.total_events,
       durationMs7d: Number(stats.duration_ms_7d),
       uniqueTracks7d: stats.unique_tracks_7d,
-      lastSyncedAt: stats.last_synced_at,
+      lastSyncedAt: freshProfile?.last_synced_at || stats.last_synced_at,
       viewerFollows: profile.viewer_follows,
       isOwner,
       source: "spotify_authorized",

@@ -10,7 +10,12 @@ export async function POST(_request: Request, context: { params: Promise<{ handl
   if (!viewer) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { handle } = await context.params;
   await ensureSchema();
-  const targets = await db()`select id, display_name from taste_users where handle = ${handle} limit 1`;
+  const targets = await db()`
+    select id, display_name from taste_users u
+    where u.handle = ${handle}
+      or exists(select 1 from taste_handle_aliases a where a.alias = ${handle} and a.user_id = u.id)
+    order by case when u.handle = ${handle} then 0 else 1 end limit 1
+  `;
   const target = targets[0];
   if (!target) return NextResponse.json({ error: "not_found" }, { status: 404 });
   if (target.id === viewer.id) return NextResponse.json({ error: "self_follow" }, { status: 400 });

@@ -12,7 +12,12 @@ export async function GET(request: NextRequest, context: { params: Promise<{ han
   await ensureSchema();
 
   const viewer = await getSessionUser();
-  const [profile] = await db()`select id, share_enabled from taste_users where handle = ${handle} limit 1`;
+  const [profile] = await db()`
+    select id, share_enabled from taste_users u
+    where u.handle = ${handle}
+      or exists(select 1 from taste_handle_aliases a where a.alias = ${handle} and a.user_id = u.id)
+    order by case when u.handle = ${handle} then 0 else 1 end limit 1
+  `;
   if (!profile) return NextResponse.json({ error: "not_found" }, { status: 404 });
   if (!profile.share_enabled && viewer?.id !== profile.id) return NextResponse.json({ error: "private" }, { status: 403 });
 

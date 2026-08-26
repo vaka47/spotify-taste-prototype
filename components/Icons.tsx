@@ -25,6 +25,9 @@ type IconName =
   | "close"
   | "volume"
   | "volumeOff"
+  | "shuffle"
+  | "repeat"
+  | "queue"
   | "chevronLeft"
   | "chevronRight";
 
@@ -63,6 +66,9 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     close: <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />,
     volume: <><path d="M5 10v4h3l4 4V6l-4 4H5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="M15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></>,
     volumeOff: <><path d="M5 10v4h3l4 4V6l-4 4H5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" /><path d="m16 10 4 4m0-4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></>,
+    shuffle: <><path d="M4 7h2.5c4.5 0 6 10 11 10H20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><path d="m17 14 3 3-3 3M4 17h2.5c1.8 0 3.1-1.6 4.3-3.5M13.2 9.8C14.5 8.1 15.8 7 17.5 7H20" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><path d="m17 4 3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></>,
+    repeat: <><path d="M17 5H7a4 4 0 0 0-4 4v1M7 19h10a4 4 0 0 0 4-4v-1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><path d="m6 7-3 3-3-3M18 17l3-3 3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></>,
+    queue: <><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><path d="M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></>,
     chevronLeft: <path d="m15 5-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
     chevronRight: <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
   };

@@ -273,6 +273,7 @@ body { background: var(--spx-bg); }
 }
 
 .spxFeedEvent:hover { border-color: rgba(255, 255, 255, .18); background: #202020; }
+.spxFeedEvent.playing { border-color: rgba(30, 215, 96, .55); }
 
 .spxFeedEventMain,
 a.spxFeedEvent {
@@ -308,6 +309,7 @@ a.spxFeedEvent {
 }
 
 .spxFeedPerson { display: flex; min-width: 0; align-items: center; gap: 6px; font-size: 17px; }
+.spxFeedPerson { color: #fff; }
 .spxFeedPerson strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .spxVerified { display: inline-grid; width: 16px; height: 16px; flex: 0 0 16px; place-items: center; border-radius: 50%; background: #1683ff; color: #fff; }
 .spxFeedTime { color: var(--spx-subtext); font-size: 12px; line-height: 1.4; }
@@ -315,6 +317,10 @@ a.spxFeedEvent {
 .spxFeedTrackTitle { margin-top: 8px; overflow-wrap: anywhere; font-size: 18px; line-height: 1.2; }
 .spxFeedArtist { overflow: hidden; color: var(--spx-subtext); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .spxFeedNote { display: -webkit-box; margin-top: 6px; overflow: hidden; color: #dedede; font-size: 12px; font-style: normal; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.spxFeedTrackAction { display: grid; min-width: 0; gap: 3px; border: 0; background: transparent; padding: 0; color: #fff; text-align: left; }
+.spxFeedTrackAction:hover .spxFeedTrackTitle { text-decoration: underline; }
+.spxFeedCoverButton { display: block; border: 0; border-radius: 6px; background: transparent; padding: 0; overflow: hidden; }
+.spxFeedCoverButton:hover .spxFeedCover { transform: scale(1.03); }
 
 .spxFeedCover {
   display: block;
@@ -333,6 +339,10 @@ a.spxFeedEvent {
   color: var(--spx-green);
   font-size: 13px;
   line-height: 1.35;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
 }
 
 .spxFeedSignal svg { flex: 0 0 auto; }
@@ -530,7 +540,8 @@ a.spxFeedEvent {
 .spxCommentComposer button:disabled { opacity: .45; }
 
 .spxDiscoveryShelf { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 15px; }
-.spxDiscoveryShelf a { display: grid; min-width: 0; gap: 6px; color: #fff; }
+.spxDiscoveryShelf a,
+.spxDiscoveryShelf button { display: grid; min-width: 0; gap: 6px; border: 0; background: transparent; padding: 0; color: #fff; text-align: left; }
 .spxDiscoveryCover { width: 100%; aspect-ratio: 1; border-radius: 6px; object-fit: cover; }
 .spxDiscoveryShelf strong,
 .spxDiscoveryShelf small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -949,6 +960,13 @@ a.spxFeedEvent {
 .spxPublicPlayerHead p { overflow: hidden; margin: 0; color: var(--spx-subtext); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .spxPublicPlayerHead > a { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--spx-line); border-radius: 50%; color: #fff; }
 .spxPublicPlayer .spotifyEmbed iframe { display: block; width: 100%; height: 152px; border: 0; }
+.spxPublicSelectedPlay { display: inline-flex; width: fit-content; min-height: 36px; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: #fff; padding: 0 16px; color: #000; font-size: 12px; font-weight: 800; }
+.spxPublicSelectedPlay:hover { transform: scale(1.02); }
+.spxTrackNoteIndicator { display: inline-flex; width: fit-content; align-items: center; gap: 5px; margin-top: 4px; color: var(--spx-green); font-size: 9px; font-style: normal; font-weight: 700; }
+.spxPublicList > button.playing,
+.spxRepeatRow.playing { background: rgba(30, 215, 96, .08); }
+.spxPublicList > button.playing { box-shadow: inset 2px 0 var(--spx-green); }
+.spxRowComment.hasNote { color: var(--spx-green); }
 .spxPublicNote { border-left: 2px solid var(--spx-green); background: rgba(30, 215, 96, .06); padding: 11px 12px; }
 .spxPublicNote > span { display: flex; align-items: center; gap: 7px; color: var(--spx-green); font-size: 10px; font-weight: 800; }
 .spxPublicNote p { margin: 7px 0 0; color: #d6d6d6; font-size: 12px; line-height: 1.45; }
@@ -996,8 +1014,10 @@ a.spxFeedEvent {
   left: calc(var(--spx-sidebar) + 12px);
   z-index: 100;
   display: grid;
-  grid-template-columns: 72px minmax(180px, 1fr) minmax(300px, 430px) auto;
-  grid-template-areas: "art now embed actions";
+  grid-template-columns: 72px minmax(180px, 1fr) minmax(260px, 410px) auto;
+  grid-template-areas:
+    "art now embed actions"
+    "art progress progress actions";
   min-width: 0;
   align-items: center;
   gap: 14px;
@@ -1007,7 +1027,7 @@ a.spxFeedEvent {
   background: rgba(18, 18, 18, .97);
   box-shadow: 0 18px 50px rgba(0, 0, 0, .6);
   padding: 10px;
-  overflow: hidden;
+  overflow: visible;
   backdrop-filter: blur(18px);
 }
 
@@ -1027,6 +1047,8 @@ a.spxFeedEvent {
 .tasteQueueSource small { color: #868686; }
 .tasteQueueSource b { overflow: hidden; color: #d8d8d8; text-overflow: ellipsis; }
 .tasteQueueNowPlaying > p { overflow: hidden; margin: 3px 0 0; color: var(--spx-green); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.tasteQueueNowPlaying > .tasteQueueInlineNote { display: flex; min-width: 0; align-items: center; gap: 4px; color: #dedede; }
+.tasteQueueInlineNote svg { flex: 0 0 auto; color: var(--spx-green); }
 .tasteQueueEmbed { position: relative; grid-area: embed; min-width: 0; min-height: 80px; overflow: hidden; border-radius: 6px; background: #282828; }
 .tasteQueueEmbedFallback { position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; gap: 11px; padding: 12px 14px; color: #fff; }
 .tasteQueueEmbedFallback > span:first-child { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 50%; background: #fff; color: #000; }
@@ -1049,9 +1071,84 @@ a.spxFeedEvent {
 .tasteQueueActions .tasteQueuePremiumToggle { background: #fff; color: #000; }
 .tasteQueueActions .tasteQueuePremiumToggle:hover { background: #f0f0f0; color: #000; transform: scale(1.03); }
 .tasteQueueActions button:disabled { opacity: .28; }
+.tasteRepeatIcon { position: relative; display: grid; place-items: center; }
+.tasteRepeatIcon i { position: absolute; display: grid; width: 10px; height: 10px; place-items: center; border-radius: 50%; background: var(--spx-green); color: #000; font-size: 7px; font-style: normal; font-weight: 900; }
+.tasteQueueProgress { display: grid; grid-area: progress; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: center; gap: 8px; color: #a7a7a7; font-size: 9px; }
+.tasteQueueProgress span:last-child { text-align: right; }
+.tasteQueueProgress input { width: 100%; height: 3px; accent-color: #fff; cursor: pointer; }
+.tasteQueueProgress input:hover { accent-color: var(--spx-green); }
+.tasteQueueListPanel { position: absolute; right: 0; bottom: calc(100% + 8px); width: min(480px, calc(100vw - var(--spx-sidebar) - 24px)); max-height: min(440px, 58vh); overflow: hidden; border: 1px solid rgba(255, 255, 255, .14); border-radius: 8px; background: #181818; box-shadow: 0 18px 48px rgba(0, 0, 0, .7); }
+.tasteQueueListHeader { display: flex; min-height: 50px; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--spx-line); padding: 8px 10px 8px 15px; }
+.tasteQueueListTitle { display: flex; align-items: baseline; gap: 8px; }
+.tasteQueueListTitle strong { color: #fff; font-size: 14px; }
+.tasteQueueListTitle small { color: var(--spx-subtext); font-size: 11px; }
+.tasteQueuePanelControls { display: none; align-items: center; gap: 2px; }
+.tasteQueuePanelControls button { display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: var(--spx-subtext); }
+.tasteQueuePanelControls button.active { color: var(--spx-green); }
+.tasteQueueListPanel ol { max-height: min(380px, 50vh); margin: 0; padding: 6px; overflow-y: auto; list-style: none; }
+.tasteQueueListPanel li button { display: grid; width: 100%; grid-template-columns: 24px 40px minmax(0, 1fr) 20px; align-items: center; gap: 10px; border: 0; border-radius: 4px; background: transparent; padding: 6px 8px; color: #fff; text-align: left; }
+.tasteQueueListPanel li button:hover,
+.tasteQueueListPanel li button.active { background: #282828; }
+.tasteQueueListPanel li button > span:first-child { display: grid; place-items: center; color: var(--spx-subtext); font-size: 10px; }
+.tasteQueueListPanel img { width: 40px; height: 40px; border-radius: 3px; object-fit: cover; }
+.tasteQueueListPanel li button > span:nth-child(3) { display: grid; min-width: 0; gap: 2px; }
+.tasteQueueListPanel li strong,
+.tasteQueueListPanel li small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tasteQueueListPanel li strong { font-size: 11px; }
+.tasteQueueListPanel li small { color: var(--spx-subtext); font-size: 9px; }
+.tasteQueueListPanel li button > svg { color: var(--spx-green); }
 .tasteQueueMobileNote { display: none; }
 
 /* Secondary native settings surfaces */
+
+.spxHomePage,
+.spxSearchPage { width: min(1120px, calc(100vw - var(--spx-sidebar) - 56px)); margin: 0 auto; padding: 34px 0 110px; }
+.spxHomePage > header h1,
+.spxSearchPage > header h1 { margin: 0; font-size: 34px; line-height: 1.08; }
+.spxHomePage > header p { margin: 8px 0 0; color: var(--spx-subtext); font-size: 13px; }
+.spxHomeShortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 24px; }
+.spxHomeShortcuts > a { display: grid; min-width: 0; grid-template-columns: 54px minmax(0, 1fr) 20px; align-items: center; gap: 12px; min-height: 54px; border-radius: 5px; background: #2a2a2a; color: #fff; overflow: hidden; }
+.spxHomeShortcuts > a:hover { background: #363636; }
+.spxHomeShortcuts > a > img,
+.spxHomeShortcuts > a > span:first-child { display: grid; width: 54px; height: 54px; place-items: center; background: #173924; object-fit: cover; }
+.spxHomeShortcuts strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.spxHomeShortcuts > a > svg { color: var(--spx-subtext); }
+.spxHomePage > .spxSectionHeading { margin-top: 34px; }
+.spxHomeShelf { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+.spxHomeShelf > a { display: grid; min-width: 0; gap: 6px; border-radius: 6px; background: #181818; padding: 12px; color: #fff; }
+.spxHomeShelf > a:hover { background: #242424; }
+.spxHomeShelf img,
+.spxHomeSearchArt { display: grid; width: 100%; aspect-ratio: 1; place-items: center; border-radius: 4px; background: #242424; object-fit: cover; }
+.spxHomeShelf strong,
+.spxHomeShelf small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spxHomeShelf strong { margin-top: 5px; font-size: 13px; }
+.spxHomeShelf small { color: var(--spx-subtext); font-size: 10px; }
+.spxSearchPage { width: min(820px, calc(100vw - var(--spx-sidebar) - 56px)); }
+.spxSearchPage > header label { display: grid; max-width: 620px; grid-template-columns: 24px minmax(0, 1fr) 34px; align-items: center; gap: 8px; margin-top: 22px; border-radius: 999px; background: #242424; padding: 0 10px 0 16px; }
+.spxSearchPage > header input { min-width: 0; height: 48px; border: 0; outline: 0; background: transparent; color: #fff; font: inherit; font-size: 14px; }
+.spxSearchPage > header label > button { display: grid; width: 32px; height: 32px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #b3b3b3; }
+.spxSearchBrowse,
+.spxSearchResults { margin-top: 34px; }
+.spxSearchBrowse h2,
+.spxSearchResults h2 { margin: 0 0 14px; font-size: 20px; }
+.spxSearchBrowse > a,
+.spxSearchResults > a { display: grid; grid-template-columns: 52px minmax(0, 1fr) 20px; align-items: center; gap: 12px; border-radius: 5px; padding: 8px; color: #fff; }
+.spxSearchBrowse > a:hover,
+.spxSearchResults > a:hover { background: #242424; }
+.spxSearchBrowse > a > img,
+.spxSearchResults > a > img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+.spxSearchBrowse > a > span,
+.spxSearchResults > a > span { display: grid; min-width: 0; gap: 4px; }
+.spxSearchBrowse strong,
+.spxSearchResults strong { display: flex; min-width: 0; align-items: center; gap: 6px; font-size: 14px; }
+.spxSearchBrowse small,
+.spxSearchResults small { overflow: hidden; color: var(--spx-subtext); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.spxSearchBrowse > p { max-width: 560px; margin: 22px 0 0; color: var(--spx-subtext); font-size: 12px; line-height: 1.55; }
+.spxSearchResults > div:first-child { display: flex; align-items: baseline; justify-content: space-between; }
+.spxSearchResults > div:first-child > span { color: var(--spx-subtext); font-size: 11px; }
+.spxSearchEmpty { display: grid; place-items: center; gap: 8px; padding: 70px 20px; color: var(--spx-subtext); text-align: center; }
+.spxSearchEmpty strong { color: #fff; }
+.spxSearchEmpty span { font-size: 12px; }
 
 .nativePrivacyPage,
 .nativeNotificationsPage,
@@ -1081,6 +1178,9 @@ a.spxFeedEvent {
 .nativeNotificationsPage .notificationCard { min-width: 0; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); border-radius: 0; background: transparent; box-shadow: none; padding: 14px 6px; }
 .nativeNotificationsPage .notificationCard:hover { background: rgba(255, 255, 255, .05); }
 .nativeNotificationsPage .notificationCard.unread { background: rgba(30, 215, 96, .06); }
+.notificationAvatar { display: block; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: #282828; }
+.notificationAvatar img,
+.notificationAvatar > span { width: 100%; height: 100%; object-fit: cover; }
 
 .artistOnboardingPage .onboardingHeader { max-width: 760px; }
 .artistOnboardingPage .onboardingHeader h1 { margin: 8px 0 0; font-size: 40px; line-height: 1.08; }
@@ -1227,27 +1327,53 @@ a.spxFeedEvent {
       "art now"
       "note note"
       "embed embed"
+      "progress progress"
       "actions actions";
     gap: 9px 11px;
     max-height: calc(100svh - 92px);
     padding: 9px;
-    overflow-y: auto;
+    overflow: visible;
   }
   .tasteQueueArtworkWrap,
   .tasteQueueArtwork { width: 62px; height: 62px; }
   .tasteQueueSource { margin-top: 2px; }
+  .tasteQueueNowPlaying > .tasteQueueInlineNote { display: none; }
   .tasteQueueEmbed,
   .tasteQueuePremiumPlayer,
   .tasteQueueEmbed iframe,
   .tasteQueueEmbedController { min-height: 80px; height: 80px; }
   .tasteQueueActions { justify-content: space-between; border-top: 1px solid var(--spx-line); padding-top: 7px; }
+  .tasteQueueActions button { width: 32px; height: 32px; }
+  .tasteQueueProgress { grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 6px; }
+  .tasteQueueListPanel { right: 0; left: 0; width: auto; max-height: min(390px, 44vh); }
+  .tasteQueueListPanel ol { max-height: min(330px, 37vh); }
+  .tasteQueuePanelControls { display: flex; }
   .tasteQueueMobileNote { display: grid; grid-area: note; grid-template-columns: 18px minmax(0, 1fr); align-items: start; gap: 7px; border-left: 2px solid var(--spx-green); background: rgba(30, 215, 96, .06); padding: 8px; color: #d4d4d4; font-size: 10px; line-height: 1.4; }
   .tasteQueueMobileNote > span { display: grid; gap: 2px; }
   .tasteQueueMobileNote small { color: var(--spx-green); font-size: 8px; font-weight: 800; text-transform: uppercase; }
+  .tasteQueueDock.premium {
+    grid-template-areas:
+      "art now"
+      "note note"
+      "progress progress"
+      "actions actions";
+  }
+  .tasteQueueDock.premium .tasteQueuePremiumPlayer { display: none; }
+  .tasteQueueDock.premium .tasteQueueActions { justify-content: center; gap: 10px; }
+  .tasteQueueDock.premium .tasteActionShuffle,
+  .tasteQueueDock.premium .tasteActionRepeat,
+  .tasteQueueDock.premium .tasteActionSound { display: none; }
 
   .nativePrivacyPage,
   .nativeNotificationsPage,
   .artistOnboardingPage { width: 100%; padding: max(34px, env(safe-area-inset-top)) 16px calc(104px + env(safe-area-inset-bottom)); }
+  .spxHomePage,
+  .spxSearchPage { width: 100%; padding: max(38px, env(safe-area-inset-top)) 18px calc(104px + env(safe-area-inset-bottom)); }
+  .spxHomePage > header h1,
+  .spxSearchPage > header h1 { font-size: 30px; }
+  .spxHomeShortcuts { grid-template-columns: 1fr; }
+  .spxHomeShelf { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; }
+  .spxHomeShelf > a { width: 148px; flex: 0 0 148px; }
   .nativePrivacyPage .pageTitle,
   .nativeNotificationsPage .pageTitle,
   .artistOnboardingPage .onboardingHeader h1 { font-size: 34px; }
@@ -1314,7 +1440,8 @@ a.spxFeedEvent {
   .spxRowComment { right: 40px; }
   .spxRowMore { right: 3px; }
   .spxDiscoveryShelf { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; }
-  .spxDiscoveryShelf a { width: 132px; flex: 0 0 132px; scroll-snap-align: start; }
+  .spxDiscoveryShelf a,
+  .spxDiscoveryShelf button { width: 132px; flex: 0 0 132px; scroll-snap-align: start; }
   .spxMixGrid { grid-template-columns: 1fr; }
   .spxMix { grid-template-columns: 74px minmax(0, 1fr) 30px; }
   .spxMixCover { width: 74px; height: 74px; }

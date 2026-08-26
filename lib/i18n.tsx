@@ -256,7 +256,7 @@ export function LocaleProvider({ initialLocale, children }: { initialLocale: Loc
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   useEffect(() => {
-    const saved = localStorage.getItem("spotify_taste.locale");
+    const saved = localStorage.getItem("spotify_taste.locale.v2");
     if (saved === "en" || saved === "ru") setLocaleState(saved);
   }, []);
 
@@ -267,8 +267,8 @@ export function LocaleProvider({ initialLocale, children }: { initialLocale: Loc
   const value = useMemo<I18nContextValue>(() => ({
     locale,
     setLocale(next) {
-      localStorage.setItem("spotify_taste.locale", next);
-      document.cookie = `spotify_taste_locale=${next}; path=/; max-age=31536000; samesite=lax`;
+      localStorage.setItem("spotify_taste.locale.v2", next);
+      document.cookie = `spotify_taste_locale_v2=${next}; path=/; max-age=31536000; samesite=lax`;
       setLocaleState(next);
     },
     t(key, vars) {

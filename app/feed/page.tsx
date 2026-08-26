@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AvatarImage } from "@/components/AvatarImage";
 import { Icon } from "@/components/Icons";
 import { TasteFeedCard } from "@/components/TasteFeedCard";
-import { TasteQueuePlayer } from "@/components/TasteQueuePlayer";
+import { TasteQueuePlayer, useTastePlayback } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { feedEvents, travis } from "@/lib/mock-data";
 import { useI18n } from "@/lib/i18n";
@@ -22,16 +22,6 @@ type LiveFeedEvent = {
   repeatCount: number;
   previousPlayedAt: string | null;
   commentCount: number;
-};
-
-type ProfileSearchResult = {
-  handle: string;
-  name: string;
-  avatarUrl: string | null;
-  role: string;
-  verified: boolean;
-  following: boolean;
-  followers: number;
 };
 
 function relativeTime(value: string, ru: boolean) {
@@ -56,7 +46,8 @@ function returnSignal(previous: string | null, latest: string, ru: boolean) {
   return ru ? `Вернулся спустя ${days} дн.` : `Back after ${days} days`;
 }
 
-function LiveFeedCard({ event, ru }: { event: LiveFeedEvent; ru: boolean }) {
+function LiveFeedCard({ event, ru, queue, queueIndex }: { event: LiveFeedEvent; ru: boolean; queue: TasteQueueItem[]; queueIndex: number }) {
+  const { playQueue, activeItemId } = useTastePlayback();
   const signal = event.authorNote
     ? (ru ? "Рекомендует с комментарием" : "Recommended with a note")
     : returnSignal(event.previousPlayedAt, event.playedAt, ru)
@@ -65,20 +56,21 @@ function LiveFeedCard({ event, ru }: { event: LiveFeedEvent; ru: boolean }) {
       ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
       : (ru ? "Опубликовано в Taste" : "Shared to Taste");
 
+  const playTrack = () => playQueue(queue, queueIndex);
   return (
-    <Link className="spxFeedEvent" href={`/taste/${event.profile.handle}?event=${event.id}`}>
-      <span className="spxFeedAvatar"><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></span>
+    <article className={`spxFeedEvent ${activeItemId === `feed_queue_${event.id}` ? "playing" : ""}`}>
+      <div className="spxFeedEventMain">
+      <Link className="spxFeedAvatar" href={`/taste/${event.profile.handle}?event=${event.id}`}><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></Link>
       <span className="spxFeedEventCopy">
-        <span className="spxFeedPerson"><strong>{event.profile.name}</strong>{event.profile.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</span>
+        <Link className="spxFeedPerson" href={`/taste/${event.profile.handle}?event=${event.id}`}><strong>{event.profile.name}</strong>{event.profile.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</Link>
         <span className="spxFeedTime">{relativeTime(event.playedAt, ru)}</span>
-        <strong className="spxFeedTrackTitle">{event.track.title}</strong>
-        <span className="spxFeedArtist">{event.track.artist}</span>
-        {event.authorNote ? <em className="spxFeedNote">“{event.authorNote}”</em> : null}
+        <button className="spxFeedTrackAction" type="button" onClick={playTrack}><strong className="spxFeedTrackTitle">{event.track.title}</strong><span className="spxFeedArtist">{event.track.artist}</span>{event.authorNote ? <em className="spxFeedNote">“{event.authorNote}”</em> : null}</button>
       </span>
-      <TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="spxFeedCover" />
-      <span className="spxFeedSignal"><Icon name={event.authorNote ? "comment" : "feed"} size={17} />{signal}</span>
-      <span className="spxFeedMore"><Icon name="more" size={20} /></span>
-    </Link>
+      <button className="spxFeedCoverButton" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="spxFeedCover" /></button>
+      <button className="spxFeedSignal" type="button" onClick={playTrack}><Icon name={event.authorNote ? "comment" : "feed"} size={17} />{signal}</button>
+      </div>
+      <button className="spxFeedMore" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><Icon name="play" size={17} /></button>
+    </article>
   );
 }
 
@@ -90,8 +82,6 @@ export default function FeedPage() {
   const [connected, setConnected] = useState(false);
   const [loadingLive, setLoadingLive] = useState(true);
   const [query, setQuery] = useState("");
-  const [peopleResults, setPeopleResults] = useState<ProfileSearchResult[]>([]);
-  const [searchingPeople, setSearchingPeople] = useState(false);
 
   useEffect(() => {
     fetch("/api/feed", { cache: "no-store" }).then(async response => {
@@ -101,32 +91,6 @@ export default function FeedPage() {
       setConnected(true);
     }).finally(() => setLoadingLive(false));
   }, []);
-
-  useEffect(() => {
-    if (window.location.hash !== "#people-search") return;
-    const input = document.getElementById("people-search-input") as HTMLInputElement | null;
-    input?.scrollIntoView({ block: "center" });
-    window.setTimeout(() => input?.focus(), 120);
-  }, []);
-
-  useEffect(() => {
-    const value = query.trim();
-    if (value.length < 2) {
-      setPeopleResults([]);
-      setSearchingPeople(false);
-      return;
-    }
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      setSearchingPeople(true);
-      fetch(`/api/profiles/search?q=${encodeURIComponent(value)}`, { cache: "no-store", signal: controller.signal })
-        .then(async response => response.ok ? response.json() as Promise<{ profiles: ProfileSearchResult[] }> : { profiles: [] })
-        .then(payload => setPeopleResults(payload.profiles))
-        .catch(() => undefined)
-        .finally(() => setSearchingPeople(false));
-    }, 180);
-    return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [query]);
 
   const normalizedQuery = query.trim().toLocaleLowerCase(locale);
   const matchesPerson = (name: string, handle = "") => !normalizedQuery || `${name} ${handle}`.toLocaleLowerCase(locale).includes(normalizedQuery);
@@ -138,8 +102,6 @@ export default function FeedPage() {
       : feedEvents;
   const visibleDemoEvents = (!connected || liveEvents.length === 0 ? demoEventsForSegment : []).filter(event => matchesPerson(event.tastemaker.name, event.tastemaker.slug));
   const hasVisibleContent = visibleLiveEvents.length > 0 || visibleDemoEvents.length > 0;
-  const demoPersonMatches = normalizedQuery.length >= 2 && `${travis.name} ${travis.slug}`.toLocaleLowerCase(locale).includes(normalizedQuery);
-  const hasPeopleResults = demoPersonMatches || peopleResults.length > 0;
   const segmentLabels = ru
     ? { Following: "Подписки", Artists: "Артисты", Creators: "Авторы" }
     : { Following: "Following", Artists: "Artists", Creators: "Creators" };
@@ -194,29 +156,20 @@ export default function FeedPage() {
         <p>{ru ? "Недавние прослушивания людей, на чей музыкальный вкус вы подписаны" : "Live and recent listening from people you follow"}</p>
       </header>
 
-      <div className="spxFeedTools" id="people-search">
+      <div className="spxFeedTools">
         <label className="spxPeopleSearch">
           <Icon name="search" size={18} />
-          <input id="people-search-input" value={query} onChange={event => setQuery(event.target.value)} placeholder={ru ? "Найти человека или артиста" : "Find a person or artist"} aria-label={ru ? "Поиск по людям" : "Search people"} />
+          <input value={query} onChange={event => setQuery(event.target.value)} placeholder={ru ? "Фильтр этой ленты" : "Filter this feed"} aria-label={ru ? "Фильтр ленты" : "Filter feed"} />
           {query ? <button type="button" onClick={() => setQuery("")} aria-label={ru ? "Очистить поиск" : "Clear search"}><Icon name="close" size={17} /></button> : null}
         </label>
         <TasteQueuePlayer items={queueItems} triggerLabel={ru ? "Слушать ленту" : "Play feed"} triggerAriaLabel={ru ? "Слушать все рекомендации в ленте" : "Play all recommendations in the feed"} triggerClassName="spxFeedPlay" iconOnly />
       </div>
 
-      {query.trim().length >= 2 ? (
-        <section className="spxPeopleResults" aria-label={ru ? "Найденные профили Taste" : "Taste profile results"}>
-          <div className="spxPeopleResultsHeader"><strong>{ru ? "Люди" : "People"}</strong>{searchingPeople ? <span>{ru ? "Ищем..." : "Searching..."}</span> : null}</div>
-          {demoPersonMatches ? <Link href="/tastemaker/travis-scott" className="spxPersonResult"><span className="spxPersonAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt={travis.name} /></span><span><strong>{travis.name}<i className="spxVerified"><Icon name="check" size={10} /></i></strong><small>{ru ? "Артист · демо Taste" : "Artist · Taste demo"}</small></span><Icon name="chevronRight" size={18} /></Link> : null}
-          {peopleResults.map(profile => <Link href={`/taste/${profile.handle}`} className="spxPersonResult" key={profile.handle}><span className="spxPersonAvatar"><AvatarImage src={profile.avatarUrl || ""} alt={profile.name} /></span><span><strong>{profile.name}{profile.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</strong><small>@{profile.handle} · {profile.role}</small></span><Icon name="chevronRight" size={18} /></Link>)}
-          {!searchingPeople && !hasPeopleResults ? <p>{ru ? "Публичных профилей с таким именем пока нет." : "No public Taste profiles match this search yet."}</p> : null}
-        </section>
-      ) : null}
-
       <section className="spxFeedList" aria-label={ru ? "События Taste" : "Taste events"}>
-        {visibleLiveEvents.map(event => <LiveFeedCard event={event} ru={ru} key={event.id} />)}
-        {visibleDemoEvents.map(event => <TasteFeedCard event={event} key={event.id} />)}
+        {visibleLiveEvents.map((event, index) => <LiveFeedCard event={event} ru={ru} queue={queueItems} queueIndex={index} key={event.id} />)}
+        {visibleDemoEvents.map((event, index) => <TasteFeedCard event={event} queue={queueItems} queueIndex={visibleLiveEvents.length + index} key={event.id} />)}
 
-        {!loadingLive && query && !hasVisibleContent && !hasPeopleResults ? <div className="spxFeedEmpty"><Icon name="search" size={25} /><strong>{ru ? "Ничего не найдено" : "No matches"}</strong><span>{ru ? "Попробуйте другое имя или раздел." : "Try another name or section."}</span></div> : null}
+        {!loadingLive && query && !hasVisibleContent ? <div className="spxFeedEmpty"><Icon name="search" size={25} /><strong>{ru ? "В ленте ничего не найдено" : "No feed matches"}</strong><span>{ru ? "Попробуйте другое имя или раздел." : "Try another name or section."}</span></div> : null}
 
         {activeSegment === "Following" && hasVisibleContent && !query ? (
           <Link className="spxWeeklySummary" href="/tastemaker/travis-scott">

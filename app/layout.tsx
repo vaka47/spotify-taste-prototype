@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const cookieLocale = (await cookies()).get("spotify_taste_locale")?.value;
+  const cookieLocale = (await cookies()).get("spotify_taste_locale_v2")?.value;
   const initialLocale: Locale = cookieLocale === "ru" ? "ru" : "en";
   return (
     <html lang={initialLocale}>

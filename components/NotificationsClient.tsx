@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { DemoBadge } from "@/components/DemoBadge";
 import { Icon } from "@/components/Icons";
+import { AvatarImage } from "@/components/AvatarImage";
 import { useI18n } from "@/lib/i18n";
 import { markNotificationsRead, readNotifications, type TasteNotification } from "@/lib/social-taste";
 
@@ -16,7 +17,9 @@ type ServerNotification = {
   created_at: string;
   actor_handle: string | null;
   actor_name: string | null;
+  actor_avatar: string | null;
   event_owner_handle: string | null;
+  event_title: string | null;
 };
 
 function timeLabel(value: string, locale: "en" | "ru") {
@@ -26,6 +29,24 @@ function timeLabel(value: string, locale: "en" | "ru") {
   if (minutes < 1440) return locale === "ru" ? `${Math.round(minutes / 60)} ч назад` : `${Math.round(minutes / 60)}h ago`;
   return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-US", { day: "numeric", month: "short" }).format(new Date(value));
 }
+
+function notificationBody(notification: ServerNotification, locale: "en" | "ru") {
+  const title = notification.event_title || (locale === "ru" ? "трек" : "a track");
+  if (notification.kind === "meaningful_signal") return locale === "ru" ? `Новое прослушивание в Taste: ${title}` : `Shared a new Taste listen: ${title}`;
+  if (notification.kind === "author_note") return locale === "ru" ? `Добавлен комментарий к треку ${title}` : `Added a note to ${title}`;
+  if (notification.kind === "new_follower") return locale === "ru" ? "Новая подписка на ваш Taste" : "Followed your Taste";
+  if (notification.kind === "comment") {
+    const actorPrefix = notification.actor_name ? `${notification.actor_name}: ` : "";
+    const comment = notification.body.startsWith(actorPrefix) ? notification.body.slice(actorPrefix.length) : notification.body;
+    return locale === "ru" ? `Новый комментарий: ${comment}` : `New comment: ${comment}`;
+  }
+  return notification.body;
+}
+
+const demoNotificationAvatars: Record<string, string> = {
+  seed_note_1: "/avatars/vaka47.jpg",
+  seed_note_2: "/avatars/maya-chen.png",
+};
 
 export function NotificationsClient() {
   const { locale, t } = useI18n();
@@ -76,17 +97,20 @@ export function NotificationsClient() {
       <section className="notificationList section">
         {loading ? Array.from({ length: 4 }).map((_, index) => <div className="notificationCard" key={index}><span className="notificationIcon skeleton" /><span className="rowGrow"><span className="skeleton" style={{ height: 16, width: "42%" }} /><span className="skeleton" style={{ height: 13, width: "76%", marginTop: 8 }} /></span></div>) : null}
         {!loading && connected ? (serverNotifications || []).map(notification => {
-          const href = notification.event_owner_handle ? `/taste/${notification.event_owner_handle}` : notification.actor_handle ? `/taste/${notification.actor_handle}` : "/my-taste";
+          const profileHref = notification.event_owner_handle ? `/taste/${notification.event_owner_handle}` : notification.actor_handle ? `/taste/${notification.actor_handle}` : "/my-taste";
+          const href = notification.event_id && profileHref.startsWith("/taste/") ? `${profileHref}?event=${encodeURIComponent(notification.event_id)}` : profileHref;
           return (
             <Link className={`notificationCard ${notification.read_at ? "" : "unread"}`} href={href} key={notification.id}>
-              <span className="notificationIcon"><Icon name={notification.read_at ? "check" : "feed"} /></span>
-              <span><strong>{notification.actor_name || "Taste"}</strong><span>{notification.body}</span><em>{timeLabel(notification.created_at, locale)}</em></span>
+              <span className="notificationAvatar"><AvatarImage src={notification.actor_avatar || ""} alt={notification.actor_name || "Taste"} /></span>
+              <span><strong>{notification.actor_name || "Taste"}</strong><span>{notificationBody(notification, locale)}</span><em>{timeLabel(notification.created_at, locale)}</em></span>
             </Link>
           );
         }) : null}
         {!loading && !connected ? localNotifications.map(notification => (
           <Link className={`notificationCard ${notification.read ? "" : "unread"}`} href={notification.href} key={notification.id}>
-            <span className="notificationIcon"><Icon name={notification.read ? "check" : "feed"} /></span>
+            {demoNotificationAvatars[notification.id]
+              ? <span className="notificationAvatar"><AvatarImage src={demoNotificationAvatars[notification.id]} alt="" /></span>
+              : <span className="notificationIcon"><Icon name={notification.read ? "check" : "feed"} /></span>}
             <span>
               <strong>{locale === "ru" ? ({ seed_note_1: "Иван добавил комментарий", seed_note_2: "Майя слушает на повторе", seed_note_3: "Новое квалифицированное открытие" } as Record<string, string>)[notification.id] || notification.title : notification.title}</strong>
               <span>{locale === "ru" ? ({ seed_note_1: "Короткий комментарий автора и мгновенный переход к треку.", seed_note_2: "NISSAN ALTIMA быстро набирает повторные прослушивания среди её Taste-подписчиков.", seed_note_3: "Ваш граф подписок создал 7 новых сохранений из Taste в этом браузере." } as Record<string, string>)[notification.id] || notification.body : notification.body}</span>

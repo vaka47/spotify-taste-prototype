@@ -11,7 +11,7 @@ export async function GET() {
   const notifications = await db()`
     select n.id, n.kind, n.body, n.event_id, n.read_at, n.created_at,
       u.handle as actor_handle, u.display_name as actor_name, u.avatar_url as actor_avatar,
-      owner.handle as event_owner_handle
+      owner.handle as event_owner_handle, e.title as event_title
     from taste_notifications n
     left join taste_users u on u.id = n.actor_id
     left join taste_events e on e.id = n.event_id

@@ -8,10 +8,11 @@ export async function PATCH(request: NextRequest) {
   const viewer = await getSessionUser();
   if (!viewer) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const payload = await request.json().catch(() => ({})) as { handle?: string; bio?: string; role?: string };
-  const handle = payload.handle?.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 32);
+  const handle = payload.handle?.normalize("NFKC").trim().toLocaleLowerCase("en-US").replace(/\s+/g, "-").replace(/[^\p{L}\p{N}_-]+/gu, "").replace(/-+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
   if (payload.handle !== undefined && (!handle || handle.length < 3)) return NextResponse.json({ error: "invalid_handle" }, { status: 400 });
   await ensureSchema();
   try {
+    if (handle && handle !== viewer.handle) await db()`insert into taste_handle_aliases (alias, user_id) values (${viewer.handle}, ${viewer.id}) on conflict (alias) do nothing`;
     const rows = await db()`
       update taste_users set
         handle = coalesce(${handle || null}, handle),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Icon } from "@/components/Icons";
 import { AvatarImage } from "@/components/AvatarImage";
 import { TrackArtwork } from "@/components/TrackArtwork";
@@ -8,9 +8,11 @@ import { kindLabels } from "@/lib/format";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import type { TasteFeedEvent } from "@/types/taste";
 import { useI18n } from "@/lib/i18n";
+import { useTastePlayback } from "@/components/TasteQueuePlayer";
+import type { TasteQueueItem } from "@/types/taste";
 
-export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
-  const router = useRouter();
+export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEvent; queue: TasteQueueItem[]; queueIndex: number }) {
+  const { playQueue, activeItemId } = useTastePlayback();
   const { locale } = useI18n();
   const ru = locale === "ru";
   const localizedNote = ru && event.authorNote === "Listen for the switch in the second half."
@@ -36,28 +38,27 @@ export function TasteFeedCard({ event }: { event: TasteFeedEvent }) {
       .replace("ago", "назад")
     : event.timestampLabel;
 
-  function openTrack() {
+  function playTrack() {
     recordTrackOpen(event.tastemaker.id, event.track.id);
-    router.push(`/player/${event.track.slug}`);
+    playQueue(queue, queueIndex);
   }
+  const profileHref = event.tastemaker.slug === "travis-scott" ? "/tastemaker/travis-scott" : event.tastemaker.spotifyUrl || "/feed";
 
   return (
-    <article className="spxFeedEvent">
-      <button className="spxFeedEventMain" type="button" onClick={openTrack}>
-        <span className="spxFeedAvatar">
+    <article className={`spxFeedEvent ${activeItemId === `feed_queue_${event.id}` ? "playing" : ""}`}>
+      <div className="spxFeedEventMain">
+        <Link className="spxFeedAvatar" href={profileHref} target={profileHref.startsWith("http") ? "_blank" : undefined}>
           <AvatarImage src={event.tastemaker.avatarUrl} fallbackSrc={event.tastemaker.fallbackAvatarUrl} alt={event.tastemaker.name} />
-        </span>
+        </Link>
         <span className="spxFeedEventCopy">
-          <span className="spxFeedPerson"><strong>{event.tastemaker.name}</strong>{event.tastemaker.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</span>
+          <Link className="spxFeedPerson" href={profileHref} target={profileHref.startsWith("http") ? "_blank" : undefined}><strong>{event.tastemaker.name}</strong>{event.tastemaker.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</Link>
           <span className="spxFeedTime">{timestamp} · <em>{labels[event.kind]}</em></span>
-          <strong className="spxFeedTrackTitle">{event.track.title}</strong>
-          <span className="spxFeedArtist">{event.track.artist}</span>
-          {localizedNote ? <em className="spxFeedNote">“{localizedNote}”</em> : null}
+          <button className="spxFeedTrackAction" type="button" onClick={playTrack}><strong className="spxFeedTrackTitle">{event.track.title}</strong><span className="spxFeedArtist">{event.track.artist}</span>{localizedNote ? <em className="spxFeedNote">“{localizedNote}”</em> : null}</button>
         </span>
-        <TrackArtwork src={event.track.coverUrl} fallbackSrc={event.track.fallbackCoverUrl} alt={`${event.track.title} cover`} className="spxFeedCover" />
-        <span className="spxFeedSignal"><Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />{signals?.[event.kind] || event.humanSignal}</span>
-      </button>
-      <button className="spxFeedMore" type="button" aria-label={ru ? `Открыть ${event.track.title}` : `Open ${event.track.title}`} onClick={openTrack}><Icon name="more" /></button>
+        <button className="spxFeedCoverButton" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><TrackArtwork src={event.track.coverUrl} fallbackSrc={event.track.fallbackCoverUrl} alt={`${event.track.title} cover`} className="spxFeedCover" /></button>
+        <button className="spxFeedSignal" type="button" onClick={playTrack}><Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />{signals?.[event.kind] || event.humanSignal}</button>
+      </div>
+      <button className="spxFeedMore" type="button" aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`} onClick={playTrack}><Icon name="play" size={17} /></button>
     </article>
   );
 }
