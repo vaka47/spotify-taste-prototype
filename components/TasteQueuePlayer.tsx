@@ -205,6 +205,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   const advanceLockRef = useRef(false);
   const advanceRef = useRef<(automatic?: boolean) => void>(() => undefined);
   const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const playbackProgressRef = useRef({ uri: "", position: 0, duration: 0 });
   const current = items[currentIndex];
 
   useEffect(() => { itemsRef.current = items; }, [items]);
@@ -228,10 +229,29 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   }
 
   function scheduleAutomaticAdvance(playingUri: string, position: number, duration: number, isPaused: boolean) {
-    clearEndTimer();
     const active = itemsRef.current[indexRef.current];
-    if (!active || playingUri !== active.track.spotifyUri || isPaused || duration <= 0) return;
+    if (!active || playingUri !== active.track.spotifyUri || duration <= 0) {
+      clearEndTimer();
+      return;
+    }
+
+    const previous = playbackProgressRef.current;
     const remaining = Math.max(0, duration - position);
+    const reachedEnd = remaining <= 1_500
+      || (previous.uri === playingUri && previous.duration > 0 && previous.duration - previous.position <= 1_800)
+      || (position < 250 && previous.uri === playingUri && previous.position > 5_000);
+
+    if (isPaused) {
+      clearEndTimer();
+      if (reachedEnd && !advanceLockRef.current) {
+        advanceLockRef.current = true;
+        queueMicrotask(() => advanceRef.current(true));
+      }
+      return;
+    }
+
+    playbackProgressRef.current = { uri: playingUri, position, duration };
+    clearEndTimer();
     endTimerRef.current = setTimeout(() => {
       const latest = itemsRef.current[indexRef.current];
       if (!latest || latest.track.spotifyUri !== playingUri || advanceLockRef.current) return;
@@ -395,6 +415,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     setDurationMs(0);
     advanceLockRef.current = true;
     clearEndTimer();
+    playbackProgressRef.current = { uri: current.track.spotifyUri, position: 0, duration: 0 };
     cuePlayedRef.current = null;
     if (mode === "premium" && deviceId) {
       void playOnSpotifyDevice(deviceId, current.track.spotifyUri);
@@ -428,6 +449,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     setDurationMs(0);
     clearEndTimer();
     advanceLockRef.current = true;
+    playbackProgressRef.current = { uri: nextItems[safeIndex].track.spotifyUri, position: 0, duration: 0 };
     itemsRef.current = nextItems;
     indexRef.current = safeIndex;
     openRef.current = true;
@@ -482,7 +504,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     <TastePlaybackContext.Provider value={contextValue}>
       {children}
       {open && current ? (
-        <aside className={`tasteQueueDock ${mode}`} aria-label={ru ? "Очередь Taste" : "Taste queue"}>
+        <aside className={`tasteQueueDock ${mode}${current.authorNote ? " hasNote" : ""}`} aria-label={ru ? "Очередь Taste" : "Taste queue"}>
           {queueVisible ? <div className="tasteQueueListPanel">
             <div className="tasteQueueListHeader">
               <span className="tasteQueueListTitle"><strong>{ru ? "Очередь Taste" : "Taste queue"}</strong><small>{items.length}</small></span>
@@ -516,7 +538,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           {mode === "embed" ? <div className={`tasteQueueEmbed ${controllerReady ? "ready" : ""}`}>
             <a className="tasteQueueEmbedFallback" href={current.track.spotifyUrl} target="_blank" rel="noreferrer"><span><Icon name="play" size={18} /></span><span><strong>{current.track.title}</strong><small>{ru ? "Открыть в Spotify" : "Open in Spotify"}</small></span></a>
             <div className="tasteQueueEmbedController" ref={embedTargetRef} />
-          </div> : <div className="tasteQueuePremiumPlayer"><span className="spxSpotifyMark" aria-hidden="true"><i /><i /><i /></span><span><strong>{ru ? "Полный трек" : "Full track"}</strong><small>Spotify Premium</small></span></div>}
+          </div> : current.authorNote ? <div className="tasteQueuePremiumNote" role="note"><Icon name="comment" size={16} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small><strong>“{current.authorNote}”</strong></span></div> : null}
 
           <div className="tasteQueueActions">
             <button className={`tasteActionShuffle ${shuffle ? "active" : ""}`} type="button" onClick={() => setShuffle(value => !value)} aria-label={ru ? "В случайном порядке" : "Shuffle"}><Icon name="shuffle" size={18} /></button>

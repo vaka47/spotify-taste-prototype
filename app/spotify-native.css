@@ -1059,11 +1059,24 @@ a.spxFeedEvent {
 .tasteQueueEmbedFallback small { color: #b3b3b3; font-size: 9px; }
 .tasteQueueEmbed iframe,
 .tasteQueueEmbedController { position: relative; z-index: 1; display: block; width: 100%; height: 80px; border: 0; border-radius: 6px; overflow: hidden; }
-.tasteQueuePremiumPlayer { display: flex; grid-area: embed; min-width: 0; min-height: 80px; align-items: center; gap: 11px; border-radius: 6px; background: #282828; padding: 12px 14px; }
-.tasteQueuePremiumPlayer .spxSpotifyMark { width: 38px; height: 38px; flex: 0 0 38px; }
-.tasteQueuePremiumPlayer > span:last-child { display: grid; min-width: 0; gap: 2px; }
-.tasteQueuePremiumPlayer strong { color: #fff; font-size: 12px; }
-.tasteQueuePremiumPlayer small { color: var(--spx-subtext); font-size: 9px; }
+.tasteQueueDock.premium {
+  grid-template-columns: 72px minmax(180px, 1fr) minmax(380px, 1.5fr);
+  grid-template-areas:
+    "art now actions"
+    "art now progress";
+}
+.tasteQueueDock.premium.hasNote {
+  grid-template-columns: 72px minmax(180px, .8fr) minmax(240px, .95fr) minmax(380px, 1.25fr);
+  grid-template-areas:
+    "art now note actions"
+    "art now progress progress";
+}
+.tasteQueueDock.premium .tasteQueueInlineNote { display: none; }
+.tasteQueuePremiumNote { display: grid; grid-area: note; min-width: 0; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 9px; border-left: 2px solid var(--spx-green); background: rgba(30, 215, 96, .06); padding: 9px 11px; color: #fff; }
+.tasteQueuePremiumNote > svg { color: var(--spx-green); }
+.tasteQueuePremiumNote > span { display: grid; min-width: 0; gap: 2px; }
+.tasteQueuePremiumNote small { color: var(--spx-green); font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.tasteQueuePremiumNote strong { display: -webkit-box; overflow: hidden; font-size: 10px; font-weight: 600; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .tasteQueueActions { display: flex; grid-area: actions; align-items: center; gap: 3px; border: 0; padding: 0; }
 .tasteQueueActions button { display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #c4c4c4; }
 .tasteQueueActions button:hover,
@@ -1192,6 +1205,16 @@ a.spxFeedEvent {
 .artistOnboardingPage .onboardingStage { gap: 20px; padding: 26px; }
 .artistOnboardingPage .onboardingStage h2 { margin: 0; font-size: 22px; }
 .artistOnboardingPage .onboardingStage p { margin: 8px 0 0; color: var(--spx-subtext); font-size: 12px; line-height: 1.5; }
+
+@media (max-width: 1200px) {
+  .tasteQueueDock.premium,
+  .tasteQueueDock.premium.hasNote {
+    grid-template-columns: 72px minmax(170px, 1fr) minmax(340px, 1.35fr);
+    grid-template-areas:
+      "art now actions"
+      "art note progress";
+  }
+}
 
 @media (max-width: 1024px) {
   :root { --spx-sidebar: 84px; }
@@ -1339,7 +1362,6 @@ a.spxFeedEvent {
   .tasteQueueSource { margin-top: 2px; }
   .tasteQueueNowPlaying > .tasteQueueInlineNote { display: none; }
   .tasteQueueEmbed,
-  .tasteQueuePremiumPlayer,
   .tasteQueueEmbed iframe,
   .tasteQueueEmbedController { min-height: 80px; height: 80px; }
   .tasteQueueActions { justify-content: space-between; border-top: 1px solid var(--spx-line); padding-top: 7px; }
@@ -1358,11 +1380,16 @@ a.spxFeedEvent {
       "progress progress"
       "actions actions";
   }
-  .tasteQueueDock.premium .tasteQueuePremiumPlayer { display: none; }
-  .tasteQueueDock.premium .tasteQueueActions { justify-content: center; gap: 10px; }
-  .tasteQueueDock.premium .tasteActionShuffle,
-  .tasteQueueDock.premium .tasteActionRepeat,
-  .tasteQueueDock.premium .tasteActionSound { display: none; }
+  .tasteQueueDock.premium.hasNote {
+    grid-template-columns: 62px minmax(0, 1fr);
+    grid-template-areas:
+      "art now"
+      "note note"
+      "progress progress"
+      "actions actions";
+  }
+  .tasteQueueDock.premium .tasteQueuePremiumNote { display: none; }
+  .tasteQueueDock.premium .tasteQueueActions { justify-content: space-between; gap: 0; }
 
   .nativePrivacyPage,
   .nativeNotificationsPage,
