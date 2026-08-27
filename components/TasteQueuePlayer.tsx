@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type CSSProperties } from "react";
 import { AvatarImage } from "@/components/AvatarImage";
 import { Icon } from "@/components/Icons";
 import { TrackArtwork } from "@/components/TrackArtwork";
@@ -206,6 +206,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   const advanceRef = useRef<(automatic?: boolean) => void>(() => undefined);
   const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const playbackProgressRef = useRef({ uri: "", position: 0, duration: 0 });
+  const playbackClockRef = useRef({ position: 0, updatedAt: Date.now() });
   const current = items[currentIndex];
 
   useEffect(() => { itemsRef.current = items; }, [items]);
@@ -214,6 +215,18 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   useEffect(() => { repeatRef.current = repeat; }, [repeat]);
   useEffect(() => { shuffleRef.current = shuffle; }, [shuffle]);
   useEffect(() => { soundRef.current = commentSound; }, [commentSound]);
+
+  useEffect(() => {
+    if (!open || mode !== "premium" || paused || durationMs <= 0) return;
+    const updateVisualPosition = () => {
+      const clock = playbackClockRef.current;
+      const elapsed = Date.now() - clock.updatedAt;
+      setPositionMs(Math.min(clock.position + elapsed, durationMs));
+    };
+    updateVisualPosition();
+    const interval = window.setInterval(updateVisualPosition, 250);
+    return () => window.clearInterval(interval);
+  }, [current?.id, durationMs, mode, open, paused]);
 
   function playCommentCue() {
     const active = itemsRef.current[indexRef.current];
@@ -226,6 +239,15 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     if (!endTimerRef.current) return;
     clearTimeout(endTimerRef.current);
     endTimerRef.current = null;
+  }
+
+  function syncPlaybackState(position: number, duration: number, isPaused: boolean) {
+    const safeDuration = Math.max(0, duration);
+    const safePosition = Math.max(0, Math.min(position, safeDuration || position));
+    playbackClockRef.current = { position: safePosition, updatedAt: Date.now() };
+    setPaused(isPaused);
+    setPositionMs(safePosition);
+    setDurationMs(safeDuration);
   }
 
   function scheduleAutomaticAdvance(playingUri: string, position: number, duration: number, isPaused: boolean) {
@@ -265,7 +287,9 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     if (!active) return;
     advanceLockRef.current = true;
     clearEndTimer();
+    playbackClockRef.current = { position: 0, updatedAt: Date.now() };
     setPositionMs(0);
+    setPaused(false);
     if (mode === "premium" && deviceId) void playOnSpotifyDevice(deviceId, active.track.spotifyUri);
     else {
       controllerRef.current?.loadEntity(active.track.spotifyUri);
@@ -300,9 +324,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
 
   function previousTrack() {
     if (positionMs > 3500) {
-      setPositionMs(0);
-      if (mode === "premium") void premiumPlayerRef.current?.seek(0);
-      else controllerRef.current?.seek?.(0);
+      seek(0);
       return;
     }
     const previous = indexRef.current > 0 ? indexRef.current - 1 : repeatRef.current === "all" ? itemsRef.current.length - 1 : 0;
@@ -351,9 +373,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
         const playingUri = state.track_window?.current_track?.uri || active?.track.spotifyUri || "";
         if (!active || playingUri !== active.track.spotifyUri) return;
         advanceLockRef.current = false;
-        setPaused(state.paused);
-        setPositionMs(state.position);
-        setDurationMs(state.duration);
+        syncPlaybackState(state.position, state.duration, state.paused);
         if (!state.paused && state.position < 1800) playCommentCue();
         scheduleAutomaticAdvance(playingUri, state.position, state.duration, state.paused);
       });
@@ -385,6 +405,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           const active = itemsRef.current[indexRef.current];
           if (!active || event.data.playingURI !== active.track.spotifyUri) return;
           advanceLockRef.current = false;
+          playbackClockRef.current = { position: 0, updatedAt: Date.now() };
           setPaused(false);
           playCommentCue();
         });
@@ -392,9 +413,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           const active = itemsRef.current[indexRef.current];
           if (!active || event.data.playingURI !== active.track.spotifyUri) return;
           advanceLockRef.current = false;
-          setPaused(event.data.isPaused);
-          setPositionMs(event.data.position);
-          setDurationMs(event.data.duration);
+          syncPlaybackState(event.data.position, event.data.duration, event.data.isPaused);
           scheduleAutomaticAdvance(event.data.playingURI, event.data.position, event.data.duration, event.data.isPaused);
         });
       });
@@ -413,6 +432,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     if (!open || !current) return;
     setPositionMs(0);
     setDurationMs(0);
+    playbackClockRef.current = { position: 0, updatedAt: Date.now() };
     advanceLockRef.current = true;
     clearEndTimer();
     playbackProgressRef.current = { uri: current.track.spotifyUri, position: 0, duration: 0 };
@@ -447,6 +467,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     setQueueVisible(false);
     setPositionMs(0);
     setDurationMs(0);
+    playbackClockRef.current = { position: 0, updatedAt: Date.now() };
     clearEndTimer();
     advanceLockRef.current = true;
     playbackProgressRef.current = { uri: nextItems[safeIndex].track.spotifyUri, position: 0, duration: 0 };
@@ -473,10 +494,23 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
 
   function togglePlayback() {
     if (mode === "premium") {
-      if (paused) void premiumPlayerRef.current?.resume();
-      else {
+      const player = premiumPlayerRef.current;
+      if (!player) return;
+      if (paused) {
+        playbackClockRef.current = { position: positionMs, updatedAt: Date.now() };
+        setPaused(false);
+        void player.resume().catch(() => setPaused(true));
+      } else {
+        const clock = playbackClockRef.current;
+        const livePosition = Math.min(clock.position + (Date.now() - clock.updatedAt), durationMs || Number.MAX_SAFE_INTEGER);
+        playbackClockRef.current = { position: livePosition, updatedAt: Date.now() };
+        setPositionMs(livePosition);
+        setPaused(true);
         clearEndTimer();
-        void premiumPlayerRef.current?.pause();
+        void player.pause().catch(() => {
+          playbackClockRef.current = { position: livePosition, updatedAt: Date.now() };
+          setPaused(false);
+        });
       }
       return;
     }
@@ -488,9 +522,11 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   }
 
   function seek(position: number) {
-    setPositionMs(position);
-    if (mode === "premium") void premiumPlayerRef.current?.seek(position);
-    else controllerRef.current?.seek?.(position / 1000);
+    const safePosition = Math.max(0, Math.min(position, durationMs || position));
+    playbackClockRef.current = { position: safePosition, updatedAt: Date.now() };
+    setPositionMs(safePosition);
+    if (mode === "premium") void premiumPlayerRef.current?.seek(safePosition);
+    else controllerRef.current?.seek?.(safePosition / 1000);
   }
 
   function cycleRepeat() {
@@ -499,6 +535,8 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
 
   // Do not memoize playQueue: its Premium capability and device are resolved asynchronously.
   const contextValue = { playQueue, activeItemId: open && current ? current.id : null };
+  const progressPercent = durationMs > 0 ? Math.min(100, Math.max(0, positionMs / durationMs * 100)) : 0;
+  const progressStyle = { "--taste-progress": `${progressPercent}%` } as CSSProperties;
 
   return (
     <TastePlaybackContext.Provider value={contextValue}>
@@ -538,22 +576,24 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           {mode === "embed" ? <div className={`tasteQueueEmbed ${controllerReady ? "ready" : ""}`}>
             <a className="tasteQueueEmbedFallback" href={current.track.spotifyUrl} target="_blank" rel="noreferrer"><span><Icon name="play" size={18} /></span><span><strong>{current.track.title}</strong><small>{ru ? "Открыть в Spotify" : "Open in Spotify"}</small></span></a>
             <div className="tasteQueueEmbedController" ref={embedTargetRef} />
-          </div> : current.authorNote ? <div className="tasteQueuePremiumNote" role="note"><Icon name="comment" size={16} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small><strong>“{current.authorNote}”</strong></span></div> : null}
+          </div> : current.authorNote && !queueVisible ? <div className="tasteQueuePremiumNote" role="note"><Icon name="comment" size={16} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small><strong>“{current.authorNote}”</strong></span></div> : null}
 
-          <div className="tasteQueueActions">
+          <div className="tasteQueueTransport">
             <button className={`tasteActionShuffle ${shuffle ? "active" : ""}`} type="button" onClick={() => setShuffle(value => !value)} aria-label={ru ? "В случайном порядке" : "Shuffle"}><Icon name="shuffle" size={18} /></button>
             <button className="tasteActionPrevious" type="button" onClick={previousTrack} aria-label={ru ? "Предыдущий трек" : "Previous track"}><Icon name="chevronLeft" /></button>
             {mode === "premium" ? <button className="tasteQueuePremiumToggle tasteActionPlay" type="button" onClick={togglePlayback} aria-label={paused ? (ru ? "Продолжить" : "Resume") : (ru ? "Пауза" : "Pause")}><Icon name={paused ? "play" : "pause"} /></button> : null}
             <button className="tasteActionNext" type="button" onClick={() => nextTrack(false)} aria-label={ru ? "Следующий трек" : "Next track"}><Icon name="chevronRight" /></button>
             <button className={`tasteActionRepeat ${repeat !== "off" ? "active" : ""}`} type="button" onClick={cycleRepeat} aria-label={ru ? "Режим повтора" : "Repeat mode"}><span className="tasteRepeatIcon"><Icon name="repeat" size={18} />{repeat === "one" ? <i>1</i> : null}</span></button>
+          </div>
+          <div className="tasteQueueUtilities">
             <button className={`tasteActionQueue ${queueVisible ? "active" : ""}`} type="button" onClick={() => setQueueVisible(value => !value)} aria-label={ru ? "Показать очередь" : "Show queue"}><Icon name="queue" size={18} /></button>
-            <button className={`tasteActionSound ${commentSound ? "active" : ""}`} type="button" onClick={() => setCommentSound(value => !value)} aria-label={commentSound ? (ru ? "Выключить звук комментариев" : "Mute comment cue") : (ru ? "Включить звук комментариев" : "Enable comment cue")}><Icon name={commentSound ? "volume" : "volumeOff"} size={18} /></button>
+            {items.some(item => item.authorNote) ? <button className={`tasteActionSound ${commentSound ? "active" : ""}`} type="button" onClick={() => setCommentSound(value => !value)} aria-label={commentSound ? (ru ? "Выключить звук комментариев" : "Mute comment cue") : (ru ? "Включить звук комментариев" : "Enable comment cue")}><Icon name={commentSound ? "volume" : "volumeOff"} size={18} /></button> : null}
             <button className="tasteActionClose" type="button" onClick={closeQueue} aria-label={ru ? "Закрыть плеер" : "Close player"}><Icon name="close" size={18} /></button>
           </div>
 
           {mode === "premium" ? <div className="tasteQueueProgress">
             <span>{formatTime(positionMs)}</span>
-            <input type="range" min={0} max={Math.max(durationMs, 1)} value={Math.min(positionMs, Math.max(durationMs, 1))} onChange={event => seek(Number(event.target.value))} aria-label={ru ? "Позиция воспроизведения" : "Playback position"} />
+            <input type="range" min={0} max={Math.max(durationMs, 1)} step={250} value={Math.min(positionMs, Math.max(durationMs, 1))} onChange={event => seek(Number(event.target.value))} style={progressStyle} aria-label={ru ? "Позиция воспроизведения" : "Playback position"} aria-valuetext={`${formatTime(positionMs)} / ${formatTime(durationMs)}`} />
             <span>{formatTime(durationMs)}</span>
           </div> : null}
           {current.authorNote ? <div className="tasteQueueMobileNote"><Icon name="comment" size={15} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small>{current.authorNote}</span></div> : null}

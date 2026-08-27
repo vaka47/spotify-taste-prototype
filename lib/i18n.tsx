@@ -68,7 +68,7 @@ const en: Record<string, string> = {
   "profile.live": "Authorized Follow Taste signal",
   "profile.demo": "Illustrative social demo",
   "profile.follow": "Follow Taste",
-  "profile.following": "Following Taste",
+  "profile.following": "Following",
   "profile.own": "Your Taste",
   "profile.inbox": "Taste inbox",
   "profile.history": "Shared listening signals",

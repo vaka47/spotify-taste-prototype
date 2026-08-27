@@ -56,7 +56,7 @@ export default function PitchPage() {
             <p className="pitchSupport">{ru ? "Spotify уже показывает, что слушали вы и что сейчас слушает друг. Follow Taste превращает осознанные сигналы людей, чьему вкусу доверяют, в канал музыкальных открытий с подпиской и прозрачной атрибуцией." : "Spotify already shows what you heard and what a friend is playing. Follow Taste turns intentional signals from trusted people into a followable discovery channel with clear attribution."}</p>
           </div>
           <div className="pitchHeroVisual" aria-label="Follow Taste product preview">
-            <div className="pitchHeroArtist"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="Travis Scott" /><span><small>{ru ? "Вы подписаны на Taste" : "Following Taste"}</small><strong>Travis Scott</strong></span></div>
+            <div className="pitchHeroArtist"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="Travis Scott" /><span><small>{ru ? "Вы подписаны" : "Following"}</small><strong>Travis Scott</strong></span></div>
             <div className="pitchHeroTrack"><TrackArtwork src={tracks.euphoria.coverUrl} alt="euphoria" /><span><small>{ru ? "РЕКОМЕНДУЕТ · 14 ПРОСЛУШИВАНИЙ" : "RECOMMENDED · 14 PLAYS"}</small><strong>euphoria</strong><em>Kendrick Lamar</em></span><Icon name="play" size={24} /></div>
             <blockquote>{ru ? "«Обратите внимание на переход во второй половине»." : "“Listen for the switch in the second half.”"}</blockquote>
           </div>
