@@ -897,7 +897,8 @@ a.spxFeedEvent {
 .spxOwnerForm > button { justify-self: start; min-height: 40px; border: 0; border-radius: 999px; background: var(--spx-green); padding-inline: 18px; color: #000; font-weight: 800; }
 .spxOwnerSettingsLinks { display: flex; align-items: center; gap: 18px; margin-top: 16px; }
 .spxOwnerSettingsLinks a { display: inline-flex; align-items: center; gap: 7px; color: #fff; font-size: 12px; font-weight: 700; }
-.spxOwnerSettingsLinks button { border: 0; background: transparent; color: #aaa; font-size: 12px; text-decoration: underline; }
+.spxOwnerSettingsLinks button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: #aaa; font-size: 12px; }
+.spxOwnerSettingsLinks button:hover { color: #fff; }
 
 /* Public Taste profile */
 
@@ -1014,10 +1015,9 @@ a.spxFeedEvent {
   left: calc(var(--spx-sidebar) + 12px);
   z-index: 100;
   display: grid;
+  box-sizing: border-box;
   grid-template-columns: 72px minmax(180px, .8fr) minmax(340px, 1.4fr) auto;
-  grid-template-areas:
-    "art now embed utilities"
-    "art now transport utilities";
+  grid-template-areas: "art now embed utilities";
   min-width: 0;
   align-items: center;
   gap: 14px;
@@ -1035,7 +1035,6 @@ a.spxFeedEvent {
 .tasteQueueArtwork { width: 72px; height: 72px; border-radius: 5px; object-fit: cover; }
 .tasteQueueComment { display: none; }
 .tasteQueueNowPlaying { display: grid; grid-area: now; min-width: 0; align-content: center; gap: 2px; }
-.tasteQueueEyebrow { overflow: hidden; color: var(--spx-green); font-size: 8px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .tasteQueueNowPlaying > strong,
 .tasteQueueNowPlaying > .tasteQueueArtist { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tasteQueueNowPlaying > strong { color: #fff; font-size: 13px; }
@@ -1047,18 +1046,11 @@ a.spxFeedEvent {
 .tasteQueueSource small { color: #868686; }
 .tasteQueueSource b { overflow: hidden; color: #d8d8d8; text-overflow: ellipsis; }
 .tasteQueueNowPlaying > p { overflow: hidden; margin: 3px 0 0; color: var(--spx-green); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-.tasteQueueNowPlaying > .tasteQueueInlineNote { display: flex; min-width: 0; align-items: center; gap: 4px; color: #dedede; }
+.tasteQueueNowPlaying > .tasteQueueInlineNote { display: none; }
 .tasteQueueInlineNote svg { flex: 0 0 auto; color: var(--spx-green); }
 .tasteQueueEmbed { position: relative; grid-area: embed; min-width: 0; min-height: 80px; overflow: hidden; border-radius: 6px; background: #282828; }
-.tasteQueueEmbedFallback { position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; gap: 11px; padding: 12px 14px; color: #fff; }
-.tasteQueueEmbedFallback > span:first-child { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 50%; background: #fff; color: #000; }
-.tasteQueueEmbedFallback > span:last-child { display: grid; min-width: 0; gap: 3px; }
-.tasteQueueEmbedFallback strong,
-.tasteQueueEmbedFallback small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tasteQueueEmbedFallback strong { font-size: 12px; }
-.tasteQueueEmbedFallback small { color: #b3b3b3; font-size: 9px; }
 .tasteQueueEmbed iframe,
-.tasteQueueEmbedController { position: relative; z-index: 1; display: block; width: 100%; height: 80px; border: 0; border-radius: 6px; overflow: hidden; }
+.tasteQueueEmbedController { display: block; width: 100%; height: 80px; border: 0; border-radius: 6px; overflow: hidden; }
 .tasteQueueDock.premium {
   grid-template-columns: 72px minmax(180px, .8fr) minmax(380px, 1.5fr) auto;
   grid-template-areas:
@@ -1068,14 +1060,13 @@ a.spxFeedEvent {
 .tasteQueueDock.premium.hasNote {
   grid-template-columns: 72px minmax(180px, .8fr) minmax(380px, 1.5fr) auto;
 }
-.tasteQueueDock.premium .tasteQueueInlineNote { display: none; }
 .tasteQueuePremiumNote { position: absolute; bottom: calc(100% + 8px); left: 92px; display: grid; width: min(420px, calc(100% - 184px)); min-width: 0; grid-template-columns: 18px minmax(0, 1fr); align-items: center; gap: 9px; border: 1px solid rgba(30, 215, 96, .3); border-left: 2px solid var(--spx-green); border-radius: 6px; background: rgba(22, 31, 25, .98); box-shadow: 0 14px 36px rgba(0, 0, 0, .45); padding: 10px 12px; color: #fff; }
 .tasteQueuePremiumNote > svg { color: var(--spx-green); }
 .tasteQueuePremiumNote > span { display: grid; min-width: 0; gap: 2px; }
 .tasteQueuePremiumNote small { color: var(--spx-green); font-size: 8px; font-weight: 800; text-transform: uppercase; }
 .tasteQueuePremiumNote strong { display: -webkit-box; overflow: hidden; font-size: 10px; font-weight: 600; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.tasteQueueTransport { display: flex; grid-area: transport; min-width: 0; align-items: center; justify-content: center; gap: 9px; }
-.tasteQueueUtilities { display: flex; grid-area: utilities; align-items: center; justify-content: flex-end; gap: 1px; }
+.tasteQueueTransport { display: flex; width: min(100%, 380px); max-width: 100%; grid-area: transport; min-width: 0; align-items: center; justify-content: center; justify-self: center; gap: 9px; }
+.tasteQueueUtilities { display: flex; max-width: 104px; grid-area: utilities; min-width: 0; align-items: center; justify-content: flex-end; gap: 1px; }
 .tasteQueueTransport button,
 .tasteQueueUtilities button { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #b3b3b3; }
 .tasteQueueTransport button:hover,
@@ -1088,9 +1079,9 @@ a.spxFeedEvent {
 .tasteQueueUtilities button:disabled { opacity: .28; }
 .tasteRepeatIcon { position: relative; display: grid; place-items: center; }
 .tasteRepeatIcon i { position: absolute; display: grid; width: 10px; height: 10px; place-items: center; border-radius: 50%; background: var(--spx-green); color: #000; font-size: 7px; font-style: normal; font-weight: 900; }
-.tasteQueueProgress { display: grid; width: min(100%, 680px); grid-area: progress; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; justify-self: center; gap: 9px; color: #a7a7a7; font-size: 9px; font-variant-numeric: tabular-nums; }
+.tasteQueueProgress { display: grid; width: min(100%, 680px); max-width: 100%; grid-area: progress; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; justify-self: center; gap: 9px; overflow: hidden; color: #a7a7a7; font-size: 9px; font-variant-numeric: tabular-nums; }
 .tasteQueueProgress span:last-child { text-align: right; }
-.tasteQueueProgress input { width: 100%; height: 4px; appearance: none; border: 0; border-radius: 999px; outline: 0; background: linear-gradient(to right, #fff 0 var(--taste-progress), #535353 var(--taste-progress) 100%); cursor: pointer; }
+.tasteQueueProgress input { width: 100%; min-width: 0; max-width: 100%; height: 4px; appearance: none; border: 0; border-radius: 999px; outline: 0; background: linear-gradient(to right, #fff 0 var(--taste-progress), #535353 var(--taste-progress) 100%); cursor: pointer; }
 .tasteQueueProgress input::-webkit-slider-thumb { width: 12px; height: 12px; appearance: none; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .55); }
 .tasteQueueProgress input::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .55); }
 .tasteQueueProgress input:hover { background: linear-gradient(to right, var(--spx-green) 0 var(--taste-progress), #535353 var(--taste-progress) 100%); }
@@ -1206,7 +1197,9 @@ a.spxFeedEvent {
 .artistOnboardingPage .onboardingSteps { margin-top: 28px; }
 .artistOnboardingPage .onboardingWorkspace,
 .artistOnboardingPage .onboardingFallback { border: 1px solid var(--spx-line); border-radius: 8px; background: #181818; box-shadow: none; }
-.artistOnboardingPage .onboardingWorkspace { margin-top: 18px; }
+.artistOnboardingPage .onboardingWorkspace { min-height: 0; margin-top: 18px; }
+.artistOnboardingPage .onboardingFallback { align-items: center; margin-top: 12px; padding: 24px 28px; }
+.artistOnboardingPage .onboardingFallback > div { align-items: center; }
 .artistOnboardingPage .onboardingStage { gap: 20px; padding: 26px; }
 .artistOnboardingPage .onboardingStage h2 { margin: 0; font-size: 22px; }
 .artistOnboardingPage .onboardingStage p { margin: 8px 0 0; color: var(--spx-subtext); font-size: 12px; line-height: 1.5; }
@@ -1245,6 +1238,26 @@ a.spxFeedEvent {
   .nativePrivacyPage,
   .nativeNotificationsPage,
   .artistOnboardingPage { width: min(820px, calc(100vw - var(--spx-sidebar) - 40px)); }
+}
+
+@media (max-width: 900px) and (min-width: 741px) {
+  .tasteQueueDock {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "art now utilities"
+      "embed embed embed";
+    gap: 10px;
+  }
+  .tasteQueueDock.premium,
+  .tasteQueueDock.premium.hasNote {
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "art now utilities"
+      "progress progress progress"
+      "transport transport transport";
+  }
+  .tasteQueueArtworkWrap,
+  .tasteQueueArtwork { width: 64px; height: 64px; }
 }
 
 @media (max-width: 740px) {
@@ -1350,37 +1363,18 @@ a.spxFeedEvent {
     right: 8px;
     bottom: calc(72px + env(safe-area-inset-bottom));
     left: 8px;
-    grid-template-columns: 62px minmax(0, 1fr) auto;
+    width: auto;
+    max-width: calc(100vw - 16px);
+    grid-template-columns: 56px minmax(0, 1fr) auto;
     grid-template-areas:
       "art now utilities"
       "note note note"
-      "embed embed embed"
-      "progress progress progress"
-      "transport transport transport";
+      "embed embed embed";
     gap: 9px 11px;
     max-height: calc(100svh - 92px);
     padding: 9px;
     overflow: visible;
   }
-  .tasteQueueArtworkWrap,
-  .tasteQueueArtwork { width: 62px; height: 62px; }
-  .tasteQueueSource { margin-top: 2px; }
-  .tasteQueueNowPlaying > .tasteQueueInlineNote { display: none; }
-  .tasteQueueEmbed,
-  .tasteQueueEmbed iframe,
-  .tasteQueueEmbedController { min-height: 80px; height: 80px; }
-  .tasteQueueTransport { justify-content: center; gap: 12px; border-top: 1px solid var(--spx-line); padding-top: 8px; }
-  .tasteQueueUtilities { align-self: start; gap: 0; }
-  .tasteQueueTransport button,
-  .tasteQueueUtilities button { width: 30px; height: 30px; flex-basis: 30px; }
-  .tasteQueueTransport .tasteQueuePremiumToggle { width: 44px; height: 44px; flex-basis: 44px; }
-  .tasteQueueProgress { grid-template-columns: 34px minmax(0, 1fr) 34px; gap: 7px; }
-  .tasteQueueListPanel { right: 0; left: 0; width: auto; max-height: min(390px, 44vh); }
-  .tasteQueueListPanel ol { max-height: min(330px, 37vh); }
-  .tasteQueuePanelControls { display: flex; }
-  .tasteQueueMobileNote { display: grid; grid-area: note; grid-template-columns: 18px minmax(0, 1fr); align-items: start; gap: 7px; border-left: 2px solid var(--spx-green); background: rgba(30, 215, 96, .06); padding: 8px; color: #d4d4d4; font-size: 10px; line-height: 1.4; }
-  .tasteQueueMobileNote > span { display: grid; gap: 2px; }
-  .tasteQueueMobileNote small { color: var(--spx-green); font-size: 8px; font-weight: 800; text-transform: uppercase; }
   .tasteQueueDock.premium {
     grid-template-areas:
       "art now utilities"
@@ -1388,8 +1382,27 @@ a.spxFeedEvent {
       "progress progress progress"
       "transport transport transport";
   }
+  .tasteQueueArtworkWrap,
+  .tasteQueueArtwork { width: 56px; height: 56px; }
+  .tasteQueueSource { margin-top: 2px; }
+  .tasteQueueNowPlaying > .tasteQueueInlineNote { display: none; }
+  .tasteQueueEmbed,
+  .tasteQueueEmbed iframe,
+  .tasteQueueEmbedController { min-height: 80px; height: 80px; }
+  .tasteQueueTransport { width: min(100%, 280px); justify-content: space-between; gap: 4px; border-top: 1px solid var(--spx-line); padding-top: 8px; }
+  .tasteQueueUtilities { align-self: start; gap: 0; }
+  .tasteQueueTransport button,
+  .tasteQueueUtilities button { width: 30px; height: 30px; flex-basis: 30px; }
+  .tasteQueueTransport .tasteQueuePremiumToggle { width: 44px; height: 44px; flex-basis: 44px; }
+  .tasteQueueProgress { width: 100%; min-width: 0; grid-template-columns: 32px minmax(0, 1fr) 32px; gap: 6px; padding-inline: 1px; }
+  .tasteQueueListPanel { right: 0; left: 0; width: auto; max-height: min(390px, 44vh); }
+  .tasteQueueListPanel ol { max-height: min(330px, 37vh); }
+  .tasteQueuePanelControls { display: flex; }
+  .tasteQueueMobileNote { display: grid; grid-area: note; grid-template-columns: 18px minmax(0, 1fr); align-items: start; gap: 7px; border-left: 2px solid var(--spx-green); background: rgba(30, 215, 96, .06); padding: 8px; color: #d4d4d4; font-size: 10px; line-height: 1.4; }
+  .tasteQueueMobileNote > span { display: grid; gap: 2px; }
+  .tasteQueueMobileNote small { color: var(--spx-green); font-size: 8px; font-weight: 800; text-transform: uppercase; }
   .tasteQueueDock.premium.hasNote {
-    grid-template-columns: 62px minmax(0, 1fr) auto;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
     grid-template-areas:
       "art now utilities"
       "note note note"
@@ -1397,7 +1410,9 @@ a.spxFeedEvent {
       "transport transport transport";
   }
   .tasteQueueDock.premium .tasteQueuePremiumNote { display: none; }
-  .tasteQueueDock.premium .tasteQueueTransport { gap: 12px; }
+  .tasteQueueDock .tasteQueuePremiumNote { display: none; }
+
+  .artistOnboardingPage .onboardingFallback { gap: 18px; padding: 20px; }
 
   .nativePrivacyPage,
   .nativeNotificationsPage,

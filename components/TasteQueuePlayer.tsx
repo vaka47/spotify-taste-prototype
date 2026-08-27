@@ -217,7 +217,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   useEffect(() => { soundRef.current = commentSound; }, [commentSound]);
 
   useEffect(() => {
-    if (!open || mode !== "premium" || paused || durationMs <= 0) return;
+    if (!open || paused || durationMs <= 0) return;
     const updateVisualPosition = () => {
       const clock = playbackClockRef.current;
       const elapsed = Date.now() - clock.updatedAt;
@@ -226,7 +226,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     updateVisualPosition();
     const interval = window.setInterval(updateVisualPosition, 250);
     return () => window.clearInterval(interval);
-  }, [current?.id, durationMs, mode, open, paused]);
+  }, [current?.id, durationMs, open, paused]);
 
   function playCommentCue() {
     const active = itemsRef.current[indexRef.current];
@@ -514,7 +514,10 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
       }
       return;
     }
-    if (paused) controllerRef.current?.resume();
+    if (paused) {
+      if (positionMs <= 250) controllerRef.current?.play();
+      else controllerRef.current?.resume();
+    }
     else {
       clearEndTimer();
       controllerRef.current?.pause();
@@ -566,7 +569,6 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
             <TrackArtwork src={current.track.coverUrl} fallbackSrc={current.track.fallbackCoverUrl} alt={`${current.track.title} cover`} className="tasteQueueArtwork" />
           </div>
           <div className="tasteQueueNowPlaying">
-            <span className="tasteQueueEyebrow">{ru ? "ИГРАЕТ ИЗ TASTE" : "PLAYING FROM TASTE"} · {currentIndex + 1}/{items.length}</span>
             <strong>{current.track.title}</strong>
             <span className="tasteQueueArtist">{current.track.artist}</span>
             <div className="tasteQueueSource"><AvatarImage src={current.tastemaker.avatarUrl} fallbackSrc={current.tastemaker.fallbackAvatarUrl} alt="" /><span><small>{ru ? "По рекомендации" : "Recommended by"}</small><b>{current.tastemaker.name}</b></span></div>
@@ -574,17 +576,17 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           </div>
 
           {mode === "embed" ? <div className={`tasteQueueEmbed ${controllerReady ? "ready" : ""}`}>
-            <a className="tasteQueueEmbedFallback" href={current.track.spotifyUrl} target="_blank" rel="noreferrer"><span><Icon name="play" size={18} /></span><span><strong>{current.track.title}</strong><small>{ru ? "Открыть в Spotify" : "Open in Spotify"}</small></span></a>
             <div className="tasteQueueEmbedController" ref={embedTargetRef} />
-          </div> : current.authorNote && !queueVisible ? <div className="tasteQueuePremiumNote" role="note"><Icon name="comment" size={16} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small><strong>“{current.authorNote}”</strong></span></div> : null}
+          </div> : null}
+          {current.authorNote && !queueVisible ? <div className="tasteQueuePremiumNote" role="note"><Icon name="comment" size={16} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small><strong>“{current.authorNote}”</strong></span></div> : null}
 
-          <div className="tasteQueueTransport">
+          {mode === "premium" ? <div className="tasteQueueTransport">
             <button className={`tasteActionShuffle ${shuffle ? "active" : ""}`} type="button" onClick={() => setShuffle(value => !value)} aria-label={ru ? "В случайном порядке" : "Shuffle"}><Icon name="shuffle" size={18} /></button>
             <button className="tasteActionPrevious" type="button" onClick={previousTrack} aria-label={ru ? "Предыдущий трек" : "Previous track"}><Icon name="chevronLeft" /></button>
-            {mode === "premium" ? <button className="tasteQueuePremiumToggle tasteActionPlay" type="button" onClick={togglePlayback} aria-label={paused ? (ru ? "Продолжить" : "Resume") : (ru ? "Пауза" : "Pause")}><Icon name={paused ? "play" : "pause"} /></button> : null}
+            <button className="tasteQueuePremiumToggle tasteActionPlay" type="button" onClick={togglePlayback} aria-label={paused ? (ru ? "Продолжить" : "Resume") : (ru ? "Пауза" : "Pause")}><Icon name={paused ? "play" : "pause"} /></button>
             <button className="tasteActionNext" type="button" onClick={() => nextTrack(false)} aria-label={ru ? "Следующий трек" : "Next track"}><Icon name="chevronRight" /></button>
             <button className={`tasteActionRepeat ${repeat !== "off" ? "active" : ""}`} type="button" onClick={cycleRepeat} aria-label={ru ? "Режим повтора" : "Repeat mode"}><span className="tasteRepeatIcon"><Icon name="repeat" size={18} />{repeat === "one" ? <i>1</i> : null}</span></button>
-          </div>
+          </div> : null}
           <div className="tasteQueueUtilities">
             <button className={`tasteActionQueue ${queueVisible ? "active" : ""}`} type="button" onClick={() => setQueueVisible(value => !value)} aria-label={ru ? "Показать очередь" : "Show queue"}><Icon name="queue" size={18} /></button>
             {items.some(item => item.authorNote) ? <button className={`tasteActionSound ${commentSound ? "active" : ""}`} type="button" onClick={() => setCommentSound(value => !value)} aria-label={commentSound ? (ru ? "Выключить звук комментариев" : "Mute comment cue") : (ru ? "Включить звук комментариев" : "Enable comment cue")}><Icon name={commentSound ? "volume" : "volumeOff"} size={18} /></button> : null}

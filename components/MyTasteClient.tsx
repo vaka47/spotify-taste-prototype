@@ -211,13 +211,13 @@ export function MyTasteClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, user?.lastSyncedAt]);
 
-  async function disconnect() {
+  async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     setEvents([]);
     setWeeklyHistory([]);
     setState("disconnected");
-    showToast(locale === "ru" ? "Spotify отключён от этого браузера." : "Spotify disconnected from this browser.");
+    showToast(locale === "ru" ? "Вы вышли из аккаунта." : "You have been logged out.");
   }
 
   async function updateProfile() {
@@ -316,7 +316,7 @@ export function MyTasteClient() {
           {activeTab === "settings" ? <section id="owner-panel-settings" className="spxOwnerSettings spxOwnerSettingsPanel" role="tabpanel" aria-labelledby="owner-tab-settings">
             <div className="spxSectionHeading"><h2>{locale === "ru" ? "Профиль и настройки" : "Profile and settings"}</h2><span>{locale === "ru" ? "Публичный профиль и приватность" : "Public profile and privacy"}</span></div>
             <div className="spxOwnerForm"><label><span>{t("my.handle")}</span><input value={profileDraft.handle} onChange={event => setProfileDraft(current => ({ ...current, handle: event.target.value }))} /></label><label><span>{t("my.role")}</span><input value={profileDraft.role} onChange={event => setProfileDraft(current => ({ ...current, role: event.target.value }))} /></label><label className="wide"><span>{t("my.bio")}</span><textarea value={profileDraft.bio} onChange={event => setProfileDraft(current => ({ ...current, bio: event.target.value }))} /></label><button type="button" onClick={updateProfile} disabled={savingProfile}>{t("my.updateProfile")}</button></div>
-            <div className="spxOwnerSettingsLinks"><Link href="/privacy"><Icon name="privacy" size={16} />{t("nav.privacy")}</Link><button type="button" onClick={disconnect}>{t("my.disconnect")}</button></div>
+            <div className="spxOwnerSettingsLinks"><Link href="/privacy"><Icon name="privacy" size={16} />{t("nav.privacy")}</Link><button type="button" onClick={logout}><Icon name="logout" size={16} />{locale === "ru" ? "Выйти" : "Log out"}</button></div>
           </section> : null}
           <ConnectionsDialog open={connectionType !== null} onClose={() => setConnectionType(null)} handle={user.handle} initialType={connectionType || "followers"} />
         </>

@@ -8,7 +8,7 @@ import { SpotifyEmbed } from "@/components/SpotifyEmbed";
 import { TasteQueuePlayer, useTastePlayback } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
-import { doechii, inspiredMixes, recentlyDiscoveredTracks, tracks, travis, travisWeeklyHistory, tyler } from "@/lib/mock-data";
+import { doechii, recentlyDiscoveredTracks, tracks, travis, travisWeeklyHistory, tyler } from "@/lib/mock-data";
 import { recordTrackOpen } from "@/lib/prototype-events";
 import { useFollowingTaste } from "@/lib/use-following-taste";
 import type { WeeklyTrackSignal } from "@/types/taste";
@@ -170,13 +170,6 @@ export default function TravisTastePage() {
               <div className="spxSectionHeading"><h2>{ru ? "Недавние открытия" : "Recently Discovered"}</h2><span>{ru ? "За 7 дней" : "Last 7 days"}</span></div>
               <div className="spxDiscoveryShelf">
                 {recentlyDiscoveredTracks.map((item, index) => <button type="button" onClick={() => playQueue(discoveryQueue, index)} key={item.track.id}><TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxDiscoveryCover" /><strong>{item.track.title}</strong><small>{item.track.artist}</small></button>)}
-              </div>
-            </section>
-
-            <section className="spxArtistSection">
-              <div className="spxSectionHeading"><h2>{ru ? "Вдохновлено Taste Трэвиса" : "Inspired by Travis"}</h2><span>{ru ? "Обновляется автоматически" : "Updates automatically"}</span></div>
-              <div className="spxMixGrid">
-                {inspiredMixes.map(mix => <Link className="spxMix" href={mix.href} key={mix.id}><TrackArtwork src={mix.coverUrl} fallbackSrc={mix.fallbackCoverUrl} alt={`${mix.title} cover`} className="spxMixCover" /><span><strong>{mix.title}</strong><small>{ru ? "Живой микс из сигналов Taste" : mix.subtitle}</small></span><Icon name="play" size={18} /></Link>)}
               </div>
             </section>
 

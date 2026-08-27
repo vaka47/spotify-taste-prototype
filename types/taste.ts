@@ -66,17 +66,6 @@ export type WeeklyTrackSignal = {
   authorNote?: string;
 };
 
-export type InspiredMix = {
-  id: string;
-  title: string;
-  subtitle: string;
-  coverUrl: string;
-  fallbackCoverUrl?: string;
-  href: string;
-  externalUrl?: string;
-  origin: DataOrigin;
-};
-
 export type HubInfluencedTrack = {
   track: TrackRef;
   qualifiedDiscoveries: string;

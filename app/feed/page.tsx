@@ -174,7 +174,7 @@ export default function FeedPage() {
         {activeSegment === "Following" && hasVisibleContent && !query ? (
           <Link className="spxWeeklySummary" href="/tastemaker/travis-scott">
             <span className="spxWeeklySummaryAvatar"><AvatarImage src={travis.avatarUrl} fallbackSrc={travis.fallbackAvatarUrl} alt="" /></span>
-            <span><strong>{ru ? "Для вас: вдохновлено Taste Трэвиса" : "Made for You: Inspired by Travis"}</strong><small>{ru ? "Живой микс из его музыкальных сигналов" : "A living mix built from his taste signal"}</small></span>
+            <span><strong>{ru ? "Taste Трэвиса за неделю" : "Travis's week in Taste"}</strong><small>{ru ? "История, повторы, открытия и комментарии" : "Listening history, repeats, discoveries, and notes"}</small></span>
             <Icon name="chevronRight" />
           </Link>
         ) : null}

@@ -1,6 +1,5 @@
 import type {
   HubInfluencedTrack,
-  InspiredMix,
   TasteFeedEvent,
   Tastemaker,
   TrackRef,
@@ -216,29 +215,6 @@ export const recentlyDiscoveredTracks: TrackSignal[] = [
   { track: tracks.likehim, signal: "Added to a private session", metric: "private" },
   { track: tracks.nissan, signal: "Fast repeat curve after first save", metric: "rising" },
   { track: tracks.fein, signal: "Inspired-by mix source material", metric: "mix" },
-];
-
-export const inspiredMixes: InspiredMix[] = [
-  {
-    id: "mix_rodeo",
-    title: "Rodeo Radio",
-    subtitle: "A living mix from Travis's opt-in taste signal",
-    coverUrl: tracks.fein.coverUrl,
-    fallbackCoverUrl: tracks.fein.coverUrl,
-    href: "/player/fein",
-    externalUrl: tracks.fein.spotifyUrl,
-    origin: "illustrative",
-  },
-  {
-    id: "mix_astroworld",
-    title: "Astroworld Vibes",
-    subtitle: "With melodic rap, Houston textures and left-field discoveries",
-    coverUrl: tracks.fein.coverUrl,
-    fallbackCoverUrl: tracks.fein.coverUrl,
-    href: "/player/fein",
-    externalUrl: tracks.fein.spotifyUrl,
-    origin: "illustrative",
-  },
 ];
 
 export const hubMetrics = {
