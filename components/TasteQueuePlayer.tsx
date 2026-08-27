@@ -554,8 +554,8 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
 
     if (!current.eventId) {
       showToast(optimistic.reacted
-        ? (ru ? "Реакция добавлена" : "Reaction added")
-        : (ru ? "Реакция убрана" : "Reaction removed"));
+        ? (ru ? "Трек понравился" : "Track liked")
+        : (ru ? "Лайк убран" : "Like removed"));
       return;
     }
 
@@ -573,8 +573,8 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     const payload = await response.json() as { reacted: boolean; count: number };
     setReactions(value => ({ ...value, [current.id]: payload }));
     showToast(payload.reacted
-      ? (ru ? "Автор Taste получил вашу реакцию" : "The Tastemaker received your reaction")
-      : (ru ? "Реакция убрана" : "Reaction removed"));
+      ? (ru ? "Вы поставили лайк треку" : "You liked this track")
+      : (ru ? "Лайк убран" : "Like removed"));
   }
 
   // Do not memoize playQueue: its Premium capability and device are resolved asynchronously.
@@ -629,7 +629,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
             <button className={`tasteActionRepeat ${repeat !== "off" ? "active" : ""}`} type="button" onClick={cycleRepeat} aria-label={ru ? "Режим повтора" : "Repeat mode"}><span className="tasteRepeatIcon"><Icon name="repeat" size={18} />{repeat === "one" ? <i>1</i> : null}</span></button>
           </div> : null}
           <div className="tasteQueueUtilities">
-            {current.canReact !== false ? <button className={`tasteActionReaction ${reaction.reacted ? "active" : ""}`} type="button" onClick={toggleReaction} aria-label={reaction.reacted ? (ru ? "Убрать реакцию" : "Remove reaction") : (ru ? "Поставить сердечко" : "Like this recommendation")} title={reaction.count ? `${reaction.count}` : undefined}><Icon name="heart" size={18} /></button> : null}
+            {current.canReact !== false ? <button className={`tasteActionReaction ${reaction.reacted ? "active" : ""}`} type="button" onClick={toggleReaction} aria-label={reaction.reacted ? (ru ? "Убрать лайк с трека" : "Unlike track") : (ru ? "Поставить лайк треку" : "Like track")} title={reaction.count ? `${reaction.count}` : undefined}><Icon name="heart" size={18} /></button> : null}
             <button className={`tasteActionQueue ${queueVisible ? "active" : ""}`} type="button" onClick={() => setQueueVisible(value => !value)} aria-label={ru ? "Показать очередь" : "Show queue"}><Icon name="queue" size={18} /></button>
             {items.some(item => item.authorNote) ? <button className={`tasteActionSound ${commentSound ? "active" : ""}`} type="button" onClick={() => setCommentSound(value => !value)} aria-label={commentSound ? (ru ? "Выключить звук комментариев" : "Mute comment cue") : (ru ? "Включить звук комментариев" : "Enable comment cue")}><Icon name={commentSound ? "volume" : "volumeOff"} size={18} /></button> : null}
             <button className="tasteActionClose" type="button" onClick={closeQueue} aria-label={ru ? "Закрыть плеер" : "Close player"}><Icon name="close" size={18} /></button>

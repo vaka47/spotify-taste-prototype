@@ -33,7 +33,7 @@ export async function POST(_request: Request, context: { params: Promise<{ event
     if (reacted) {
       await db()`
         insert into taste_notifications (id, user_id, actor_id, kind, event_id, body)
-        values (${randomUUID()}, ${event.user_id}, ${viewer.id}, 'reaction', ${eventId}, ${`${viewer.displayName} liked ${event.title}`})
+        values (${randomUUID()}, ${event.user_id}, ${viewer.id}, 'reaction', ${eventId}, ${`${viewer.displayName} liked the track ${event.title} from your Taste`})
       `;
     }
   }
