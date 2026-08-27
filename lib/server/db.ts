@@ -120,6 +120,17 @@ async function createSchema() {
   `;
   await sql`create index if not exists taste_comments_event_idx on taste_comments(event_id, created_at asc)`;
   await sql`
+    create table if not exists taste_reactions (
+      event_id text not null references taste_events(id) on delete cascade,
+      user_id text not null references taste_users(id) on delete cascade,
+      kind text not null default 'heart',
+      created_at timestamptz not null default now(),
+      primary key (event_id, user_id, kind),
+      check (kind = 'heart')
+    )
+  `;
+  await sql`create index if not exists taste_reactions_event_idx on taste_reactions(event_id, created_at desc)`;
+  await sql`
     create table if not exists taste_notifications (
       id text primary key,
       user_id text not null references taste_users(id) on delete cascade,

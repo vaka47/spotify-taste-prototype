@@ -35,6 +35,7 @@ function notificationBody(notification: ServerNotification, locale: "en" | "ru")
   if (notification.kind === "meaningful_signal") return locale === "ru" ? `Новое прослушивание в Taste: ${title}` : `Shared a new Taste listen: ${title}`;
   if (notification.kind === "author_note") return locale === "ru" ? `Добавлен комментарий к треку ${title}` : `Added a note to ${title}`;
   if (notification.kind === "new_follower") return locale === "ru" ? "Новая подписка на ваш Taste" : "Followed your Taste";
+  if (notification.kind === "reaction") return locale === "ru" ? `Понравилась ваша рекомендация: ${title}` : `Liked your recommendation: ${title}`;
   if (notification.kind === "comment") {
     const actorPrefix = notification.actor_name ? `${notification.actor_name}: ` : "";
     const comment = notification.body.startsWith(actorPrefix) ? notification.body.slice(actorPrefix.length) : notification.body;

@@ -21,7 +21,8 @@ type LiveFeedEvent = {
   authorNote: string | null;
   repeatCount: number;
   previousPlayedAt: string | null;
-  commentCount: number;
+  reactionCount: number;
+  viewerReacted: boolean;
 };
 
 function relativeTime(value: string, ru: boolean) {
@@ -132,6 +133,10 @@ export default function FeedPage() {
             ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
             : (ru ? "Опубликовано в Taste" : "Shared to Taste"),
         authorNote: event.authorNote,
+        eventId: event.id,
+        reactionCount: event.reactionCount || 0,
+        viewerReacted: Boolean(event.viewerReacted),
+        canReact: true,
       };
     });
     const fromDemo = visibleDemoEvents.map(event => ({
@@ -142,6 +147,7 @@ export default function FeedPage() {
         ? event.kind === "recommended" ? "Личная рекомендация" : event.kind === "on_repeat" ? "На повторе всю неделю" : event.kind === "saved_discovery" ? "Новое сохранение" : "Снова вернулся к треку"
         : event.humanSignal,
       authorNote: localizeDemoNote(event.authorNote, ru),
+      canReact: true,
     }));
     return [...fromLive, ...fromDemo];
   }, [ru, visibleDemoEvents, visibleLiveEvents]);

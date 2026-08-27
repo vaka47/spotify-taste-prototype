@@ -49,6 +49,10 @@ export type TasteQueueItem = {
   tastemaker: Pick<Tastemaker, "id" | "name" | "avatarUrl" | "fallbackAvatarUrl">;
   signal: string;
   authorNote?: string | null;
+  eventId?: string;
+  reactionCount?: number;
+  viewerReacted?: boolean;
+  canReact?: boolean;
 };
 
 export type TrackSignal = {

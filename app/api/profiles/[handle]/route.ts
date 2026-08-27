@@ -57,7 +57,8 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
       (select count(*)::int from taste_events r where r.user_id = e.user_id and r.track_id = e.track_id
         and r.played_at > now() - interval '7 days'
         and (${isOwner} or (r.is_public and r.played_at <= now() - make_interval(hours => ${profile.share_delay_hours})))) as repeat_count,
-      (select count(*)::int from taste_comments c where c.event_id = e.id) as comment_count
+      (select count(*)::int from taste_reactions r where r.event_id = e.id and r.kind = 'heart') as reaction_count,
+      exists(select 1 from taste_reactions r where r.event_id = e.id and r.user_id = ${viewer?.id || ""} and r.kind = 'heart') as viewer_reacted
     from taste_events e
     where e.user_id = ${profile.id}
       and (${isOwner} or (e.is_public and e.played_at <= now() - make_interval(hours => ${profile.share_delay_hours})))
@@ -92,15 +93,6 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
     order by ranked.play_count desc, ranked.popularity desc, ranked.last_played_at desc
     limit 100
   `;
-
-  const eventIds = events.map(event => event.id);
-  const comments = eventIds.length ? await db()`
-    select c.id, c.event_id, c.body, c.created_at, u.handle as author_handle,
-      u.display_name as author_name, u.avatar_url as author_avatar
-    from taste_comments c join taste_users u on u.id = c.author_id
-    where c.event_id in ${db()(eventIds)}
-    order by c.created_at asc
-  ` : [];
 
   const trackPayload = (row: Record<string, unknown>) => ({
     id: row.track_id,
@@ -149,8 +141,8 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ ha
       authorNote: event.author_note,
       isPublic: event.is_public,
       repeatCount: event.repeat_count,
-      commentCount: event.comment_count,
-      comments: comments.filter(comment => comment.event_id === event.id),
+      reactionCount: event.reaction_count,
+      viewerReacted: event.viewer_reacted,
     })),
   });
 }

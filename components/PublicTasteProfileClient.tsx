@@ -12,32 +12,14 @@ import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n";
 import type { TasteQueueItem, TrackRef } from "@/types/taste";
 import {
-  SOCIAL_COMMENTS_KEY,
   decodeSnapshot,
   profileFromSnapshot,
   pushNotification,
   readFollowingProfiles,
-  readJson,
   seededTasteProfiles,
   writeFollowingProfiles,
-  writeJson,
   type PublicTasteProfile,
 } from "@/lib/social-taste";
-
-type ServerComment = {
-  id: string;
-  event_id?: string;
-  eventId?: string;
-  body: string;
-  created_at?: string;
-  createdAt?: string;
-  author_handle?: string;
-  authorHandle?: string;
-  author_name?: string;
-  authorName?: string;
-  author_avatar?: string | null;
-  authorAvatar?: string | null;
-};
 
 type ServerEvent = {
   id: string;
@@ -45,8 +27,8 @@ type ServerEvent = {
   authorNote: string | null;
   isPublic: boolean;
   repeatCount: number;
-  commentCount: number;
-  comments: ServerComment[];
+  reactionCount: number;
+  viewerReacted: boolean;
   track: {
     id: string;
     title: string;
@@ -89,7 +71,6 @@ type ServerProfile = {
 };
 
 type ServerProfileResponse = { profile: ServerProfile; events: ServerEvent[]; weeklyHistory: ServerWeeklyTrack[] };
-type LocalComment = { id: string; eventId: string; profileHandle: string; author: string; text: string; createdAt: string };
 type LoadState = "loading" | "ready" | "not_found" | "private" | "error";
 
 function fallbackProfile(handle: string): PublicTasteProfile {
@@ -139,10 +120,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const [weeklyHistory, setWeeklyHistory] = useState<ServerWeeklyTrack[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [following, setFollowing] = useState(false);
-  const [commentText, setCommentText] = useState("");
-  const [localComments, setLocalComments] = useState<LocalComment[]>([]);
   const [connected, setConnected] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
   const [connectionType, setConnectionType] = useState<"followers" | "following" | null>(null);
 
   const load = useCallback(async () => {
@@ -172,7 +150,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         setWeeklyHistory([]);
         setSelectedId(current => demoProfile.events.some(event => event.id === current) ? current : demoProfile.events[0]?.id || "");
         setFollowing(readFollowingProfiles().includes(demoProfile.handle));
-        setLocalComments(readJson<LocalComment[]>(SOCIAL_COMMENTS_KEY, []));
         setState("ready");
         return;
       }
@@ -265,38 +242,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
     if (nextFollowing) pushNotification({ title: `Following ${profileName}`, body: "New demo listens will appear in this browser's Taste inbox.", href: `/taste/${profileHandle}` });
   }
 
-  async function addComment() {
-    const body = commentText.trim();
-    if (!body || body.length < 2) return;
-    if (serverProfile && selectedServerEvent) {
-      if (!connected) {
-        window.location.href = `/api/auth/spotify/start?returnTo=/taste/${encodeURIComponent(handle)}`;
-        return;
-      }
-      setSubmitting(true);
-      const response = await fetch(`/api/events/${selectedServerEvent.id}/comments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ body }),
-      });
-      setSubmitting(false);
-      if (!response.ok) {
-        showToast(t("profile.loginToComment"));
-        return;
-      }
-      setCommentText("");
-      showToast(locale === "ru" ? "Комментарий опубликован." : "Comment posted.");
-      await load();
-      return;
-    }
-    if (!selectedDemoEvent) return;
-    const nextComment: LocalComment = { id: crypto.randomUUID(), eventId: selectedDemoEvent.id, profileHandle, author: locale === "ru" ? "Вы" : "You", text: body, createdAt: new Date().toISOString() };
-    const next = [nextComment, ...localComments].slice(0, 60);
-    setLocalComments(next);
-    writeJson(SOCIAL_COMMENTS_KEY, next);
-    setCommentText("");
-  }
-
   if (state === "loading") return <main className="page"><section className="panel profileLoading"><div className="skeleton profileSkeletonAvatar" /><div className="rowGrow"><div className="skeleton" style={{ width: 260, height: 28 }} /><div className="skeleton" style={{ width: "60%", height: 16, marginTop: 14 }} /></div></section></main>;
   if (state !== "ready") return <main className="page pageNarrow"><section className="emptyState standaloneState"><Icon name="privacy" size={30} /><h1>{state === "private" ? t("profile.private") : t("profile.notFound")}</h1><Link className="btn btnPrimary" href="/feed">{t("nav.feed")}</Link></section></main>;
 
@@ -308,9 +253,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const bio = isReal ? serverProfile?.bio : (useLocalizedSeedCopy ? demoRu?.bio : demoProfile.bio) || demoProfile.bio;
   const verified = isReal ? Boolean(serverProfile?.verified) : demoProfile.verified;
   const publicCount = isReal ? weeklyHistory.length : demoWeeklyHistory.length;
-  const comments = isReal
-    ? (selectedServerEvent?.comments || [])
-    : localComments.filter(comment => comment.profileHandle === profileHandle && comment.eventId === selectedDemoEvent?.id);
   const profileQueue: TasteQueueItem[] = (isReal ? weeklyHistory : demoWeeklyHistory).map(item => {
     const realItem = isReal ? item as ServerWeeklyTrack : null;
     const demoItem = !isReal ? item as typeof demoWeeklyHistory[number] : null;
@@ -330,12 +272,17 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
       origin: "spotify",
     };
     const event = !isReal ? demoProfile.events.find(value => value.id === demoItem!.eventId) : null;
+    const serverEvent = isReal ? serverEvents.find(value => value.id === realItem?.eventId) : null;
     return {
       id: `profile_queue_${realItem?.eventId || demoItem!.eventId}`,
       track,
       tastemaker: { id: profileHandle, name: profileName, avatarUrl: avatarUrl || "", fallbackAvatarUrl: avatarFallbackUrl },
       signal: locale === "ru" ? `${realItem?.playCount ?? demoItem!.playCount} ${russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount)} за неделю` : `${realItem?.playCount ?? demoItem!.playCount} plays this week`,
-      authorNote: isReal ? serverEvents.find(value => value.id === realItem?.eventId)?.authorNote : event?.authorComment,
+      authorNote: isReal ? serverEvent?.authorNote : event?.authorComment,
+      eventId: isReal ? realItem?.eventId : undefined,
+      reactionCount: serverEvent?.reactionCount || 0,
+      viewerReacted: Boolean(serverEvent?.viewerReacted),
+      canReact: isReal ? !serverProfile?.isOwner : true,
     };
   });
   const demoConnections: ConnectionProfile[] = connectionType === "following"
@@ -392,17 +339,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
           <aside className="spxPublicPlayer">
             <div className="spxPublicPlayerHead"><div><small>{isReal ? t("common.spotifyData") : t("common.demoData")}</small><h2>{selectedTrack.title}</h2><p>{selectedTrack.artist}</p></div><a href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a></div>
             <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null) || t("profile.noNote")}</p></div>
-            <div className="spxPublicComposer"><label className="srOnly" htmlFor="taste-comment">{t("profile.addComment")}</label><input id="taste-comment" value={commentText} onChange={event => setCommentText(event.target.value)} placeholder={t("profile.commentPlaceholder")} /><button type="button" onClick={addComment} disabled={submitting || commentText.trim().length < 2} aria-label={t("profile.postComment")}><Icon name="chevronRight" size={17} /></button>{isReal && !connected ? <p>{t("profile.loginToComment")}</p> : null}</div>
-            <div className="spxPublicComments"><strong>{t("profile.thread")}</strong>
-              {(selectedServerEvent?.authorNote || selectedDemoEvent?.authorComment) ? <div className="author"><span className="spxCommentAvatar"><AvatarImage src={avatarUrl || ""} fallbackSrc={avatarFallbackUrl} alt={profileName} /></span><span><strong>{profileName}</strong><small>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null)}</small></span></div> : null}
-              {comments.map(comment => {
-                const serverComment = comment as ServerComment;
-                const localComment = comment as LocalComment;
-                const authorName = isReal ? serverComment.author_name || serverComment.authorName || (locale === "ru" ? "Слушатель" : "Listener") : localComment.author;
-                const authorAvatar = isReal ? serverComment.author_avatar || serverComment.authorAvatar || "" : "";
-                return <div key={comment.id}><span className="spxCommentAvatar"><AvatarImage src={authorAvatar} alt={authorName} /></span><span><strong>{authorName}</strong><small>{isReal ? serverComment.body : localComment.text}</small></span></div>;
-              })}
-            </div>
           </aside>
         ) : null}
       </section>

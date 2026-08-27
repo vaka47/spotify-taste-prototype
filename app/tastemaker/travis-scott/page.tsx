@@ -55,8 +55,6 @@ export default function TravisTastePage() {
   const [activeTab, setActiveTab] = useState<ArtistTab>("taste");
   const [showAll, setShowAll] = useState(false);
   const [discussion, setDiscussion] = useState<WeeklyTrackSignal | null>(null);
-  const [comment, setComment] = useState("");
-  const [postedComments, setPostedComments] = useState<Record<string, string[]>>({});
   const [followersOpen, setFollowersOpen] = useState(false);
 
   function toggleFollow() {
@@ -71,16 +69,7 @@ export default function TravisTastePage() {
     playQueue(tasteQueue, Math.max(0, tasteQueue.findIndex(queueItem => queueItem.track.id === item.track.id)));
   }
 
-  function publishComment() {
-    const value = comment.trim();
-    if (!value || !discussion) return;
-    setPostedComments(current => ({ ...current, [discussion.track.id]: [value, ...(current[discussion.track.id] || [])] }));
-    setComment("");
-    showToast(ru ? "Комментарий опубликован" : "Comment posted");
-  }
-
   function toggleDiscussion(item: WeeklyTrackSignal) {
-    setComment("");
     setDiscussion(current => current?.track.id === item.track.id ? null : item);
   }
 
@@ -99,6 +88,7 @@ export default function TravisTastePage() {
     tastemaker: travis,
     signal: ru ? `${item.plays} ${repeatWord(item.plays)} за неделю · ${signalLabel(item.kind, true)}` : `${item.plays} plays this week · ${signalLabel(item.kind, false)}`,
     authorNote: item.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : item.authorNote) : null,
+    canReact: true,
   }));
   const discoveryQueue = recentlyDiscoveredTracks.map(item => ({
     id: `travis_discovery_${item.track.id}`,
@@ -151,7 +141,7 @@ export default function TravisTastePage() {
                       <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{signalLabel(item.kind, ru)} · {localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em>{item.authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{ru ? "Комментарий Трэвиса" : "Travis note"}</i> : null}</span>
                       <span className="spxRepeatPlay"><Icon name="play" size={17} /></span>
                     </button>
-                    <button className={`spxRowComment ${item.authorNote ? "hasNote" : ""} ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Обсуждение ${item.track.title}` : `Discussion for ${item.track.title}`}><Icon name="comment" size={17} /></button>
+                    <button className={`spxRowComment ${item.authorNote ? "hasNote" : ""} ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Комментарий Трэвиса к ${item.track.title}` : `Travis's note on ${item.track.title}`}><Icon name="comment" size={17} /></button>
                     <a className="spxRowMore" href={item.track.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? "Открыть в Spotify" : "Open in Spotify"}><Icon name="more" size={18} /></a>
                   </article>
                 ))}
@@ -160,8 +150,6 @@ export default function TravisTastePage() {
                 <div className="spxDiscussion" data-artist-discussion>
                   <div className="spxDiscussionHead"><TrackArtwork src={discussion.track.coverUrl} fallbackSrc={discussion.track.fallbackCoverUrl} alt="" className="spxDiscussionCover" /><span><strong>{discussion.track.title}</strong><small>{discussion.track.artist}</small></span><button type="button" onClick={() => setDiscussion(null)} aria-label={ru ? "Закрыть" : "Close"}><Icon name="close" size={18} /></button></div>
                   <blockquote><strong>{travis.name}</strong><p>{discussion.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : discussion.authorNote) : (ru ? "Возвращался к этому треку несколько раз за неделю." : "Kept returning to this track throughout the week.")}</p></blockquote>
-                  {(postedComments[discussion.track.id] || []).map((value, index) => <p className="spxPostedComment" key={`${value}-${index}`}><strong>{ru ? "Вы" : "You"}</strong>{value}</p>)}
-                  <div className="spxCommentComposer"><input value={comment} onChange={event => setComment(event.target.value)} placeholder={ru ? "Добавить комментарий" : "Add a comment"} /><button type="button" onClick={publishComment} disabled={!comment.trim()}>{ru ? "Отправить" : "Post"}</button></div>
                 </div>
               ) : null}
             </section>

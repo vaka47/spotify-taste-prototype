@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type CSSProperties } from "react";
 import { AvatarImage } from "@/components/AvatarImage";
 import { Icon } from "@/components/Icons";
+import { useToast } from "@/components/ToastProvider";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useI18n } from "@/lib/i18n";
 import type { TasteQueueItem } from "@/types/taste";
@@ -176,6 +177,7 @@ export function useTastePlayback() {
 
 export function TastePlaybackProvider({ children }: { children: React.ReactNode }) {
   const { locale } = useI18n();
+  const { showToast } = useToast();
   const ru = locale === "ru";
   const [items, setItems] = useState<TasteQueueItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -191,6 +193,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<RepeatMode>("off");
   const [queueVisible, setQueueVisible] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, { reacted: boolean; count: number }>>({});
   const embedTargetRef = useRef<HTMLDivElement | null>(null);
   const controllerRef = useRef<EmbedController | null>(null);
   const premiumPlayerRef = useRef<SpotifyWebPlayer | null>(null);
@@ -462,6 +465,13 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     if (AudioContextConstructor && !audioContextRef.current) audioContextRef.current = new AudioContextConstructor();
     void audioContextRef.current?.resume();
     setItems(nextItems);
+    setReactions(currentReactions => {
+      const next = { ...currentReactions };
+      nextItems.forEach(item => {
+        if (!next[item.id]) next[item.id] = { reacted: Boolean(item.viewerReacted), count: item.reactionCount || 0 };
+      });
+      return next;
+    });
     setCurrentIndex(safeIndex);
     setOpen(true);
     setQueueVisible(false);
@@ -536,10 +546,42 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     setRepeat(value => value === "off" ? "all" : value === "all" ? "one" : "off");
   }
 
+  async function toggleReaction() {
+    if (!current || current.canReact === false) return;
+    const previous = reactions[current.id] || { reacted: Boolean(current.viewerReacted), count: current.reactionCount || 0 };
+    const optimistic = { reacted: !previous.reacted, count: Math.max(0, previous.count + (previous.reacted ? -1 : 1)) };
+    setReactions(value => ({ ...value, [current.id]: optimistic }));
+
+    if (!current.eventId) {
+      showToast(optimistic.reacted
+        ? (ru ? "Реакция добавлена" : "Reaction added")
+        : (ru ? "Реакция убрана" : "Reaction removed"));
+      return;
+    }
+
+    const response = await fetch(`/api/events/${encodeURIComponent(current.eventId)}/reactions`, { method: "POST" });
+    if (response.status === 401) {
+      setReactions(value => ({ ...value, [current.id]: previous }));
+      window.location.href = `/api/auth/spotify/start?returnTo=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    if (!response.ok) {
+      setReactions(value => ({ ...value, [current.id]: previous }));
+      showToast(ru ? "Не удалось сохранить реакцию" : "Could not save reaction");
+      return;
+    }
+    const payload = await response.json() as { reacted: boolean; count: number };
+    setReactions(value => ({ ...value, [current.id]: payload }));
+    showToast(payload.reacted
+      ? (ru ? "Автор Taste получил вашу реакцию" : "The Tastemaker received your reaction")
+      : (ru ? "Реакция убрана" : "Reaction removed"));
+  }
+
   // Do not memoize playQueue: its Premium capability and device are resolved asynchronously.
   const contextValue = { playQueue, activeItemId: open && current ? current.id : null };
   const progressPercent = durationMs > 0 ? Math.min(100, Math.max(0, positionMs / durationMs * 100)) : 0;
   const progressStyle = { "--taste-progress": `${progressPercent}%` } as CSSProperties;
+  const reaction = current ? reactions[current.id] || { reacted: Boolean(current.viewerReacted), count: current.reactionCount || 0 } : { reacted: false, count: 0 };
 
   return (
     <TastePlaybackContext.Provider value={contextValue}>
@@ -571,9 +613,8 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           <div className="tasteQueueNowPlaying">
             <strong>{current.track.title}</strong>
             <span className="tasteQueueArtist">{current.track.artist}</span>
-            <div className="tasteQueueSource"><AvatarImage src={current.tastemaker.avatarUrl} fallbackSrc={current.tastemaker.fallbackAvatarUrl} alt="" /><span><small>{ru ? "По рекомендации" : "Recommended by"}</small><b>{current.tastemaker.name}</b></span></div>
-            <p className={current.authorNote ? "tasteQueueInlineNote" : "tasteQueueSignal"} title={current.authorNote || current.signal}>{current.authorNote ? <Icon name="comment" size={12} /> : null}{current.authorNote ? `“${current.authorNote}”` : current.signal}</p>
           </div>
+          <div className="tasteQueueSource"><AvatarImage src={current.tastemaker.avatarUrl} fallbackSrc={current.tastemaker.fallbackAvatarUrl} alt="" /><span><small>{ru ? "По рекомендации" : "Recommended by"}</small><b>{current.tastemaker.name}</b></span><em>{current.signal}</em></div>
 
           {mode === "embed" ? <div className={`tasteQueueEmbed ${controllerReady ? "ready" : ""}`}>
             <div className="tasteQueueEmbedController" ref={embedTargetRef} />
@@ -588,6 +629,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
             <button className={`tasteActionRepeat ${repeat !== "off" ? "active" : ""}`} type="button" onClick={cycleRepeat} aria-label={ru ? "Режим повтора" : "Repeat mode"}><span className="tasteRepeatIcon"><Icon name="repeat" size={18} />{repeat === "one" ? <i>1</i> : null}</span></button>
           </div> : null}
           <div className="tasteQueueUtilities">
+            {current.canReact !== false ? <button className={`tasteActionReaction ${reaction.reacted ? "active" : ""}`} type="button" onClick={toggleReaction} aria-label={reaction.reacted ? (ru ? "Убрать реакцию" : "Remove reaction") : (ru ? "Поставить сердечко" : "Like this recommendation")} title={reaction.count ? `${reaction.count}` : undefined}><Icon name="heart" size={18} /></button> : null}
             <button className={`tasteActionQueue ${queueVisible ? "active" : ""}`} type="button" onClick={() => setQueueVisible(value => !value)} aria-label={ru ? "Показать очередь" : "Show queue"}><Icon name="queue" size={18} /></button>
             {items.some(item => item.authorNote) ? <button className={`tasteActionSound ${commentSound ? "active" : ""}`} type="button" onClick={() => setCommentSound(value => !value)} aria-label={commentSound ? (ru ? "Выключить звук комментариев" : "Mute comment cue") : (ru ? "Включить звук комментариев" : "Enable comment cue")}><Icon name={commentSound ? "volume" : "volumeOff"} size={18} /></button> : null}
             <button className="tasteActionClose" type="button" onClick={closeQueue} aria-label={ru ? "Закрыть плеер" : "Close player"}><Icon name="close" size={18} /></button>
