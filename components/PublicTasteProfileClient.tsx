@@ -109,7 +109,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const searchParams = useSearchParams();
   const { locale, t } = useI18n();
   const { showToast } = useToast();
-  const { playQueue, activeItemId } = useTastePlayback();
+  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
   const snapshot = useMemo(() => decodeSnapshot(searchParams.get("snapshot")), [searchParams]);
   const requestedEventId = searchParams.get("event");
   const demoProfile = useMemo(() => snapshot ? profileFromSnapshot(snapshot) : (seededTasteProfiles[handle] ?? fallbackProfile(handle)), [handle, snapshot]);
@@ -118,7 +118,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const [serverProfile, setServerProfile] = useState<ServerProfile | null>(null);
   const [serverEvents, setServerEvents] = useState<ServerEvent[]>([]);
   const [weeklyHistory, setWeeklyHistory] = useState<ServerWeeklyTrack[]>([]);
-  const [selectedId, setSelectedId] = useState("");
   const [following, setFollowing] = useState(false);
   const [connected, setConnected] = useState(false);
   const [connectionType, setConnectionType] = useState<"followers" | "following" | null>(null);
@@ -139,7 +138,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         setServerProfile(data.profile);
         setServerEvents(data.events);
         setWeeklyHistory(data.weeklyHistory || []);
-        setSelectedId(current => data.events.some(event => event.id === requestedEventId) ? requestedEventId! : data.weeklyHistory.some(item => item.eventId === current) ? current : data.weeklyHistory[0]?.eventId || data.events[0]?.id || "");
         setFollowing(data.profile.viewerFollows);
         setState("ready");
         return;
@@ -148,7 +146,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         setServerProfile(null);
         setServerEvents([]);
         setWeeklyHistory([]);
-        setSelectedId(current => demoProfile.events.some(event => event.id === current) ? current : demoProfile.events[0]?.id || "");
         setFollowing(readFollowingProfiles().includes(demoProfile.handle));
         setState("ready");
         return;
@@ -157,13 +154,20 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
     } catch {
       if (hasKnownDemo) {
         setServerProfile(null);
-        setSelectedId(demoProfile.events[0]?.id || "");
         setState("ready");
       } else setState("error");
     }
-  }, [demoProfile, handle, hasKnownDemo, requestedEventId]);
+  }, [demoProfile, handle, hasKnownDemo]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    if (state !== "ready" || !requestedEventId) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelector(`[data-public-event="${CSS.escape(requestedEventId)}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [requestedEventId, state]);
 
   useEffect(() => {
     if (!serverProfile?.handle || serverProfile.handle === handle) return;
@@ -171,11 +175,8 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   }, [handle, serverProfile?.handle]);
 
   const isReal = Boolean(serverProfile);
-  const selectedServerEvent = serverEvents.find(event => event.id === selectedId) || serverEvents[0];
-  const selectedDemoEvent = demoProfile.events.find(event => event.id === selectedId) || demoProfile.events[0];
   const profileName = serverProfile?.name || demoProfile.name;
   const profileHandle = serverProfile?.handle || demoProfile.handle;
-  const selectedTrack = selectedServerEvent?.track || selectedDemoEvent?.track;
   const demoRu = locale === "ru" ? {
     role: handle === "maya" ? "Диджей и селектор" : "Продуктовый куратор вкуса",
     bio: handle === "maya"
@@ -206,9 +207,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
       maya_ev_likehim: "52 мин назад",
     } as Record<string, string>,
   } : null;
-  const selectedAuthorNote = isReal
-    ? selectedServerEvent?.authorNote || null
-    : selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null;
   const demoWeeklyHistory = useMemo(() => demoProfile.events.map((event, index) => ({
     eventId: event.id,
     track: event.track,
@@ -321,16 +319,18 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
               const demoEvent = !isReal ? demoProfile.events.find(event => event.id === demoItem!.eventId)! : null;
               const track = realItem?.track || demoItem!.track;
               const eventId = realItem?.eventId || demoItem!.eventId;
-              const active = eventId === selectedId;
+              const queueId = `profile_queue_${eventId}`;
+              const active = activeItemId === queueId;
+              const playing = active && !paused;
               const authorNote = isReal
                 ? serverEvents.find(event => event.id === eventId)?.authorNote
                 : demoRu?.notes[demoEvent!.id] || demoEvent!.authorComment;
               return (
-                <button className={`${active ? "active" : ""} ${activeItemId === `profile_queue_${eventId}` ? "playing" : ""}`} type="button" key={eventId} onClick={() => { setSelectedId(eventId); playQueue(profileQueue, index); }}>
+                <button className={`${active ? "playing" : ""} ${requestedEventId === eventId && !active ? "requested" : ""}`} data-public-event={eventId} type="button" key={eventId} onClick={() => active ? togglePlayback() : playQueue(profileQueue, index)}>
                   <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="spxPublicTrackCover" />
                   <span><strong>{track.title}</strong><small>{track.artist}</small><em>{realItem ? `${returnSignal(realItem.previousPlayedAt, realItem.lastPlayedAt, locale) || (realItem.playCount > 1 ? (locale === "ru" ? "На повторе" : "On repeat") : (locale === "ru" ? "Одно прослушивание" : "Played once"))} · ${formatPlayedAt(realItem.lastPlayedAt, locale)}` : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>{authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{locale === "ru" ? "Комментарий" : "Note"}</i> : null}</span>
                   <b>{realItem?.playCount ?? demoItem!.playCount}<small>{locale === "ru" ? russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount) : "plays"}</small></b>
-                  <Icon name="play" size={15} />
+                  <Icon name={playing ? "pause" : "play"} size={15} />
                 </button>
               );
             })}
@@ -338,12 +338,6 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
           </div>
         </div>
 
-        {selectedTrack ? (
-          <aside className="spxPublicPlayer">
-            <div className="spxPublicPlayerHead"><div><small>{isReal ? t("common.spotifyData") : t("common.demoData")}</small><h2>{selectedTrack.title}</h2><p>{selectedTrack.artist}</p></div><a href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a></div>
-            {selectedAuthorNote ? <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedAuthorNote}</p></div> : null}
-          </aside>
-        ) : null}
       </section>
       <p className="spxPublicDisclosure"><Icon name="info" size={13} />{isReal ? t("profile.source") : t("common.demoData")}</p>
       <ConnectionsDialog

@@ -724,11 +724,15 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           </div> : null}
 
           <div className="tasteQueueArtworkWrap">
-            <TrackArtwork src={current.track.coverUrl} fallbackSrc={current.track.fallbackCoverUrl} alt={`${current.track.title} cover`} className="tasteQueueArtwork" />
+            <a className="tasteQueueTrackLink tasteQueueArtworkLink" href={current.track.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? `Открыть ${current.track.title} в Spotify` : `Open ${current.track.title} on Spotify`}>
+              <TrackArtwork src={current.track.coverUrl} fallbackSrc={current.track.fallbackCoverUrl} alt={`${current.track.title} cover`} className="tasteQueueArtwork" />
+            </a>
           </div>
           <div className="tasteQueueNowPlaying">
-            <strong>{current.track.title}</strong>
-            <span className="tasteQueueArtist">{current.track.artist}</span>
+            <a className="tasteQueueTrackLink tasteQueueMetaLink" href={current.track.spotifyUrl} target="_blank" rel="noreferrer">
+              <strong>{current.track.title}</strong>
+              <span className="tasteQueueArtist">{current.track.artist}</span>
+            </a>
           </div>
           <div className="tasteQueueSource"><AvatarImage src={current.tastemaker.avatarUrl} fallbackSrc={current.tastemaker.fallbackAvatarUrl} alt="" /><span><small>{ru ? "По рекомендации" : "Recommended by"}</small><b>{current.tastemaker.name}</b></span><em>{current.signal}</em></div>
 

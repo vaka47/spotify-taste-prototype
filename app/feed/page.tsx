@@ -48,7 +48,7 @@ function returnSignal(previous: string | null, latest: string, ru: boolean) {
 }
 
 function LiveFeedCard({ event, ru, queue, queueIndex }: { event: LiveFeedEvent; ru: boolean; queue: TasteQueueItem[]; queueIndex: number }) {
-  const { playQueue, activeItemId } = useTastePlayback();
+  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
   const signal = event.authorNote
     ? (ru ? "Рекомендует с комментарием" : "Recommended with a note")
     : returnSignal(event.previousPlayedAt, event.playedAt, ru)
@@ -57,9 +57,10 @@ function LiveFeedCard({ event, ru, queue, queueIndex }: { event: LiveFeedEvent; 
       ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
       : (ru ? "Опубликовано в Taste" : "Shared to Taste");
 
-  const playTrack = () => playQueue(queue, queueIndex);
+  const active = activeItemId === `feed_queue_${event.id}`;
+  const playTrack = () => active ? togglePlayback() : playQueue(queue, queueIndex);
   return (
-    <article className={`spxFeedEvent ${activeItemId === `feed_queue_${event.id}` ? "playing" : ""}`}>
+    <article className={`spxFeedEvent ${active ? "playing" : ""}`}>
       <div className="spxFeedEventMain">
       <Link className="spxFeedAvatar" href={`/taste/${event.profile.handle}?event=${event.id}`}><AvatarImage src={event.profile.avatarUrl || ""} alt={event.profile.name} /></Link>
       <span className="spxFeedEventCopy">
@@ -70,7 +71,7 @@ function LiveFeedCard({ event, ru, queue, queueIndex }: { event: LiveFeedEvent; 
       <button className="spxFeedCoverButton" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="spxFeedCover" /></button>
       <button className="spxFeedSignal" type="button" onClick={playTrack}><Icon name={event.authorNote ? "comment" : "feed"} size={17} />{signal}</button>
       </div>
-      <button className="spxFeedMore" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><Icon name="play" size={17} /></button>
+      <button className="spxFeedMore" type="button" onClick={playTrack} aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
     </article>
   );
 }

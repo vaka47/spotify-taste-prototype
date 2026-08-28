@@ -12,7 +12,7 @@ import { useTastePlayback } from "@/components/TasteQueuePlayer";
 import type { TasteQueueItem } from "@/types/taste";
 
 export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEvent; queue: TasteQueueItem[]; queueIndex: number }) {
-  const { playQueue, activeItemId } = useTastePlayback();
+  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
   const { locale } = useI18n();
   const ru = locale === "ru";
   const localizedNote = ru && event.authorNote === "Listen for the switch in the second half."
@@ -40,12 +40,14 @@ export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEv
 
   function playTrack() {
     recordTrackOpen(event.tastemaker.id, event.track.id);
-    playQueue(queue, queueIndex);
+    if (activeItemId === `feed_queue_${event.id}`) togglePlayback();
+    else playQueue(queue, queueIndex);
   }
+  const active = activeItemId === `feed_queue_${event.id}`;
   const profileHref = event.tastemaker.slug === "travis-scott" ? "/tastemaker/travis-scott" : event.tastemaker.spotifyUrl || "/feed";
 
   return (
-    <article className={`spxFeedEvent ${activeItemId === `feed_queue_${event.id}` ? "playing" : ""}`}>
+    <article className={`spxFeedEvent ${active ? "playing" : ""}`}>
       <div className="spxFeedEventMain">
         <Link className="spxFeedAvatar" href={profileHref} target={profileHref.startsWith("http") ? "_blank" : undefined}>
           <AvatarImage src={event.tastemaker.avatarUrl} fallbackSrc={event.tastemaker.fallbackAvatarUrl} alt={event.tastemaker.name} />
@@ -58,7 +60,7 @@ export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEv
         <button className="spxFeedCoverButton" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><TrackArtwork src={event.track.coverUrl} fallbackSrc={event.track.fallbackCoverUrl} alt={`${event.track.title} cover`} className="spxFeedCover" /></button>
         <button className="spxFeedSignal" type="button" onClick={playTrack}><Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />{signals?.[event.kind] || event.humanSignal}</button>
       </div>
-      <button className="spxFeedMore" type="button" aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`} onClick={playTrack}><Icon name="play" size={17} /></button>
+      <button className="spxFeedMore" type="button" aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)} onClick={playTrack}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
     </article>
   );
 }

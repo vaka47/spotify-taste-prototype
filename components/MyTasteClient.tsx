@@ -115,7 +115,7 @@ function SkeletonRows() {
 export function MyTasteClient() {
   const { locale, t } = useI18n();
   const { showToast } = useToast();
-  const { playQueue, activeItemId } = useTastePlayback();
+  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
   const searchParams = useSearchParams();
   const [state, setState] = useState<ViewState>("loading");
   const [configured, setConfigured] = useState(true);
@@ -337,7 +337,7 @@ export function MyTasteClient() {
             <div className="spxSectionHeading"><h2>{locale === "ru" ? "История за неделю" : "This week's listening"}</h2><span>{locale === "ru" ? "По повторам и популярности" : "By repeats, then popularity"}</span></div>
             {weeklyHistory.length ? <div className="spxOwnerHistory">{weeklyHistory.map((item, index) => {
               const active = activeItemId === `owner_queue_${item.eventId}`;
-              return <button className={active ? "playing" : ""} type="button" onClick={() => playQueue(ownerQueue, index)} key={item.track.id}><span>{index + 1}</span><TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="spxOwnerTrackCover" /><span><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{weeklyBehavior(item, locale)} · {formatDate(item.lastPlayedAt, locale)}</em></span><b>{item.playCount}<small>{locale === "ru" ? "прослушиваний" : "plays"}</small></b><Icon name={active ? "volume" : "play"} size={16} /></button>;
+              return <button className={active ? "playing" : ""} type="button" onClick={() => active ? togglePlayback() : playQueue(ownerQueue, index)} key={item.track.id}><span>{index + 1}</span><TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="spxOwnerTrackCover" /><span><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{weeklyBehavior(item, locale)} · {formatDate(item.lastPlayedAt, locale)}</em></span><b>{item.playCount}<small>{locale === "ru" ? "прослушиваний" : "plays"}</small></b><Icon name={active && !paused ? "pause" : "play"} size={16} /></button>;
             })}</div> : <div className="spxFeedEmpty">{t("my.empty")}</div>}
           </section> : null}
 

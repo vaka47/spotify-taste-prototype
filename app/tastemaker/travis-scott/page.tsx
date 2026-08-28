@@ -47,7 +47,7 @@ function signalLabel(kind: WeeklyTrackSignal["kind"], ru: boolean) {
 }
 
 export default function TravisTastePage() {
-  const { playQueue, activeItemId } = useTastePlayback();
+  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
   const { following, toggle } = useFollowingTaste(travis.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
@@ -66,7 +66,9 @@ export default function TravisTastePage() {
 
   function openTrack(item: WeeklyTrackSignal) {
     recordTrackOpen(travis.id, item.track.id);
-    playQueue(tasteQueue, Math.max(0, tasteQueue.findIndex(queueItem => queueItem.track.id === item.track.id)));
+    const queueId = `travis_queue_${item.track.id}`;
+    if (activeItemId === queueId) togglePlayback();
+    else playQueue(tasteQueue, Math.max(0, tasteQueue.findIndex(queueItem => queueItem.track.id === item.track.id)));
   }
 
   function toggleDiscussion(item: WeeklyTrackSignal) {
@@ -139,17 +141,16 @@ export default function TravisTastePage() {
                       <span className="spxTrackIndex">{index + 1}</span>
                       <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxRepeatCover" />
                       <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{signalLabel(item.kind, ru)} · {localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em>{item.authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{ru ? "Комментарий Трэвиса" : "Travis note"}</i> : null}</span>
-                      <span className="spxRepeatPlay"><Icon name="play" size={17} /></span>
+                      <span className="spxRepeatPlay"><Icon name={activeItemId === `travis_queue_${item.track.id}` && !paused ? "pause" : "play"} size={17} /></span>
                     </button>
-                    <button className={`spxRowComment ${item.authorNote ? "hasNote" : ""} ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Комментарий Трэвиса к ${item.track.title}` : `Travis's note on ${item.track.title}`}><Icon name="comment" size={17} /></button>
-                    <a className="spxRowMore" href={item.track.spotifyUrl} target="_blank" rel="noreferrer" aria-label={ru ? "Открыть в Spotify" : "Open in Spotify"}><Icon name="more" size={18} /></a>
+                    {item.authorNote ? <button className={`spxRowComment hasNote ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Комментарий Трэвиса к ${item.track.title}` : `Travis's note on ${item.track.title}`}><Icon name="comment" size={17} /></button> : null}
                   </article>
                 ))}
               </div>
               {discussion ? (
                 <div className="spxDiscussion" data-artist-discussion>
                   <div className="spxDiscussionHead"><TrackArtwork src={discussion.track.coverUrl} fallbackSrc={discussion.track.fallbackCoverUrl} alt="" className="spxDiscussionCover" /><span><strong>{discussion.track.title}</strong><small>{discussion.track.artist}</small></span><button type="button" onClick={() => setDiscussion(null)} aria-label={ru ? "Закрыть" : "Close"}><Icon name="close" size={18} /></button></div>
-                  <blockquote><strong>{travis.name}</strong><p>{discussion.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : discussion.authorNote) : (ru ? "Возвращался к этому треку несколько раз за неделю." : "Kept returning to this track throughout the week.")}</p></blockquote>
+                  <blockquote><strong>{travis.name}</strong><p>{ru ? "Обратите внимание на переход во второй половине." : discussion.authorNote}</p></blockquote>
                 </div>
               ) : null}
             </section>

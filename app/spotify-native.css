@@ -504,7 +504,7 @@ a.spxFeedEvent {
 .spxRepeatList { border-top: 1px solid var(--spx-line); }
 .spxRepeatRow { position: relative; min-width: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); }
 .spxRepeatRow:hover { background: rgba(255, 255, 255, .05); }
-.spxRepeatMain { display: grid; width: 100%; min-width: 0; grid-template-columns: 28px 54px minmax(0, 1fr) 34px; align-items: center; gap: 12px; border: 0; background: transparent; padding: 9px 92px 9px 8px; color: #fff; text-align: left; }
+.spxRepeatMain { display: grid; width: 100%; min-width: 0; grid-template-columns: 28px 54px minmax(0, 1fr) 34px; align-items: center; gap: 12px; border: 0; background: transparent; padding: 9px 50px 9px 8px; color: #fff; text-align: left; }
 .spxTrackIndex { color: #898989; font-size: 13px; text-align: center; }
 .spxRepeatCover { width: 54px; height: 54px; border-radius: 4px; object-fit: cover; }
 .spxRepeatCopy { display: grid; min-width: 0; gap: 3px; }
@@ -515,14 +515,12 @@ a.spxFeedEvent {
 .spxRepeatCopy small { color: var(--spx-subtext); font-size: 12px; }
 .spxRepeatCopy em { color: var(--spx-green); font-size: 11px; font-style: normal; }
 .spxRepeatPlay { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; color: #fff; opacity: 0; }
-.spxRepeatRow:hover .spxRepeatPlay { opacity: 1; }
-.spxRowComment,
-.spxRowMore { position: absolute; top: 50%; display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #a9a9a9; transform: translateY(-50%); }
-.spxRowComment { right: 48px; }
-.spxRowMore { right: 8px; }
+.spxRepeatRow:hover .spxRepeatPlay,
+.spxRepeatRow.playing .spxRepeatPlay { opacity: 1; }
+.spxRepeatRow.playing .spxRepeatPlay { color: var(--spx-green); }
+.spxRowComment { position: absolute; top: 50%; right: 8px; display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #a9a9a9; transform: translateY(-50%); }
 .spxRowComment:hover,
-.spxRowComment.active,
-.spxRowMore:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+.spxRowComment.active { background: rgba(255, 255, 255, .08); color: #fff; }
 
 .spxDiscussion { display: grid; gap: 14px; margin: 12px 0 18px; border: 1px solid var(--spx-line); border-radius: 8px; background: #181818; padding: 16px; }
 .spxDiscussionHead { display: grid; grid-template-columns: 44px minmax(0, 1fr) 34px; align-items: center; gap: 10px; }
@@ -938,11 +936,12 @@ a.spxFeedEvent {
 .spxPublicStats strong { font-size: 25px; white-space: nowrap; }
 .spxPublicStats span { color: var(--spx-subtext); font-size: 10px; }
 
-.spxPublicGrid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(330px, .95fr); align-items: start; gap: 18px; margin-top: 28px; }
+.spxPublicGrid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; margin-top: 28px; }
+.spxPublicHistory { min-width: 0; }
 .spxPublicList { border-top: 1px solid var(--spx-line); }
 .spxPublicList > button { display: grid; width: 100%; min-width: 0; grid-template-columns: 52px minmax(0, 1fr) 58px 26px; align-items: center; gap: 11px; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); background: transparent; padding: 9px 5px; color: #fff; text-align: left; }
-.spxPublicList > button:hover,
-.spxPublicList > button.active { background: rgba(255, 255, 255, .06); }
+.spxPublicList > button:hover { background: rgba(255, 255, 255, .06); }
+.spxPublicList > button.requested { background: rgba(255, 255, 255, .04); box-shadow: inset 2px 0 #8a8a8a; }
 .spxPublicTrackCover { width: 52px; height: 52px; border-radius: 4px; object-fit: cover; }
 .spxPublicList > button > span { display: grid; min-width: 0; gap: 3px; }
 .spxPublicList strong,
@@ -955,37 +954,11 @@ a.spxFeedEvent {
 .spxPublicList > button > b small { color: #898989; font-size: 8px; font-weight: 500; }
 .spxPublicList > button > svg { justify-self: end; color: var(--spx-green); }
 
-.spxPublicPlayer { position: sticky; top: 82px; display: grid; min-width: 0; gap: 14px; border: 1px solid var(--spx-line); border-radius: 8px; background: #181818; padding: 18px; }
-.spxPublicPlayerHead { display: grid; grid-template-columns: minmax(0, 1fr) 38px; align-items: start; gap: 12px; }
-.spxPublicPlayerHead > div { display: grid; min-width: 0; gap: 3px; }
-.spxPublicPlayerHead small { justify-self: start; border-radius: 999px; background: rgba(30, 215, 96, .12); padding: 4px 7px; color: var(--spx-green); font-size: 8px; font-weight: 800; }
-.spxPublicPlayerHead h2 { overflow: hidden; margin: 5px 0 0; font-size: 22px; text-overflow: ellipsis; white-space: nowrap; }
-.spxPublicPlayerHead p { overflow: hidden; margin: 0; color: var(--spx-subtext); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.spxPublicPlayerHead > a { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--spx-line); border-radius: 50%; color: #fff; }
-.spxPublicPlayer .spotifyEmbed iframe { display: block; width: 100%; height: 152px; border: 0; }
-.spxPublicSelectedPlay { display: inline-flex; width: fit-content; min-height: 36px; align-items: center; gap: 8px; border: 0; border-radius: 999px; background: #fff; padding: 0 16px; color: #000; font-size: 12px; font-weight: 800; }
-.spxPublicSelectedPlay:hover { transform: scale(1.02); }
 .spxTrackNoteIndicator { display: inline-flex; width: fit-content; align-items: center; gap: 5px; margin-top: 4px; color: var(--spx-green); font-size: 9px; font-style: normal; font-weight: 700; }
 .spxPublicList > button.playing,
 .spxRepeatRow.playing { background: rgba(30, 215, 96, .08); }
 .spxPublicList > button.playing { box-shadow: inset 2px 0 var(--spx-green); }
 .spxRowComment.hasNote { color: var(--spx-green); }
-.spxPublicNote { border-left: 2px solid var(--spx-green); background: rgba(30, 215, 96, .06); padding: 11px 12px; }
-.spxPublicNote > span { display: flex; align-items: center; gap: 7px; color: var(--spx-green); font-size: 10px; font-weight: 800; }
-.spxPublicNote p { margin: 7px 0 0; color: #d6d6d6; font-size: 12px; line-height: 1.45; }
-.spxPublicComposer { display: grid; grid-template-columns: minmax(0, 1fr) 38px; gap: 7px; }
-.spxPublicComposer input { min-width: 0; height: 38px; border: 1px solid #434343; border-radius: 999px; outline: 0; background: #222; padding: 0 14px; color: #fff; }
-.spxPublicComposer input:focus { border-color: #fff; }
-.spxPublicComposer button { display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 50%; background: var(--spx-green); padding: 0; color: #000; }
-.spxPublicComposer button:disabled { opacity: .45; }
-.spxPublicComposer > p { grid-column: 1 / -1; margin: 0; color: #8a8a8a; font-size: 9px; }
-.spxPublicComments { display: grid; gap: 8px; border-top: 1px solid var(--spx-line); padding-top: 13px; }
-.spxPublicComments > strong { color: var(--spx-subtext); font-size: 10px; }
-.spxPublicComments > div { display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: start; gap: 9px; border-radius: 6px; background: #222; padding: 9px; font-size: 10px; }
-.spxPublicComments > div.author { border-left: 2px solid var(--spx-green); }
-.spxPublicComments > div > span:last-child { display: grid; min-width: 0; gap: 3px; }
-.spxPublicComments > div small { color: #c8c8c8; font-size: 10px; line-height: 1.4; }
-.spxCommentAvatar { display: block; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; }
 .spxPublicDisclosure { display: flex; align-items: flex-start; gap: 7px; margin-top: 14px; color: #777; font-size: 9px; }
 
 /* Connections list */
@@ -1038,12 +1011,21 @@ a.spxFeedEvent {
 
 .tasteQueueArtworkWrap { position: relative; grid-area: art; width: 80px; height: 80px; }
 .tasteQueueArtwork { width: 80px; height: 80px; border-radius: 5px; object-fit: cover; }
+.tasteQueueTrackLink { min-width: 0; color: inherit; text-decoration: none; }
+.tasteQueueArtworkLink { display: block; width: 100%; height: 100%; border-radius: 5px; overflow: hidden; }
+.tasteQueueArtworkLink:hover .tasteQueueArtwork { filter: brightness(1.12); }
+.tasteQueueMetaLink { display: grid; gap: 2px; }
+.tasteQueueMetaLink:hover > strong { text-decoration: underline; }
 .tasteQueueComment { display: none; }
 .tasteQueueNowPlaying { display: grid; grid-area: now; min-width: 0; align-self: end; gap: 2px; }
 .tasteQueueNowPlaying > strong,
-.tasteQueueNowPlaying > .tasteQueueArtist { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tasteQueueNowPlaying > strong { color: #fff; font-size: 14px; line-height: 1.2; }
-.tasteQueueNowPlaying > .tasteQueueArtist { color: var(--spx-subtext); font-size: 11px; line-height: 1.25; }
+.tasteQueueNowPlaying > .tasteQueueArtist,
+.tasteQueueMetaLink > strong,
+.tasteQueueMetaLink > .tasteQueueArtist { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tasteQueueNowPlaying > strong,
+.tasteQueueMetaLink > strong { color: #fff; font-size: 14px; line-height: 1.2; }
+.tasteQueueNowPlaying > .tasteQueueArtist,
+.tasteQueueMetaLink > .tasteQueueArtist { color: var(--spx-subtext); font-size: 11px; line-height: 1.25; }
 .tasteQueueSource { display: flex; grid-area: source; min-width: 0; align-self: start; align-items: center; gap: 6px; }
 .tasteQueueSource > img,
 .tasteQueueSource > span:first-child { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; object-fit: cover; overflow: hidden; }
@@ -1232,7 +1214,6 @@ a.spxFeedEvent {
   .spxMyTastePage { width: min(900px, calc(100vw - var(--spx-sidebar) - 40px)); }
   .spxPublicPage { width: min(920px, calc(100vw - var(--spx-sidebar) - 40px)); }
   .spxPublicGrid { grid-template-columns: 1fr; }
-  .spxPublicPlayer { position: static; }
 
   .tasteQueueDock { left: calc(var(--spx-sidebar) + 10px); }
 
@@ -1482,11 +1463,10 @@ a.spxFeedEvent {
   .spxTastePlay { width: 40px; height: 40px; }
   .spxArtistSection { margin-top: 28px; }
   .spxSectionHeading h2 { font-size: 20px; }
-  .spxRepeatMain { grid-template-columns: 22px 50px minmax(0, 1fr); gap: 10px; padding: 9px 78px 9px 3px; }
+  .spxRepeatMain { grid-template-columns: 22px 50px minmax(0, 1fr) 30px; gap: 10px; padding: 9px 42px 9px 3px; }
   .spxRepeatCover { width: 50px; height: 50px; }
-  .spxRepeatPlay { display: none; }
-  .spxRowComment { right: 40px; }
-  .spxRowMore { right: 3px; }
+  .spxRepeatPlay { opacity: 1; }
+  .spxRowComment { right: 3px; }
   .spxDiscoveryShelf { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x proximity; }
   .spxDiscoveryShelf a,
   .spxDiscoveryShelf button { width: 132px; flex: 0 0 132px; scroll-snap-align: start; }
@@ -1514,7 +1494,7 @@ a.spxFeedEvent {
   .spxArtistTabs { gap: 22px; }
   .spxTasteIntroCopy { padding-inline: 0; }
   .spxTasteIntroCopy h2 { font-size: 21px; }
-  .spxRepeatMain { padding-right: 72px; }
+  .spxRepeatMain { padding-right: 42px; }
 
   .spxPlayerPage { padding-inline: 14px; }
   .spxPlayerTop { grid-template-columns: 38px minmax(0, 1fr) 38px; }
@@ -1562,10 +1542,8 @@ a.spxFeedEvent {
   .spxPublicStats > :not(:first-child) { align-items: baseline; border-right: 1px solid var(--spx-line); border-bottom: 1px solid var(--spx-line); padding: 12px 10px; }
   .spxPublicStats > :nth-child(2n) { border-right: 0; }
   .spxPublicStats > :nth-last-child(-n+2) { border-bottom: 0; }
-  .spxPublicList > button { grid-template-columns: 48px minmax(0, 1fr) 52px; }
+  .spxPublicList > button { grid-template-columns: 48px minmax(0, 1fr) 48px 24px; gap: 9px; }
   .spxPublicTrackCover { width: 48px; height: 48px; }
-  .spxPublicList > button > svg { display: none; }
-  .spxPublicPlayer { padding: 15px; }
 
   .tasteQueueDock { right: 6px; left: 6px; width: auto; max-width: none; }
 
