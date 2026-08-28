@@ -49,11 +49,15 @@ interface SpotifyWebPlayer {
   connect: () => Promise<boolean>;
   disconnect: () => void;
   activateElement: () => Promise<void>;
+  getCurrentState: () => Promise<SpotifyWebPlayerState | null>;
+  getVolume: () => Promise<number>;
+  setVolume: (volume: number) => Promise<void>;
   pause: () => Promise<void>;
   resume: () => Promise<void>;
   seek: (positionMs: number) => Promise<void>;
   addListener(event: "ready", callback: (event: { device_id: string }) => void): void;
   addListener(event: "player_state_changed", callback: (state: SpotifyWebPlayerState | null) => void): void;
+  addListener(event: "autoplay_failed", callback: () => void): void;
   addListener(event: "initialization_error" | "authentication_error" | "account_error" | "playback_error", callback: () => void): void;
 }
 
@@ -83,6 +87,8 @@ type RepeatMode = "off" | "all" | "one";
 type TastePlaybackContextValue = {
   playQueue: (items: TasteQueueItem[], startIndex?: number) => void;
   activeItemId: string | null;
+  paused: boolean;
+  togglePlayback: () => void;
 };
 
 const TastePlaybackContext = createContext<TastePlaybackContextValue | null>(null);
@@ -272,6 +278,27 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     setDurationMs(safeDuration);
   }
 
+  async function preparePremiumPlayer(player: SpotifyWebPlayer) {
+    await player.activateElement().catch(() => undefined);
+    const volume = await player.getVolume().catch(() => 0.8);
+    if (volume <= 0.01) await player.setVolume(0.8).catch(() => undefined);
+  }
+
+  async function startPremiumTrack(player: SpotifyWebPlayer, targetDeviceId: string, uri: string) {
+    await preparePremiumPlayer(player);
+    if (!await playOnSpotifyDeviceWithRetry(targetDeviceId, uri)) return false;
+
+    await new Promise(resolve => window.setTimeout(resolve, 700));
+    const state = await player.getCurrentState().catch(() => null);
+    const activeUri = state?.track_window?.current_track?.uri;
+    if (!state || state.paused || activeUri !== uri) {
+      await preparePremiumPlayer(player);
+      if (!await playOnSpotifyDeviceWithRetry(targetDeviceId, uri)) return false;
+      await player.resume().catch(() => undefined);
+    }
+    return true;
+  }
+
   function scheduleAutomaticAdvance(playingUri: string, position: number, duration: number, isPaused: boolean) {
     const active = itemsRef.current[indexRef.current];
     if (!active || playingUri !== active.track.spotifyUri || duration <= 0) {
@@ -311,8 +338,12 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     clearEndTimer();
     playbackClockRef.current = { position: 0, updatedAt: Date.now() };
     setPositionMs(0);
-    setPaused(false);
-    if (mode === "premium" && deviceId) void playOnSpotifyDevice(deviceId, active.track.spotifyUri);
+    setPaused(true);
+    if (mode === "premium" && deviceId && premiumPlayerRef.current) {
+      void startPremiumTrack(premiumPlayerRef.current, deviceId, active.track.spotifyUri).then(started => {
+        if (!started) setPaused(true);
+      });
+    }
     else {
       controllerRef.current?.loadEntity(active.track.spotifyUri);
       controllerRef.current?.play();
@@ -386,16 +417,8 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
         setDeviceId(device_id);
         setCapability("premium");
         if (openRef.current) {
-          const active = itemsRef.current[indexRef.current];
           setMode("premium");
-          setPaused(false);
-          if (active) void player?.activateElement().catch(() => undefined).then(async () => {
-            const started = await playOnSpotifyDeviceWithRetry(device_id, active.track.spotifyUri);
-            if (!started && !cancelled) {
-              setPaused(true);
-              showToast(ru ? "Нажмите Play, чтобы повторить запуск" : "Tap Play to retry playback");
-            }
-          });
+          setPaused(true);
         }
       });
       player.addListener("player_state_changed", state => {
@@ -431,6 +454,11 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
       player.addListener("authentication_error", requireAuthorization);
       player.addListener("account_error", fallbackToEmbed);
       player.addListener("playback_error", retainPremiumPlayer);
+      player.addListener("autoplay_failed", () => {
+        if (cancelled) return;
+        setPaused(true);
+        showToast(ru ? "Браузер остановил автозапуск. Нажмите Play" : "Your browser blocked autoplay. Tap Play");
+      });
       if (!await player.connect() && !cancelled) fallbackToEmbed();
     }).catch(() => {
       if (cancelled) return;
@@ -498,9 +526,15 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     clearEndTimer();
     playbackProgressRef.current = { uri: current.track.spotifyUri, position: 0, duration: 0 };
     cuePlayedRef.current = null;
+    setPaused(true);
     if (mode === "premium" && deviceId) {
-      void playOnSpotifyDeviceWithRetry(deviceId, current.track.spotifyUri).then(started => {
-        if (!started) setPaused(true);
+      const player = premiumPlayerRef.current;
+      if (!player) return;
+      void startPremiumTrack(player, deviceId, current.track.spotifyUri).then(started => {
+        if (!started) {
+          setPaused(true);
+          showToast(ru ? "Не удалось запустить трек. Нажмите Play ещё раз" : "Could not start the track. Tap Play to retry");
+        }
       });
     } else if (mode === "embed" && controllerRef.current) {
       controllerRef.current.loadEntity(current.track.spotifyUri);
@@ -546,18 +580,11 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     openRef.current = true;
     if (capability === "premium" && deviceId && premiumPlayerRef.current) {
       setMode("premium");
-      setPaused(false);
-      void premiumPlayerRef.current.activateElement().catch(() => undefined).then(async () => {
-        const started = await playOnSpotifyDeviceWithRetry(deviceId, nextItems[safeIndex].track.spotifyUri);
-        if (!started) {
-          setPaused(true);
-          showToast(ru ? "Нажмите Play, чтобы повторить запуск" : "Tap Play to retry playback");
-        }
-      });
+      setPaused(true);
+      void preparePremiumPlayer(premiumPlayerRef.current);
     } else if (capability === "embed") {
       setMode("embed");
-      controllerRef.current?.loadEntity(nextItems[safeIndex].track.spotifyUri);
-      controllerRef.current?.play();
+      setPaused(true);
     } else {
       setMode("pending");
       setPaused(true);
@@ -584,10 +611,10 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
       if (!player) return;
       if (paused) {
         playbackClockRef.current = { position: positionMs, updatedAt: Date.now() };
-        setPaused(false);
-        void player.activateElement().catch(() => undefined).then(async () => {
+        setPaused(true);
+        void preparePremiumPlayer(player).then(async () => {
           if (durationMs <= 0 && deviceId && current) {
-            const started = await playOnSpotifyDeviceWithRetry(deviceId, current.track.spotifyUri);
+            const started = await startPremiumTrack(player, deviceId, current.track.spotifyUri);
             if (!started) setPaused(true);
           } else await player.resume().catch(() => setPaused(true));
         });
@@ -666,7 +693,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   }
 
   // Do not memoize playQueue: its Premium capability and device are resolved asynchronously.
-  const contextValue = { playQueue, activeItemId: open && current ? current.id : null };
+  const contextValue = { playQueue, activeItemId: open && current ? current.id : null, paused, togglePlayback };
   const progressPercent = durationMs > 0 ? Math.min(100, Math.max(0, positionMs / durationMs * 100)) : 0;
   const progressStyle = { "--taste-progress": `${progressPercent}%` } as CSSProperties;
   const reaction = current ? reactions[current.id] || { reacted: Boolean(current.viewerReacted), count: current.reactionCount || 0 } : { reacted: false, count: 0 };
@@ -751,7 +778,11 @@ export function TasteQueuePlayer({
   iconOnly?: boolean;
   startIndex?: number;
 }) {
-  const { playQueue } = useTastePlayback();
+  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
   if (!items.length) return null;
-  return <button className={triggerClassName} type="button" onClick={() => playQueue(items, startIndex)} aria-label={triggerAriaLabel} title={triggerAriaLabel}><Icon name="play" size={iconOnly ? 25 : 18} />{!iconOnly ? <span>{triggerLabel}</span> : null}</button>;
+  const queueActive = items.some(item => item.id === activeItemId);
+  const isPlaying = queueActive && !paused;
+  const pauseLabel = triggerAriaLabel.startsWith("С") ? "Пауза" : "Pause";
+  const actionLabel = isPlaying ? pauseLabel : triggerAriaLabel;
+  return <button className={`${triggerClassName}${isPlaying ? " playing" : ""}`} type="button" onClick={() => queueActive ? togglePlayback() : playQueue(items, startIndex)} aria-label={actionLabel} title={actionLabel} aria-pressed={isPlaying}><Icon name={isPlaying ? "pause" : "play"} size={iconOnly ? 25 : 18} />{!iconOnly ? <span>{isPlaying ? pauseLabel : triggerLabel}</span> : null}</button>;
 }

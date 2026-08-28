@@ -6,9 +6,11 @@ import { useSearchParams } from "next/navigation";
 import { AvatarImage } from "@/components/AvatarImage";
 import { ConnectionsDialog } from "@/components/ConnectionsDialog";
 import { Icon } from "@/components/Icons";
+import { useTastePlayback } from "@/components/TasteQueuePlayer";
 import { TrackArtwork } from "@/components/TrackArtwork";
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n";
+import type { TasteQueueItem, TrackRef } from "@/types/taste";
 
 type SpotifyTrack = {
   id: string;
@@ -113,6 +115,7 @@ function SkeletonRows() {
 export function MyTasteClient() {
   const { locale, t } = useI18n();
   const { showToast } = useToast();
+  const { playQueue, activeItemId } = useTastePlayback();
   const searchParams = useSearchParams();
   const [state, setState] = useState<ViewState>("loading");
   const [configured, setConfigured] = useState(true);
@@ -262,6 +265,33 @@ export function MyTasteClient() {
   }
 
   const minutes7d = useMemo(() => Math.round(Number(user?.stats.duration_ms_7d || 0) / 60_000), [user]);
+  const ownerQueue = useMemo<TasteQueueItem[]>(() => {
+    if (!user) return [];
+    return weeklyHistory.map(item => {
+      const spotifyId = item.track.id;
+      const track: TrackRef = {
+        id: `spotify_track_${spotifyId}`,
+        slug: spotifyId,
+        spotifyId,
+        spotifyUri: `spotify:track:${spotifyId}`,
+        spotifyUrl: item.track.spotifyUrl,
+        spotifyEmbedUrl: item.track.spotifyEmbedUrl,
+        title: item.track.title,
+        artist: item.track.artist,
+        coverUrl: item.track.coverUrl || "",
+        origin: "spotify",
+      };
+      return {
+        id: `owner_queue_${item.eventId}`,
+        track,
+        tastemaker: { id: user.id, name: user.displayName, avatarUrl: user.avatarUrl || "" },
+        signal: locale === "ru" ? `${item.playCount} прослушиваний за неделю` : `${item.playCount} plays this week`,
+        authorNote: events.find(event => event.id === item.eventId)?.authorNote || null,
+        eventId: item.eventId,
+        canReact: false,
+      };
+    });
+  }, [events, locale, user, weeklyHistory]);
 
   return (
     <main className="spxMyTastePage">
@@ -305,7 +335,10 @@ export function MyTasteClient() {
 
           {activeTab === "listening" ? <section id="owner-panel-listening" className="spxOwnerSection" role="tabpanel" aria-labelledby="owner-tab-listening">
             <div className="spxSectionHeading"><h2>{locale === "ru" ? "История за неделю" : "This week's listening"}</h2><span>{locale === "ru" ? "По повторам и популярности" : "By repeats, then popularity"}</span></div>
-            {weeklyHistory.length ? <div className="spxOwnerHistory">{weeklyHistory.map((item, index) => <a href={item.track.spotifyUrl} target="_blank" rel="noreferrer" key={item.track.id}><span>{index + 1}</span><TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="spxOwnerTrackCover" /><span><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{weeklyBehavior(item, locale)} · {formatDate(item.lastPlayedAt, locale)}</em></span><b>{item.playCount}<small>{locale === "ru" ? "прослушиваний" : "plays"}</small></b><Icon name="external" size={16} /></a>)}</div> : <div className="spxFeedEmpty">{t("my.empty")}</div>}
+            {weeklyHistory.length ? <div className="spxOwnerHistory">{weeklyHistory.map((item, index) => {
+              const active = activeItemId === `owner_queue_${item.eventId}`;
+              return <button className={active ? "playing" : ""} type="button" onClick={() => playQueue(ownerQueue, index)} key={item.track.id}><span>{index + 1}</span><TrackArtwork src={item.track.coverUrl || ""} alt={`${item.track.title} cover`} className="spxOwnerTrackCover" /><span><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{weeklyBehavior(item, locale)} · {formatDate(item.lastPlayedAt, locale)}</em></span><b>{item.playCount}<small>{locale === "ru" ? "прослушиваний" : "plays"}</small></b><Icon name={active ? "volume" : "play"} size={16} /></button>;
+            })}</div> : <div className="spxFeedEmpty">{t("my.empty")}</div>}
           </section> : null}
 
           {activeTab === "shared" ? <section id="owner-panel-shared" className="spxOwnerSection" role="tabpanel" aria-labelledby="owner-tab-shared">
