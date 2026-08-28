@@ -1370,8 +1370,8 @@ a.spxFeedEvent {
     bottom: calc(72px + env(safe-area-inset-bottom));
     left: 8px;
     width: auto;
-    max-width: calc(100vw - 16px);
-    grid-template-columns: 56px minmax(0, 1fr) auto;
+    max-width: none;
+    grid-template-columns: 56px minmax(0, 1fr) max-content;
     grid-template-areas:
       "art now utilities"
       "source source source"
@@ -1381,6 +1381,7 @@ a.spxFeedEvent {
     padding: 9px;
     overflow: visible;
   }
+  .tasteQueueDock > * { min-width: 0; }
   .tasteQueueDock.premium {
     grid-template-areas:
       "art now utilities"
@@ -1408,14 +1409,15 @@ a.spxFeedEvent {
   .tasteQueueEmbed,
   .tasteQueueEmbed iframe,
   .tasteQueueEmbedController { min-height: 80px; height: 80px; }
-  .tasteQueueTransport { box-sizing: border-box; width: min(100%, 270px); max-width: 270px; justify-content: space-between; justify-self: center; gap: 4px; border-top: 1px solid var(--spx-line); padding-top: 9px; }
+  .tasteQueueTransport { box-sizing: border-box; width: min(270px, 100%); max-width: 100%; justify-content: space-between; justify-self: center; gap: 4px; border-top: 1px solid var(--spx-line); padding-top: 9px; }
   .tasteQueueUtilities { max-width: none; align-self: start; justify-self: end; gap: 0; }
   .tasteQueueUtilities .tasteActionSound { display: none; }
   .tasteQueueTransport button,
   .tasteQueueUtilities button { width: 30px; height: 30px; flex-basis: 30px; }
   .tasteQueueTransport .tasteQueuePremiumToggle { width: 44px; height: 44px; flex-basis: 44px; }
-  .tasteQueueProgress { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; grid-template-columns: 34px minmax(0, 1fr) 34px; justify-self: stretch; gap: 7px; overflow: visible; padding: 0 2px; }
-  .tasteQueueProgress input { display: block; box-sizing: border-box; width: 100%; min-width: 0; max-width: none; margin: 0; }
+  .tasteQueueProgress { display: flex; box-sizing: border-box; width: auto; max-width: 100%; min-width: 0; align-items: center; justify-self: stretch; gap: 7px; overflow: hidden; padding: 0 2px; }
+  .tasteQueueProgress span { min-width: 0; flex: 0 0 34px; }
+  .tasteQueueProgress input { display: block; box-sizing: border-box; width: 0; min-width: 0; max-width: 100%; flex: 1 1 0; margin: 0; }
   .tasteQueueListPanel { right: 0; left: 0; width: auto; max-height: min(390px, 44vh); }
   .tasteQueueListPanel ol { max-height: min(330px, 37vh); }
   .tasteQueuePanelControls { display: flex; }
@@ -1591,7 +1593,7 @@ a.spxFeedEvent {
   .spxPublicList > button > svg { display: none; }
   .spxPublicPlayer { padding: 15px; }
 
-  .tasteQueueDock { right: 6px; left: 6px; }
+  .tasteQueueDock { right: 6px; left: 6px; width: auto; max-width: none; }
 
   .nativePrivacyPage,
   .nativeNotificationsPage,

@@ -206,6 +206,9 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
       maya_ev_likehim: "52 мин назад",
     } as Record<string, string>,
   } : null;
+  const selectedAuthorNote = isReal
+    ? selectedServerEvent?.authorNote || null
+    : selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null;
   const demoWeeklyHistory = useMemo(() => demoProfile.events.map((event, index) => ({
     eventId: event.id,
     track: event.track,
@@ -338,7 +341,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         {selectedTrack ? (
           <aside className="spxPublicPlayer">
             <div className="spxPublicPlayerHead"><div><small>{isReal ? t("common.spotifyData") : t("common.demoData")}</small><h2>{selectedTrack.title}</h2><p>{selectedTrack.artist}</p></div><a href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a></div>
-            <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedServerEvent?.authorNote || (selectedDemoEvent ? demoRu?.notes[selectedDemoEvent.id] || selectedDemoEvent.authorComment : null) || t("profile.noNote")}</p></div>
+            <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedAuthorNote || t("profile.noNote")}</p></div>
           </aside>
         ) : null}
       </section>
