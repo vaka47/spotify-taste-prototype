@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { createContext, useContext, useEffect, useRef, useState, type CSSProperties } from "react";
 import { AvatarImage } from "@/components/AvatarImage";
 import { Icon } from "@/components/Icons";
@@ -87,6 +88,8 @@ type RepeatMode = "off" | "all" | "one";
 type TastePlaybackContextValue = {
   playQueue: (items: TasteQueueItem[], startIndex?: number) => void;
   activeItemId: string | null;
+  activeEventId: string | null;
+  activeTrackId: string | null;
   paused: boolean;
   togglePlayback: () => void;
 };
@@ -693,11 +696,20 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   }
 
   // Do not memoize playQueue: its Premium capability and device are resolved asynchronously.
-  const contextValue = { playQueue, activeItemId: open && current ? current.id : null, paused, togglePlayback };
+  const contextValue = {
+    playQueue,
+    activeItemId: open && current ? current.id : null,
+    activeEventId: open && current?.eventId ? current.eventId : null,
+    activeTrackId: open && current ? current.track.id : null,
+    paused,
+    togglePlayback,
+  };
   const progressPercent = durationMs > 0 ? Math.min(100, Math.max(0, positionMs / durationMs * 100)) : 0;
   const progressStyle = { "--taste-progress": `${progressPercent}%` } as CSSProperties;
   const reaction = current ? reactions[current.id] || { reacted: Boolean(current.viewerReacted), count: current.reactionCount || 0 } : { reacted: false, count: 0 };
   const controlsPending = mode === "pending";
+  const profileHref = current?.profileHref;
+  const profileExternal = Boolean(profileHref?.startsWith("http"));
 
   return (
     <TastePlaybackContext.Provider value={contextValue}>
@@ -734,7 +746,26 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
               <span className="tasteQueueArtist">{current.track.artist}</span>
             </a>
           </div>
-          <div className="tasteQueueSource"><AvatarImage src={current.tastemaker.avatarUrl} fallbackSrc={current.tastemaker.fallbackAvatarUrl} alt="" /><span><small>{ru ? "По рекомендации" : "Recommended by"}</small><b>{current.tastemaker.name}</b></span><em>{current.signal}</em></div>
+          <div className="tasteQueueSource">
+            {profileHref ? (
+              <Link
+                className="tasteQueueSourceLink"
+                href={profileHref}
+                target={profileExternal ? "_blank" : undefined}
+                rel={profileExternal ? "noreferrer" : undefined}
+                aria-label={ru ? `Открыть профиль ${current.tastemaker.name} у текущего трека` : `Open ${current.tastemaker.name}'s profile at the current track`}
+              >
+                <AvatarImage src={current.tastemaker.avatarUrl} fallbackSrc={current.tastemaker.fallbackAvatarUrl} alt="" />
+                <span><small>{ru ? "По рекомендации" : "Recommended by"}</small><b>{current.tastemaker.name}</b></span>
+              </Link>
+            ) : (
+              <span className="tasteQueueSourceLink tasteQueueSourceStatic">
+                <AvatarImage src={current.tastemaker.avatarUrl} fallbackSrc={current.tastemaker.fallbackAvatarUrl} alt="" />
+                <span><small>{ru ? "По рекомендации" : "Recommended by"}</small><b>{current.tastemaker.name}</b></span>
+              </span>
+            )}
+            <em>{current.signal}</em>
+          </div>
 
           {mode === "embed" ? <div className={`tasteQueueEmbed ${controllerReady ? "ready" : ""}`}>
             <div className="tasteQueueEmbedController" ref={embedTargetRef} />
@@ -782,9 +813,11 @@ export function TasteQueuePlayer({
   iconOnly?: boolean;
   startIndex?: number;
 }) {
-  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
+  const { playQueue, activeItemId, activeEventId, activeTrackId, paused, togglePlayback } = useTastePlayback();
   if (!items.length) return null;
-  const queueActive = items.some(item => item.id === activeItemId);
+  const queueActive = items.some(item => item.id === activeItemId
+    || Boolean(item.eventId && item.eventId === activeEventId)
+    || item.track.id === activeTrackId);
   const isPlaying = queueActive && !paused;
   const pauseLabel = triggerAriaLabel.startsWith("С") ? "Пауза" : "Pause";
   const actionLabel = isPlaying ? pauseLabel : triggerAriaLabel;

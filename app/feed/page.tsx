@@ -48,7 +48,7 @@ function returnSignal(previous: string | null, latest: string, ru: boolean) {
 }
 
 function LiveFeedCard({ event, ru, queue, queueIndex }: { event: LiveFeedEvent; ru: boolean; queue: TasteQueueItem[]; queueIndex: number }) {
-  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
+  const { playQueue, activeItemId, activeEventId, activeTrackId, paused, togglePlayback } = useTastePlayback();
   const signal = event.authorNote
     ? (ru ? "Рекомендует с комментарием" : "Recommended with a note")
     : returnSignal(event.previousPlayedAt, event.playedAt, ru)
@@ -57,7 +57,9 @@ function LiveFeedCard({ event, ru, queue, queueIndex }: { event: LiveFeedEvent; 
       ? (ru ? `${event.repeatCount} прослушиваний за неделю` : `${event.repeatCount} plays this week`)
       : (ru ? "Опубликовано в Taste" : "Shared to Taste");
 
-  const active = activeItemId === `feed_queue_${event.id}`;
+  const active = activeItemId === `feed_queue_${event.id}`
+    || activeEventId === event.id
+    || activeTrackId === `spotify_track_${event.track.id}`;
   const playTrack = () => active ? togglePlayback() : playQueue(queue, queueIndex);
   return (
     <article className={`spxFeedEvent ${active ? "playing" : ""}`}>
@@ -126,6 +128,7 @@ export default function FeedPage() {
         id: `feed_queue_${event.id}`,
         track,
         tastemaker: { id: event.profile.handle, name: event.profile.name, avatarUrl: event.profile.avatarUrl || "" },
+        profileHref: `/taste/${encodeURIComponent(event.profile.handle)}?event=${encodeURIComponent(event.id)}`,
         signal: event.authorNote
           ? (ru ? "Опубликовано с личным комментарием" : "Shared with a personal note")
           : returnSignal(event.previousPlayedAt, event.playedAt, ru)
@@ -144,6 +147,9 @@ export default function FeedPage() {
       id: `feed_queue_${event.id}`,
       track: event.track,
       tastemaker: event.tastemaker,
+      profileHref: event.tastemaker.slug === "travis-scott"
+        ? `/tastemaker/travis-scott?track=${encodeURIComponent(event.track.id)}`
+        : event.tastemaker.spotifyUrl,
       signal: ru
         ? event.kind === "recommended" ? "Личная рекомендация" : event.kind === "on_repeat" ? "На повторе всю неделю" : event.kind === "saved_discovery" ? "Новое сохранение" : "Снова вернулся к треку"
         : event.humanSignal,

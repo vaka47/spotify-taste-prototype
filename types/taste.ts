@@ -47,6 +47,7 @@ export type TasteQueueItem = {
   id: string;
   track: TrackRef;
   tastemaker: Pick<Tastemaker, "id" | "name" | "avatarUrl" | "fallbackAvatarUrl">;
+  profileHref?: string;
   signal: string;
   authorNote?: string | null;
   eventId?: string;

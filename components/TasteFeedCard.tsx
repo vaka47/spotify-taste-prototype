@@ -12,7 +12,7 @@ import { useTastePlayback } from "@/components/TasteQueuePlayer";
 import type { TasteQueueItem } from "@/types/taste";
 
 export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEvent; queue: TasteQueueItem[]; queueIndex: number }) {
-  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
+  const { playQueue, activeItemId, activeTrackId, paused, togglePlayback } = useTastePlayback();
   const { locale } = useI18n();
   const ru = locale === "ru";
   const localizedNote = ru && event.authorNote === "Listen for the switch in the second half."
@@ -40,11 +40,13 @@ export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEv
 
   function playTrack() {
     recordTrackOpen(event.tastemaker.id, event.track.id);
-    if (activeItemId === `feed_queue_${event.id}`) togglePlayback();
+    if (activeItemId === `feed_queue_${event.id}` || activeTrackId === event.track.id) togglePlayback();
     else playQueue(queue, queueIndex);
   }
-  const active = activeItemId === `feed_queue_${event.id}`;
-  const profileHref = event.tastemaker.slug === "travis-scott" ? "/tastemaker/travis-scott" : event.tastemaker.spotifyUrl || "/feed";
+  const active = activeItemId === `feed_queue_${event.id}` || activeTrackId === event.track.id;
+  const profileHref = event.tastemaker.slug === "travis-scott"
+    ? `/tastemaker/travis-scott?track=${encodeURIComponent(event.track.id)}`
+    : event.tastemaker.spotifyUrl || "/feed";
 
   return (
     <article className={`spxFeedEvent ${active ? "playing" : ""}`}>

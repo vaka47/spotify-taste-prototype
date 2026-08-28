@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/Icons";
 import { ConnectionsDialog } from "@/components/ConnectionsDialog";
 import { SpotifyEmbed } from "@/components/SpotifyEmbed";
@@ -47,7 +48,8 @@ function signalLabel(kind: WeeklyTrackSignal["kind"], ru: boolean) {
 }
 
 export default function TravisTastePage() {
-  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
+  const searchParams = useSearchParams();
+  const { playQueue, activeItemId, activeTrackId, paused, togglePlayback } = useTastePlayback();
   const { following, toggle } = useFollowingTaste(travis.id);
   const { showToast } = useToast();
   const { locale } = useI18n();
@@ -56,6 +58,7 @@ export default function TravisTastePage() {
   const [showAll, setShowAll] = useState(false);
   const [discussion, setDiscussion] = useState<WeeklyTrackSignal | null>(null);
   const [followersOpen, setFollowersOpen] = useState(false);
+  const requestedTrackId = searchParams.get("track");
 
   function toggleFollow() {
     toggle();
@@ -67,7 +70,7 @@ export default function TravisTastePage() {
   function openTrack(item: WeeklyTrackSignal) {
     recordTrackOpen(travis.id, item.track.id);
     const queueId = `travis_queue_${item.track.id}`;
-    if (activeItemId === queueId) togglePlayback();
+    if (activeItemId === queueId || activeTrackId === item.track.id) togglePlayback();
     else playQueue(tasteQueue, Math.max(0, tasteQueue.findIndex(queueItem => queueItem.track.id === item.track.id)));
   }
 
@@ -81,6 +84,19 @@ export default function TravisTastePage() {
     return () => window.cancelAnimationFrame(frame);
   }, [discussion]);
 
+  useEffect(() => {
+    if (!requestedTrackId) return;
+    setActiveTab("taste");
+    if (!showAll) {
+      setShowAll(true);
+      return;
+    }
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelector(`[data-artist-track="${CSS.escape(requestedTrackId)}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [requestedTrackId, showAll]);
+
   const tabLabels: Record<ArtistTab, string> = ru
     ? { music: "Музыка", events: "Концерты", merch: "Мерч", taste: "Taste" }
     : { music: "Music", events: "Events", merch: "Merch", taste: "Taste" };
@@ -88,6 +104,7 @@ export default function TravisTastePage() {
     id: `travis_queue_${item.track.id}`,
     track: item.track,
     tastemaker: travis,
+    profileHref: `/tastemaker/travis-scott?track=${encodeURIComponent(item.track.id)}`,
     signal: ru ? `${item.plays} ${repeatWord(item.plays)} за неделю · ${signalLabel(item.kind, true)}` : `${item.plays} plays this week · ${signalLabel(item.kind, false)}`,
     authorNote: item.authorNote ? (ru ? "Обратите внимание на переход во второй половине." : item.authorNote) : null,
     canReact: true,
@@ -96,6 +113,7 @@ export default function TravisTastePage() {
     id: `travis_discovery_${item.track.id}`,
     track: item.track,
     tastemaker: travis,
+    profileHref: `/tastemaker/travis-scott?track=${encodeURIComponent(item.track.id)}`,
     signal: ru ? "Недавнее открытие Трэвиса" : "Recently discovered by Travis",
     authorNote: null,
   }));
@@ -136,12 +154,12 @@ export default function TravisTastePage() {
               <div className="spxSectionHeading"><h2>{ru ? "На повторе на этой неделе" : "On Repeat This Week"}</h2><button type="button" onClick={() => setShowAll(value => !value)}>{showAll ? (ru ? "Свернуть" : "Show less") : (ru ? "Все 8 треков" : "See all 8")}</button></div>
               <div className="spxRepeatList">
                 {weeklyRows.map((item, index) => (
-                  <article className={`${activeItemId === `travis_queue_${item.track.id}` ? "spxRepeatRow playing" : "spxRepeatRow"}`} key={item.track.id}>
+                  <article className={`${activeItemId === `travis_queue_${item.track.id}` || activeTrackId === item.track.id ? "spxRepeatRow playing" : "spxRepeatRow"}${requestedTrackId === item.track.id ? " requested" : ""}`} data-artist-track={item.track.id} key={item.track.id}>
                     <button className="spxRepeatMain" type="button" onClick={() => openTrack(item)}>
                       <span className="spxTrackIndex">{index + 1}</span>
                       <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxRepeatCover" />
                       <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{signalLabel(item.kind, ru)} · {localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em>{item.authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{ru ? "Комментарий Трэвиса" : "Travis note"}</i> : null}</span>
-                      <span className="spxRepeatPlay"><Icon name={activeItemId === `travis_queue_${item.track.id}` && !paused ? "pause" : "play"} size={17} /></span>
+                      <span className="spxRepeatPlay"><Icon name={(activeItemId === `travis_queue_${item.track.id}` || activeTrackId === item.track.id) && !paused ? "pause" : "play"} size={17} /></span>
                     </button>
                     {item.authorNote ? <button className={`spxRowComment hasNote ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Комментарий Трэвиса к ${item.track.title}` : `Travis's note on ${item.track.title}`}><Icon name="comment" size={17} /></button> : null}
                   </article>

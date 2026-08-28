@@ -957,6 +957,7 @@ a.spxFeedEvent {
 .spxTrackNoteIndicator { display: inline-flex; width: fit-content; align-items: center; gap: 5px; margin-top: 4px; color: var(--spx-green); font-size: 9px; font-style: normal; font-weight: 700; }
 .spxPublicList > button.playing,
 .spxRepeatRow.playing { background: rgba(30, 215, 96, .08); }
+.spxRepeatRow.requested:not(.playing) { background: rgba(255, 255, 255, .04); box-shadow: inset 2px 0 #8a8a8a; }
 .spxPublicList > button.playing { box-shadow: inset 2px 0 var(--spx-green); }
 .spxRowComment.hasNote { color: var(--spx-green); }
 .spxPublicDisclosure { display: flex; align-items: flex-start; gap: 7px; margin-top: 14px; color: #777; font-size: 9px; }
@@ -1027,11 +1028,14 @@ a.spxFeedEvent {
 .tasteQueueNowPlaying > .tasteQueueArtist,
 .tasteQueueMetaLink > .tasteQueueArtist { color: var(--spx-subtext); font-size: 11px; line-height: 1.25; }
 .tasteQueueSource { display: flex; grid-area: source; min-width: 0; align-self: start; align-items: center; gap: 6px; }
-.tasteQueueSource > img,
-.tasteQueueSource > span:first-child { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; object-fit: cover; overflow: hidden; }
-.tasteQueueSource > span:nth-child(2) { display: flex; min-width: 0; max-width: none; flex: 0 0 auto; gap: 4px; overflow: visible; font-size: 9px; white-space: nowrap; }
+.tasteQueueSourceLink { display: flex; min-width: 0; max-width: 100%; flex: 0 1 auto; align-items: center; gap: 6px; border-radius: 4px; color: inherit; text-decoration: none; }
+.tasteQueueSourceLink > img,
+.tasteQueueSourceLink > span:first-child { width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%; object-fit: cover; overflow: hidden; }
+.tasteQueueSourceLink > span:last-child { display: flex; min-width: 0; max-width: none; gap: 4px; overflow: hidden; font-size: 9px; white-space: nowrap; }
 .tasteQueueSource small { color: #868686; }
-.tasteQueueSource b { color: #d8d8d8; }
+.tasteQueueSource b { overflow: hidden; color: #d8d8d8; text-overflow: ellipsis; }
+.tasteQueueSourceLink:not(.tasteQueueSourceStatic):hover b { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
+.tasteQueueSourceLink:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .tasteQueueSource > em { min-width: 0; flex: 1 1 auto; overflow: hidden; color: var(--spx-green); font-size: 9px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
 .tasteQueueNowPlaying > .tasteQueueInlineNote { display: none; }
 .tasteQueueInlineNote svg { flex: 0 0 auto; color: var(--spx-green); }
@@ -1367,7 +1371,8 @@ a.spxFeedEvent {
   .tasteQueueNowPlaying > strong { font-size: 14px; }
   .tasteQueueNowPlaying > .tasteQueueArtist { font-size: 11px; }
   .tasteQueueSource { width: 100%; max-width: 100%; align-self: center; gap: 7px; padding: 1px 2px 0; }
-  .tasteQueueSource > span:nth-child(2) { flex: 1 1 auto; font-size: 10px; }
+  .tasteQueueSourceLink { width: 100%; flex: 1 1 auto; }
+  .tasteQueueSourceLink > span:last-child { flex: 1 1 auto; font-size: 10px; }
   .tasteQueueSource b { max-width: none; }
   .tasteQueueSource > em { display: none; }
   .tasteQueueNowPlaying > .tasteQueueInlineNote { display: none; }

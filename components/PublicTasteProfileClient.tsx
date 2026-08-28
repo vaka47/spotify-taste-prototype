@@ -109,7 +109,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
   const searchParams = useSearchParams();
   const { locale, t } = useI18n();
   const { showToast } = useToast();
-  const { playQueue, activeItemId, paused, togglePlayback } = useTastePlayback();
+  const { playQueue, activeItemId, activeEventId, activeTrackId, paused, togglePlayback } = useTastePlayback();
   const snapshot = useMemo(() => decodeSnapshot(searchParams.get("snapshot")), [searchParams]);
   const requestedEventId = searchParams.get("event");
   const demoProfile = useMemo(() => snapshot ? profileFromSnapshot(snapshot) : (seededTasteProfiles[handle] ?? fallbackProfile(handle)), [handle, snapshot]);
@@ -278,6 +278,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
       id: `profile_queue_${realItem?.eventId || demoItem!.eventId}`,
       track,
       tastemaker: { id: profileHandle, name: profileName, avatarUrl: avatarUrl || "", fallbackAvatarUrl: avatarFallbackUrl },
+      profileHref: `/taste/${encodeURIComponent(profileHandle)}?event=${encodeURIComponent(realItem?.eventId || demoItem!.eventId)}`,
       signal: locale === "ru" ? `${realItem?.playCount ?? demoItem!.playCount} ${russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount)} за неделю` : `${realItem?.playCount ?? demoItem!.playCount} plays this week`,
       authorNote: isReal ? serverEvent?.authorNote : event?.authorComment,
       eventId: isReal ? realItem?.eventId : undefined,
@@ -320,7 +321,10 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
               const track = realItem?.track || demoItem!.track;
               const eventId = realItem?.eventId || demoItem!.eventId;
               const queueId = `profile_queue_${eventId}`;
-              const active = activeItemId === queueId;
+              const queueItem = profileQueue[index];
+              const active = activeItemId === queueId
+                || Boolean(queueItem?.eventId && queueItem.eventId === activeEventId)
+                || queueItem?.track.id === activeTrackId;
               const playing = active && !paused;
               const authorNote = isReal
                 ? serverEvents.find(event => event.id === eventId)?.authorNote
