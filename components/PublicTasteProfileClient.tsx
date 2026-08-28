@@ -341,7 +341,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
         {selectedTrack ? (
           <aside className="spxPublicPlayer">
             <div className="spxPublicPlayerHead"><div><small>{isReal ? t("common.spotifyData") : t("common.demoData")}</small><h2>{selectedTrack.title}</h2><p>{selectedTrack.artist}</p></div><a href={selectedTrack.spotifyUrl} target="_blank" rel="noreferrer" aria-label={t("common.openSpotify")}><Icon name="external" /></a></div>
-            <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedAuthorNote || t("profile.noNote")}</p></div>
+            {selectedAuthorNote ? <div className="spxPublicNote"><span><Icon name="comment" size={16} />{t("profile.authorNote")}</span><p>{selectedAuthorNote}</p></div> : null}
           </aside>
         ) : null}
       </section>
