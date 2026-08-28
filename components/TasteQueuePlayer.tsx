@@ -77,6 +77,7 @@ declare global {
 }
 
 type PlaybackCapability = "loading" | "embed" | "reauthorize" | "premium";
+type PlaybackMode = "pending" | "embed" | "premium";
 type RepeatMode = "off" | "all" | "one";
 
 type TastePlaybackContextValue = {
@@ -130,11 +131,23 @@ function loadSpotifyWebPlaybackSdk() {
   return webPlaybackSdkPromise;
 }
 
-async function spotifyPlaybackToken() {
-  const response = await fetch("/api/auth/spotify/token", { cache: "no-store" });
-  if (!response.ok) return { status: response.status, accessToken: null };
-  const payload = await response.json() as { accessToken: string };
-  return { status: response.status, accessToken: payload.accessToken };
+async function spotifyPlaybackToken(attempt = 0): Promise<{ status: number; accessToken: string | null }> {
+  try {
+    const response = await fetch("/api/auth/spotify/token", { cache: "no-store" });
+    if (response.status >= 500 && attempt < 1) {
+      await new Promise(resolve => window.setTimeout(resolve, 400));
+      return spotifyPlaybackToken(attempt + 1);
+    }
+    if (!response.ok) return { status: response.status, accessToken: null };
+    const payload = await response.json() as { accessToken: string };
+    return { status: response.status, accessToken: payload.accessToken };
+  } catch {
+    if (attempt < 1) {
+      await new Promise(resolve => window.setTimeout(resolve, 400));
+      return spotifyPlaybackToken(attempt + 1);
+    }
+    return { status: 0, accessToken: null };
+  }
 }
 
 async function playOnSpotifyDevice(deviceId: string, uri: string) {
@@ -144,6 +157,12 @@ async function playOnSpotifyDevice(deviceId: string, uri: string) {
     body: JSON.stringify({ deviceId, uri }),
   });
   return response.ok;
+}
+
+async function playOnSpotifyDeviceWithRetry(deviceId: string, uri: string) {
+  if (await playOnSpotifyDevice(deviceId, uri)) return true;
+  await new Promise(resolve => window.setTimeout(resolve, 450));
+  return playOnSpotifyDevice(deviceId, uri);
 }
 
 function cueComment(context: AudioContext) {
@@ -185,7 +204,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   const [controllerReady, setControllerReady] = useState(false);
   const [commentSound, setCommentSound] = useState(true);
   const [capability, setCapability] = useState<PlaybackCapability>("loading");
-  const [mode, setMode] = useState<"embed" | "premium">("embed");
+  const [mode, setMode] = useState<PlaybackMode>("pending");
   const [paused, setPaused] = useState(false);
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [positionMs, setPositionMs] = useState(0);
@@ -343,10 +362,12 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
       if (cancelled) return;
       if (token.status === 409) {
         setCapability("reauthorize");
+        if (openRef.current) setMode("pending");
         return;
       }
       if (!token.accessToken) {
         setCapability("embed");
+        if (openRef.current) setMode("embed");
         return;
       }
       const sdk = await loadSpotifyWebPlaybackSdk();
@@ -367,7 +388,14 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
         if (openRef.current) {
           const active = itemsRef.current[indexRef.current];
           setMode("premium");
-          if (active) void player?.activateElement().then(() => playOnSpotifyDevice(device_id, active.track.spotifyUri));
+          setPaused(false);
+          if (active) void player?.activateElement().catch(() => undefined).then(async () => {
+            const started = await playOnSpotifyDeviceWithRetry(device_id, active.track.spotifyUri);
+            if (!started && !cancelled) {
+              setPaused(true);
+              showToast(ru ? "Нажмите Play, чтобы повторить запуск" : "Tap Play to retry playback");
+            }
+          });
         }
       });
       player.addListener("player_state_changed", state => {
@@ -380,19 +408,49 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
         if (!state.paused && state.position < 1800) playCommentCue();
         scheduleAutomaticAdvance(playingUri, state.position, state.duration, state.paused);
       });
-      const fallback = () => { setCapability("embed"); setMode("embed"); };
-      player.addListener("initialization_error", fallback);
-      player.addListener("authentication_error", fallback);
-      player.addListener("account_error", fallback);
-      player.addListener("playback_error", fallback);
-      if (!await player.connect() && !cancelled) fallback();
-    }).catch(() => { if (!cancelled) setCapability("embed"); });
+      const fallbackToEmbed = () => {
+        if (cancelled) return;
+        setCapability("embed");
+        if (openRef.current) setMode("embed");
+      };
+      const requireAuthorization = () => {
+        if (cancelled) return;
+        setCapability("reauthorize");
+        setPaused(true);
+        if (openRef.current) setMode("pending");
+      };
+      const retainPremiumPlayer = () => {
+        if (cancelled) return;
+        setCapability("premium");
+        setMode("premium");
+        setPaused(true);
+        clearEndTimer();
+        showToast(ru ? "Воспроизведение прервано. Нажмите Play ещё раз" : "Playback was interrupted. Tap Play to retry");
+      };
+      player.addListener("initialization_error", fallbackToEmbed);
+      player.addListener("authentication_error", requireAuthorization);
+      player.addListener("account_error", fallbackToEmbed);
+      player.addListener("playback_error", retainPremiumPlayer);
+      if (!await player.connect() && !cancelled) fallbackToEmbed();
+    }).catch(() => {
+      if (cancelled) return;
+      setCapability("embed");
+      if (openRef.current) setMode("embed");
+    });
     return () => {
       cancelled = true;
       player?.disconnect();
       if (premiumPlayerRef.current === player) premiumPlayerRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!open || mode !== "pending") return;
+    if (capability === "embed") setMode("embed");
+    if (capability === "reauthorize") {
+      window.location.href = `/api/auth/spotify/start?returnTo=${encodeURIComponent(window.location.pathname)}`;
+    }
+  }, [capability, mode, open]);
 
   useEffect(() => {
     if (!open || mode !== "embed" || !embedTargetRef.current || controllerRef.current || !current) return;
@@ -441,7 +499,9 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     playbackProgressRef.current = { uri: current.track.spotifyUri, position: 0, duration: 0 };
     cuePlayedRef.current = null;
     if (mode === "premium" && deviceId) {
-      void playOnSpotifyDevice(deviceId, current.track.spotifyUri);
+      void playOnSpotifyDeviceWithRetry(deviceId, current.track.spotifyUri).then(started => {
+        if (!started) setPaused(true);
+      });
     } else if (mode === "embed" && controllerRef.current) {
       controllerRef.current.loadEntity(current.track.spotifyUri);
       controllerRef.current.play();
@@ -486,11 +546,21 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
     openRef.current = true;
     if (capability === "premium" && deviceId && premiumPlayerRef.current) {
       setMode("premium");
-      void premiumPlayerRef.current.activateElement().then(() => playOnSpotifyDevice(deviceId, nextItems[safeIndex].track.spotifyUri));
-    } else {
+      setPaused(false);
+      void premiumPlayerRef.current.activateElement().catch(() => undefined).then(async () => {
+        const started = await playOnSpotifyDeviceWithRetry(deviceId, nextItems[safeIndex].track.spotifyUri);
+        if (!started) {
+          setPaused(true);
+          showToast(ru ? "Нажмите Play, чтобы повторить запуск" : "Tap Play to retry playback");
+        }
+      });
+    } else if (capability === "embed") {
       setMode("embed");
       controllerRef.current?.loadEntity(nextItems[safeIndex].track.spotifyUri);
       controllerRef.current?.play();
+    } else {
+      setMode("pending");
+      setPaused(true);
     }
   }
 
@@ -503,13 +573,24 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   }
 
   function togglePlayback() {
+    if (mode === "pending") {
+      if (capability === "reauthorize") {
+        window.location.href = `/api/auth/spotify/start?returnTo=${encodeURIComponent(window.location.pathname)}`;
+      } else showToast(ru ? "Подключаем Spotify…" : "Connecting to Spotify…");
+      return;
+    }
     if (mode === "premium") {
       const player = premiumPlayerRef.current;
       if (!player) return;
       if (paused) {
         playbackClockRef.current = { position: positionMs, updatedAt: Date.now() };
         setPaused(false);
-        void player.resume().catch(() => setPaused(true));
+        void player.activateElement().catch(() => undefined).then(async () => {
+          if (durationMs <= 0 && deviceId && current) {
+            const started = await playOnSpotifyDeviceWithRetry(deviceId, current.track.spotifyUri);
+            if (!started) setPaused(true);
+          } else await player.resume().catch(() => setPaused(true));
+        });
       } else {
         const clock = playbackClockRef.current;
         const livePosition = Math.min(clock.position + (Date.now() - clock.updatedAt), durationMs || Number.MAX_SAFE_INTEGER);
@@ -525,16 +606,23 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
       return;
     }
     if (paused) {
+      playbackClockRef.current = { position: positionMs, updatedAt: Date.now() };
+      setPaused(false);
       if (positionMs <= 250) controllerRef.current?.play();
       else controllerRef.current?.resume();
-    }
-    else {
+    } else {
+      const clock = playbackClockRef.current;
+      const livePosition = Math.min(clock.position + (Date.now() - clock.updatedAt), durationMs || Number.MAX_SAFE_INTEGER);
+      playbackClockRef.current = { position: livePosition, updatedAt: Date.now() };
+      setPositionMs(livePosition);
+      setPaused(true);
       clearEndTimer();
       controllerRef.current?.pause();
     }
   }
 
   function seek(position: number) {
+    if (mode === "pending") return;
     const safePosition = Math.max(0, Math.min(position, durationMs || position));
     playbackClockRef.current = { position: safePosition, updatedAt: Date.now() };
     setPositionMs(safePosition);
@@ -582,6 +670,7 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
   const progressPercent = durationMs > 0 ? Math.min(100, Math.max(0, positionMs / durationMs * 100)) : 0;
   const progressStyle = { "--taste-progress": `${progressPercent}%` } as CSSProperties;
   const reaction = current ? reactions[current.id] || { reacted: Boolean(current.viewerReacted), count: current.reactionCount || 0 } : { reacted: false, count: 0 };
+  const controlsPending = mode === "pending";
 
   return (
     <TastePlaybackContext.Provider value={contextValue}>
@@ -621,13 +710,13 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
           </div> : null}
           {current.authorNote && !queueVisible ? <div className="tasteQueuePremiumNote" role="note"><Icon name="comment" size={16} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small><strong>“{current.authorNote}”</strong></span></div> : null}
 
-          {mode === "premium" ? <div className="tasteQueueTransport">
-            <button className={`tasteActionShuffle ${shuffle ? "active" : ""}`} type="button" onClick={() => setShuffle(value => !value)} aria-label={ru ? "В случайном порядке" : "Shuffle"}><Icon name="shuffle" size={18} /></button>
-            <button className="tasteActionPrevious" type="button" onClick={previousTrack} aria-label={ru ? "Предыдущий трек" : "Previous track"}><Icon name="chevronLeft" /></button>
-            <button className="tasteQueuePremiumToggle tasteActionPlay" type="button" onClick={togglePlayback} aria-label={paused ? (ru ? "Продолжить" : "Resume") : (ru ? "Пауза" : "Pause")}><Icon name={paused ? "play" : "pause"} /></button>
-            <button className="tasteActionNext" type="button" onClick={() => nextTrack(false)} aria-label={ru ? "Следующий трек" : "Next track"}><Icon name="chevronRight" /></button>
-            <button className={`tasteActionRepeat ${repeat !== "off" ? "active" : ""}`} type="button" onClick={cycleRepeat} aria-label={ru ? "Режим повтора" : "Repeat mode"}><span className="tasteRepeatIcon"><Icon name="repeat" size={18} />{repeat === "one" ? <i>1</i> : null}</span></button>
-          </div> : null}
+          <div className="tasteQueueTransport">
+            <button className={`tasteActionShuffle ${shuffle ? "active" : ""}`} type="button" onClick={() => setShuffle(value => !value)} disabled={controlsPending} aria-label={ru ? "В случайном порядке" : "Shuffle"}><Icon name="shuffle" size={18} /></button>
+            <button className="tasteActionPrevious" type="button" onClick={previousTrack} disabled={controlsPending} aria-label={ru ? "Предыдущий трек" : "Previous track"}><Icon name="chevronLeft" /></button>
+            <button className={`tasteQueuePremiumToggle tasteActionPlay ${controlsPending ? "connecting" : ""}`} type="button" onClick={togglePlayback} disabled={controlsPending} aria-label={controlsPending ? (ru ? "Подключаем Spotify" : "Connecting to Spotify") : paused ? (ru ? "Продолжить" : "Resume") : (ru ? "Пауза" : "Pause")}>{controlsPending ? <span className="tasteQueueConnecting" /> : <Icon name={paused ? "play" : "pause"} />}</button>
+            <button className="tasteActionNext" type="button" onClick={() => nextTrack(false)} disabled={controlsPending} aria-label={ru ? "Следующий трек" : "Next track"}><Icon name="chevronRight" /></button>
+            <button className={`tasteActionRepeat ${repeat !== "off" ? "active" : ""}`} type="button" onClick={cycleRepeat} disabled={controlsPending} aria-label={ru ? "Режим повтора" : "Repeat mode"}><span className="tasteRepeatIcon"><Icon name="repeat" size={18} />{repeat === "one" ? <i>1</i> : null}</span></button>
+          </div>
           <div className="tasteQueueUtilities">
             {current.canReact !== false ? <button className={`tasteActionReaction ${reaction.reacted ? "active" : ""}`} type="button" onClick={toggleReaction} aria-label={reaction.reacted ? (ru ? "Убрать лайк с трека" : "Unlike track") : (ru ? "Поставить лайк треку" : "Like track")} title={reaction.count ? `${reaction.count}` : undefined}><Icon name="heart" size={18} /></button> : null}
             <button className={`tasteActionQueue ${queueVisible ? "active" : ""}`} type="button" onClick={() => setQueueVisible(value => !value)} aria-label={ru ? "Показать очередь" : "Show queue"}><Icon name="queue" size={18} /></button>
@@ -635,11 +724,11 @@ export function TastePlaybackProvider({ children }: { children: React.ReactNode 
             <button className="tasteActionClose" type="button" onClick={closeQueue} aria-label={ru ? "Закрыть плеер" : "Close player"}><Icon name="close" size={18} /></button>
           </div>
 
-          {mode === "premium" ? <div className="tasteQueueProgress">
+          <div className="tasteQueueProgress">
             <span>{formatTime(positionMs)}</span>
-            <input type="range" min={0} max={Math.max(durationMs, 1)} step={250} value={Math.min(positionMs, Math.max(durationMs, 1))} onChange={event => seek(Number(event.target.value))} style={progressStyle} aria-label={ru ? "Позиция воспроизведения" : "Playback position"} aria-valuetext={`${formatTime(positionMs)} / ${formatTime(durationMs)}`} />
+            <input type="range" min={0} max={Math.max(durationMs, 1)} step={250} value={Math.min(positionMs, Math.max(durationMs, 1))} onChange={event => seek(Number(event.target.value))} disabled={controlsPending || durationMs <= 0} style={progressStyle} aria-label={ru ? "Позиция воспроизведения" : "Playback position"} aria-valuetext={`${formatTime(positionMs)} / ${formatTime(durationMs)}`} />
             <span>{formatTime(durationMs)}</span>
-          </div> : null}
+          </div>
           {current.authorNote ? <div className="tasteQueueMobileNote"><Icon name="comment" size={15} /><span><small>{ru ? "Комментарий автора" : "Tastemaker note"}</small>{current.authorNote}</span></div> : null}
         </aside>
       ) : null}
