@@ -100,9 +100,9 @@ function returnSignal(previous: string | null | undefined, latest: string, local
   const days = Math.max(1, Math.round((new Date(latest).getTime() - new Date(previous).getTime()) / 86_400_000));
   if (days >= 60) {
     const months = Math.round(days / 30);
-    return locale === "ru" ? `Вернулся спустя ${months} мес.` : `Back after ${months} months`;
+    return locale === "ru" ? `Вернулся спустя ${months} мес.` : `Back after ${months} ${months === 1 ? "month" : "months"}`;
   }
-  return locale === "ru" ? `Вернулся спустя ${days} дн.` : `Back after ${days} days`;
+  return locale === "ru" ? `Вернулся спустя ${days} дн.` : `Back after ${days} ${days === 1 ? "day" : "days"}`;
 }
 
 export function PublicTasteProfileClient({ handle }: { handle: string }) {
