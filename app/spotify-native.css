@@ -286,7 +286,7 @@ a.spxFeedEvent {
   gap: 10px 18px;
   border: 0;
   background: transparent;
-  padding: 18px 46px 16px 18px;
+  padding: 18px 56px 16px 18px;
   color: inherit;
   text-align: left;
 }
@@ -347,22 +347,43 @@ a.spxFeedEvent {
 
 .spxFeedSignal svg { flex: 0 0 auto; }
 
-.spxFeedMore {
-  position: absolute;
-  top: 9px;
-  right: 9px;
-  z-index: 2;
+.spxInlinePlayControl {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  align-self: center;
+  justify-self: center;
   place-items: center;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, .2);
   border-radius: 50%;
-  background: transparent;
-  color: #aaa;
+  background: #242424;
+  color: #fff;
+  transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease;
 }
 
-.spxFeedMore:hover { background: rgba(255, 255, 255, .08); color: #fff; }
+button.spxInlinePlayControl { padding: 0; font: inherit; }
+.spxInlinePlayControl svg { display: block; }
+.spxInlinePlayControl.isPlaying { border-color: var(--spx-green); background: var(--spx-green); color: #000; }
+button.spxInlinePlayControl:hover,
+.spxRepeatRow:hover .spxInlinePlayControl,
+.spxPublicList > button:hover .spxInlinePlayControl,
+.spxOwnerHistory > button:hover .spxInlinePlayControl { border-color: #fff; background: #fff; color: #000; transform: scale(1.04); }
+.spxInlinePlayControl.isPlaying:hover,
+.spxRepeatRow:hover .spxInlinePlayControl.isPlaying,
+.spxPublicList > button:hover .spxInlinePlayControl.isPlaying,
+.spxOwnerHistory > button:hover .spxInlinePlayControl.isPlaying { border-color: #42e87c; background: #42e87c; }
+.spxInlinePlayControl:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+.spxFeedMore {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  z-index: 2;
+  transform: translateY(-50%);
+}
+
+.spxFeedMore:hover { transform: translateY(-50%) scale(1.04); }
 
 .spxWeeklySummary {
   display: grid;
@@ -504,7 +525,7 @@ a.spxFeedEvent {
 .spxRepeatList { border-top: 1px solid var(--spx-line); }
 .spxRepeatRow { position: relative; min-width: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); }
 .spxRepeatRow:hover { background: rgba(255, 255, 255, .05); }
-.spxRepeatMain { display: grid; width: 100%; min-width: 0; grid-template-columns: 28px 54px minmax(0, 1fr) 34px; align-items: center; gap: 12px; border: 0; background: transparent; padding: 9px 50px 9px 8px; color: #fff; text-align: left; }
+.spxRepeatMain { display: grid; width: 100%; min-width: 0; grid-template-columns: 28px 54px minmax(0, 1fr) 36px; align-items: center; gap: 12px; border: 0; background: transparent; padding: 9px 50px 9px 8px; color: #fff; text-align: left; }
 .spxTrackIndex { color: #898989; font-size: 13px; text-align: center; }
 .spxRepeatCover { width: 54px; height: 54px; border-radius: 4px; object-fit: cover; }
 .spxRepeatCopy { display: grid; min-width: 0; gap: 3px; }
@@ -514,10 +535,7 @@ a.spxFeedEvent {
 .spxRepeatCopy strong { font-size: 14px; }
 .spxRepeatCopy small { color: var(--spx-subtext); font-size: 12px; }
 .spxRepeatCopy em { color: var(--spx-green); font-size: 11px; font-style: normal; }
-.spxRepeatPlay { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; color: #fff; opacity: 0; }
-.spxRepeatRow:hover .spxRepeatPlay,
-.spxRepeatRow.playing .spxRepeatPlay { opacity: 1; }
-.spxRepeatRow.playing .spxRepeatPlay { color: var(--spx-green); }
+.spxRepeatPlay { opacity: 1; }
 .spxRowComment { position: absolute; top: 50%; right: 8px; display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 50%; background: transparent; color: #a9a9a9; transform: translateY(-50%); }
 .spxRowComment:hover,
 .spxRowComment.active { background: rgba(255, 255, 255, .08); color: #fff; }
@@ -849,7 +867,7 @@ a.spxFeedEvent {
 .spxOwnerSection { margin-top: 30px; }
 .spxOwnerHistory,
 .spxOwnerEvents { border-top: 1px solid var(--spx-line); }
-.spxOwnerHistory > button { display: grid; width: 100%; min-width: 0; grid-template-columns: 24px 52px minmax(0, 1fr) 66px 24px; align-items: center; gap: 11px; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); background: transparent; padding: 9px 5px; color: #fff; font: inherit; text-align: left; }
+.spxOwnerHistory > button { display: grid; width: 100%; min-width: 0; grid-template-columns: 24px 52px minmax(0, 1fr) 66px 36px; align-items: center; gap: 11px; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); background: transparent; padding: 9px 5px; color: #fff; font: inherit; text-align: left; }
 .spxOwnerHistory > button:hover { background: rgba(255, 255, 255, .05); }
 .spxOwnerHistory > button.playing { background: rgba(30, 215, 96, .08); box-shadow: inset 2px 0 0 var(--spx-green); }
 .spxOwnerHistory > button > span:first-child { color: #838383; font-size: 12px; text-align: center; }
@@ -863,8 +881,6 @@ a.spxFeedEvent {
 .spxOwnerHistory em { color: #7e7e7e; font-size: 9px; font-style: normal; }
 .spxOwnerHistory b { display: grid; justify-items: end; gap: 2px; font-size: 15px; }
 .spxOwnerHistory b small { font-size: 8px; font-weight: 500; }
-.spxOwnerHistory > button > svg { color: #888; }
-.spxOwnerHistory > button.playing > svg { color: var(--spx-green); }
 
 .spxOwnerEvents article { position: relative; display: grid; min-width: 0; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, .07); padding: 11px 5px; }
 .spxOwnerEvents article > div:nth-child(2) { display: grid; min-width: 0; gap: 3px; }
@@ -939,7 +955,7 @@ a.spxFeedEvent {
 .spxPublicGrid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; margin-top: 28px; }
 .spxPublicHistory { min-width: 0; }
 .spxPublicList { border-top: 1px solid var(--spx-line); }
-.spxPublicList > button { display: grid; width: 100%; min-width: 0; grid-template-columns: 52px minmax(0, 1fr) 58px 26px; align-items: center; gap: 11px; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); background: transparent; padding: 9px 5px; color: #fff; text-align: left; }
+.spxPublicList > button { display: grid; width: 100%; min-width: 0; grid-template-columns: 52px minmax(0, 1fr) 58px 36px; align-items: center; gap: 11px; border: 0; border-bottom: 1px solid rgba(255, 255, 255, .07); background: transparent; padding: 9px 5px; color: #fff; text-align: left; }
 .spxPublicList > button:hover { background: rgba(255, 255, 255, .06); }
 .spxPublicList > button.requested { background: rgba(255, 255, 255, .04); box-shadow: inset 2px 0 #8a8a8a; }
 .spxPublicTrackCover { width: 52px; height: 52px; border-radius: 4px; object-fit: cover; }
@@ -952,7 +968,6 @@ a.spxFeedEvent {
 .spxPublicList > button > span em { color: #868686; font-size: 9px; font-style: normal; }
 .spxPublicList > button > b { display: grid; justify-items: end; gap: 2px; font-size: 14px; }
 .spxPublicList > button > b small { color: #898989; font-size: 8px; font-weight: 500; }
-.spxPublicList > button > svg { justify-self: end; color: var(--spx-green); }
 
 .spxTrackNoteIndicator { display: inline-flex; width: fit-content; align-items: center; gap: 5px; margin-top: 4px; color: var(--spx-green); font-size: 9px; font-style: normal; font-weight: 700; }
 .spxPublicList > button.playing,
@@ -1321,9 +1336,8 @@ a.spxFeedEvent {
   .spxOwnerStats > :nth-child(-n+2) { border-bottom: 1px solid var(--spx-line); }
   .spxOwnerTabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
   .spxOwnerTabs button { justify-content: center; padding-inline: 5px; }
-  .spxOwnerHistory > button { grid-template-columns: 20px 48px minmax(0, 1fr) 58px; }
+  .spxOwnerHistory > button { grid-template-columns: 20px 48px minmax(0, 1fr) 58px 36px; }
   .spxOwnerTrackCover { width: 48px; height: 48px; }
-  .spxOwnerHistory > button > svg { display: none; }
   .spxOwnerEvents article { grid-template-columns: 48px minmax(0, 1fr); }
   .spxOwnerEvents article > div:nth-child(3),
   .spxOwnerNote { grid-column: 2; }
@@ -1433,7 +1447,7 @@ a.spxFeedEvent {
     grid-template-columns: 58px minmax(0, 1fr) 78px;
     grid-template-rows: minmax(84px, auto) auto;
     gap: 9px 12px;
-    padding: 15px 38px 14px 14px;
+    padding: 15px 50px 14px 14px;
   }
 
   .spxFeedAvatar { width: 58px; height: 58px; }
@@ -1468,7 +1482,7 @@ a.spxFeedEvent {
   .spxTastePlay { width: 40px; height: 40px; }
   .spxArtistSection { margin-top: 28px; }
   .spxSectionHeading h2 { font-size: 20px; }
-  .spxRepeatMain { grid-template-columns: 22px 50px minmax(0, 1fr) 30px; gap: 10px; padding: 9px 42px 9px 3px; }
+  .spxRepeatMain { grid-template-columns: 22px 50px minmax(0, 1fr) 36px; gap: 10px; padding: 9px 42px 9px 3px; }
   .spxRepeatCover { width: 50px; height: 50px; }
   .spxRepeatPlay { opacity: 1; }
   .spxRowComment { right: 3px; }
@@ -1487,7 +1501,7 @@ a.spxFeedEvent {
     grid-template-columns: 48px minmax(0, 1fr) 66px;
     grid-template-rows: minmax(74px, auto) auto;
     gap: 8px 10px;
-    padding: 13px 34px 12px 12px;
+    padding: 13px 48px 12px 12px;
   }
   .spxFeedAvatar { width: 48px; height: 48px; }
   .spxFeedCover { width: 66px; height: 66px; }
@@ -1547,7 +1561,7 @@ a.spxFeedEvent {
   .spxPublicStats > :not(:first-child) { align-items: baseline; border-right: 1px solid var(--spx-line); border-bottom: 1px solid var(--spx-line); padding: 12px 10px; }
   .spxPublicStats > :nth-child(2n) { border-right: 0; }
   .spxPublicStats > :nth-last-child(-n+2) { border-bottom: 0; }
-  .spxPublicList > button { grid-template-columns: 48px minmax(0, 1fr) 48px 24px; gap: 9px; }
+  .spxPublicList > button { grid-template-columns: 48px minmax(0, 1fr) 48px 36px; gap: 9px; }
   .spxPublicTrackCover { width: 48px; height: 48px; }
 
   .tasteQueueDock { right: 6px; left: 6px; width: auto; max-width: none; }

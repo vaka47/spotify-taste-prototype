@@ -159,7 +159,7 @@ export default function TravisTastePage() {
                       <span className="spxTrackIndex">{index + 1}</span>
                       <TrackArtwork src={item.track.coverUrl} fallbackSrc={item.track.fallbackCoverUrl} alt={`${item.track.title} cover`} className="spxRepeatCover" />
                       <span className="spxRepeatCopy"><strong>{item.track.title}</strong><small>{item.track.artist}</small><em>{signalLabel(item.kind, ru)} · {localizedLastPlayed(item.lastPlayed, ru)} · {item.plays} {ru ? repeatWord(item.plays) : "plays"}</em>{item.authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{ru ? "Комментарий Трэвиса" : "Travis note"}</i> : null}</span>
-                      <span className="spxRepeatPlay"><Icon name={(activeItemId === `travis_queue_${item.track.id}` || activeTrackId === item.track.id) && !paused ? "pause" : "play"} size={17} /></span>
+                      <span className={`spxRepeatPlay spxInlinePlayControl ${(activeItemId === `travis_queue_${item.track.id}` || activeTrackId === item.track.id) && !paused ? "isPlaying" : ""}`} aria-hidden="true"><Icon name={(activeItemId === `travis_queue_${item.track.id}` || activeTrackId === item.track.id) && !paused ? "pause" : "play"} size={17} /></span>
                     </button>
                     {item.authorNote ? <button className={`spxRowComment hasNote ${discussion?.track.id === item.track.id ? "active" : ""}`} type="button" onClick={() => toggleDiscussion(item)} aria-label={ru ? `Комментарий Трэвиса к ${item.track.title}` : `Travis's note on ${item.track.title}`}><Icon name="comment" size={17} /></button> : null}
                   </article>

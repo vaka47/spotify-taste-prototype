@@ -62,7 +62,7 @@ export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEv
         <button className="spxFeedCoverButton" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><TrackArtwork src={event.track.coverUrl} fallbackSrc={event.track.fallbackCoverUrl} alt={`${event.track.title} cover`} className="spxFeedCover" /></button>
         <button className="spxFeedSignal" type="button" onClick={playTrack}><Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />{signals?.[event.kind] || event.humanSignal}</button>
       </div>
-      <button className="spxFeedMore" type="button" aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)} onClick={playTrack}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
+      <button className={`spxFeedMore spxInlinePlayControl ${active && !paused ? "isPlaying" : ""}`} type="button" aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)} onClick={playTrack}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
     </article>
   );
 }

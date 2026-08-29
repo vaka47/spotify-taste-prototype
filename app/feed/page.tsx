@@ -73,7 +73,7 @@ function LiveFeedCard({ event, ru, queue, queueIndex }: { event: LiveFeedEvent; 
       <button className="spxFeedCoverButton" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><TrackArtwork src={event.track.coverUrl || ""} alt={`${event.track.title} cover`} className="spxFeedCover" /></button>
       <button className="spxFeedSignal" type="button" onClick={playTrack}><Icon name={event.authorNote ? "comment" : "feed"} size={17} />{signal}</button>
       </div>
-      <button className="spxFeedMore" type="button" onClick={playTrack} aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
+      <button className={`spxFeedMore spxInlinePlayControl ${active && !paused ? "isPlaying" : ""}`} type="button" onClick={playTrack} aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
     </article>
   );
 }

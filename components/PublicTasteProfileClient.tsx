@@ -334,7 +334,7 @@ export function PublicTasteProfileClient({ handle }: { handle: string }) {
                   <TrackArtwork src={track.coverUrl || ""} fallbackSrc={demoEvent?.track.fallbackCoverUrl} alt={`${track.title} cover`} className="spxPublicTrackCover" />
                   <span><strong>{track.title}</strong><small>{track.artist}</small><em>{realItem ? `${returnSignal(realItem.previousPlayedAt, realItem.lastPlayedAt, locale) || (realItem.playCount > 1 ? (locale === "ru" ? "На повторе" : "On repeat") : (locale === "ru" ? "Одно прослушивание" : "Played once"))} · ${formatPlayedAt(realItem.lastPlayedAt, locale)}` : `${demoItem!.lastPlayedAt} · ${demoRu?.signals[demoEvent!.id] || demoEvent!.signal}`}</em>{authorNote ? <i className="spxTrackNoteIndicator"><Icon name="comment" size={12} />{locale === "ru" ? "Комментарий" : "Note"}</i> : null}</span>
                   <b>{realItem?.playCount ?? demoItem!.playCount}<small>{locale === "ru" ? russianRepeatLabel(realItem?.playCount ?? demoItem!.playCount) : "plays"}</small></b>
-                  <Icon name={playing ? "pause" : "play"} size={15} />
+                  <span className={`spxInlinePlayControl ${playing ? "isPlaying" : ""}`} aria-hidden="true"><Icon name={playing ? "pause" : "play"} size={17} /></span>
                 </button>
               );
             })}
