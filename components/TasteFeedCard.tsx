@@ -55,14 +55,13 @@ export function TasteFeedCard({ event, queue, queueIndex }: { event: TasteFeedEv
           <AvatarImage src={event.tastemaker.avatarUrl} fallbackSrc={event.tastemaker.fallbackAvatarUrl} alt={event.tastemaker.name} />
         </Link>
         <span className="spxFeedEventCopy">
-          <Link className="spxFeedPerson" href={profileHref} target={profileHref.startsWith("http") ? "_blank" : undefined}><strong>{event.tastemaker.name}</strong>{event.tastemaker.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</Link>
-          <span className="spxFeedTime">{timestamp} · <em>{labels[event.kind]}</em></span>
+          <span className="spxFeedIdentity"><Link className="spxFeedPerson" href={profileHref} target={profileHref.startsWith("http") ? "_blank" : undefined}><strong>{event.tastemaker.name}</strong>{event.tastemaker.verified ? <i className="spxVerified"><Icon name="check" size={10} /></i> : null}</Link><span className="spxFeedTime">{timestamp} · <em>{labels[event.kind]}</em></span></span>
           <button className="spxFeedTrackAction" type="button" onClick={playTrack}><strong className="spxFeedTrackTitle">{event.track.title}</strong><span className="spxFeedArtist">{event.track.artist}</span>{localizedNote ? <em className="spxFeedNote">“{localizedNote}”</em> : null}</button>
         </span>
         <button className="spxFeedCoverButton" type="button" onClick={playTrack} aria-label={ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`}><TrackArtwork src={event.track.coverUrl} fallbackSrc={event.track.fallbackCoverUrl} alt={`${event.track.title} cover`} className="spxFeedCover" /></button>
+        <button className={`spxFeedMore spxInlinePlayControl ${active && !paused ? "isPlaying" : ""}`} type="button" aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)} onClick={playTrack}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
         <button className="spxFeedSignal" type="button" onClick={playTrack}><Icon name={event.kind === "recommended" ? "comment" : event.kind === "saved_discovery" ? "save" : event.kind === "rediscovered" ? "clock" : "feed"} size={18} />{signals?.[event.kind] || event.humanSignal}</button>
       </div>
-      <button className={`spxFeedMore spxInlinePlayControl ${active && !paused ? "isPlaying" : ""}`} type="button" aria-label={active && !paused ? (ru ? `Поставить ${event.track.title} на паузу` : `Pause ${event.track.title}`) : (ru ? `Воспроизвести ${event.track.title}` : `Play ${event.track.title}`)} onClick={playTrack}><Icon name={active && !paused ? "pause" : "play"} size={17} /></button>
     </article>
   );
 }
