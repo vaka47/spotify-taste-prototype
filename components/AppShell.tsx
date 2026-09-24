@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : current.labelKey;
   const immersivePlayer = pathname.startsWith("/player/");
 
-  if (pathname === "/pitch") return <ToastProvider>{children}</ToastProvider>;
+  if (pathname === "/pitch" || pathname === "/demo") return <ToastProvider>{children}</ToastProvider>;
 
   return (
     <ToastProvider>
