@@ -29,7 +29,10 @@ export default function DemoPage() {
 
         <video
           className="demoVideo"
+          autoPlay
           controls
+          loop
+          muted
           playsInline
           preload="metadata"
           poster="/demo/follow-taste-poster.png"
