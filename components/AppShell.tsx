@@ -81,6 +81,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="spxNavTile"><Icon name="privacy" size={18} /></span><span>{t("nav.privacy")}</span>
             </Link>
           </nav>
+          <div className="spxPresentationNav">
+            <span className="spxPresentationLabel">{locale === "ru" ? "Презентация" : "Presentation"}</span>
+            <Link href="/pitch" title={locale === "ru" ? "Открыть питч" : "Open product pitch"}>
+              <Icon name="info" size={19} />
+              <span>{locale === "ru" ? "Питч продукта" : "Product pitch"}</span>
+            </Link>
+            <Link href="/demo" title={locale === "ru" ? "Смотреть демо-видео" : "Watch demo video"}>
+              <Icon name="player" size={19} />
+              <span>{locale === "ru" ? "Демо · 41 секунда" : "Demo · 41 seconds"}</span>
+            </Link>
+          </div>
         </aside>
         <div className="mainColumn spxMainColumn">
           <header className="topBar spxTopBar">
@@ -110,6 +121,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span>{t(item.labelKey)}</span>
               </Link>
             ))}
+            <Link href="/pitch">
+              <Icon name="info" size={22} />
+              <span>{locale === "ru" ? "Питч" : "Pitch"}</span>
+            </Link>
           </nav>
         ) : null}
       </div>
