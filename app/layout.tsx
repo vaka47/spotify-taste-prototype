@@ -8,21 +8,21 @@ import { LocaleProvider, type Locale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://spotify-taste-prototype.vercel.app"),
-  title: "Follow Taste - product proposal for Spotify",
-  description: "A pitch-ready proposal for trusted, human-led music discovery with measurable attribution.",
+  title: "Follow Taste | Human-led discovery for Spotify",
+  description: "A working product proposal that turns opt-in listening activity into trusted, followable music discovery.",
   openGraph: {
-    title: "Follow Taste - product proposal for Spotify",
-    description: "Follow meaningful music signals from people you trust, then measure durable discovery.",
-    url: "/demo",
+    title: "Follow Taste | Human-led discovery for Spotify",
+    description: "Follow the musical taste of people you trust. Play their shared history, context, and discoveries in one continuous queue.",
+    url: "/pitch",
     siteName: "Follow Taste",
-    images: [{ url: "/demo/follow-taste-poster.png", width: 1170, height: 2532, alt: "Follow Taste working product demo" }],
+    images: [{ url: "/social/follow-taste-og.png", width: 1200, height: 630, alt: "Follow Taste product proposal for Spotify" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Follow Taste - product proposal for Spotify",
-    description: "A working prototype for trusted, human-led music discovery.",
-    images: ["/demo/follow-taste-poster.png"],
+    title: "Follow Taste | Human-led discovery for Spotify",
+    description: "A working product proposal for trusted, human-led music discovery.",
+    images: ["/social/follow-taste-og.png"],
   },
 };
 
