@@ -128,6 +128,27 @@
   text-align: center;
 }
 
+.demoContact {
+  align-items: center;
+  color: #858a86;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-style: normal;
+  gap: 8px 16px;
+  justify-content: center;
+  margin: 10px 0 0;
+}
+
+.demoContact a {
+  color: #d8dbd9;
+  text-decoration: none;
+}
+
+.demoContact a:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 600px) {
   .demoHeader {
     min-height: 64px;

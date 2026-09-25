@@ -48,6 +48,11 @@ export default function DemoPage() {
           <a href="https://github.com/vaka47/spotify-taste-prototype" target="_blank" rel="noreferrer">Review the implementation</a>
         </nav>
         <p className="demoDisclosure">Celebrity listening shown in the concept is illustrative. Real listener profiles use authorized Spotify data.</p>
+        <address className="demoContact">
+          <span>Concept and prototype by Ivan Safonov</span>
+          <a href="mailto:safonov47@gmail.com">safonov47@gmail.com</a>
+          <a href="https://www.linkedin.com/in/safonovivan/" target="_blank" rel="noreferrer">LinkedIn</a>
+        </address>
       </section>
     </main>
   );

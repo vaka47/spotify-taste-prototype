@@ -752,6 +752,25 @@
   color: #fff;
 }
 
+.proposalContact {
+  align-items: center;
+  color: var(--proposal-muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 8px 16px;
+  margin: 18px 0 0;
+}
+
+.proposalContact a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.proposalContact a:hover {
+  text-decoration: underline;
+}
+
 .proposalBoundary {
   display: block;
   max-width: 780px;

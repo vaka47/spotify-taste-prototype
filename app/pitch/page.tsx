@@ -286,6 +286,11 @@ export default function PitchPage() {
                 <Link href="/demo">{ru ? "Смотреть демо - 41 секунда" : "Watch the 41-second demo"}<Icon name="play" size={17} /></Link>
                 <Link href="/tastemaker/travis-scott">{ru ? "Открыть продукт" : "Launch the live product"}<Icon name="external" size={16} /></Link>
               </div>
+              <p className="proposalContact">
+                <span>Ivan Safonov</span>
+                <a href="mailto:safonov47@gmail.com">safonov47@gmail.com</a>
+                <a href="https://www.linkedin.com/in/safonovivan/" target="_blank" rel="noreferrer">LinkedIn</a>
+              </p>
               <small className="proposalBoundary">{ru ? "Независимый продуктовый концепт. Иллюстративная активность знаменитостей требует их согласия и нативной инфраструктуры Spotify." : "Independent product concept. Illustrative celebrity activity requires consent and Spotify's native data infrastructure."}</small>
             </div>
             <div className="proposalClosing">
