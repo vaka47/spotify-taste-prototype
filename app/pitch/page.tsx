@@ -27,7 +27,7 @@ function ProductScreen({
 }) {
   return (
     <figure className={`proposalScreen ${className}`.trim()}>
-      <Image src={src} alt={alt} width={941} height={1672} priority={priority} sizes="(max-width: 600px) 31vw, 260px" />
+      <Image src={src} alt={alt} width={941} height={1672} priority={priority} unoptimized sizes="(max-width: 600px) 31vw, 260px" />
     </figure>
   );
 }
@@ -35,10 +35,15 @@ function ProductScreen({
 export default function PitchPage() {
   const [slide, setSlide] = useState(0);
   const [language, setLanguage] = useState<"en" | "ru">("en");
+  const [menuOpen, setMenuOpen] = useState(false);
   const ru = language === "ru";
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (menuOpen) {
+        if (event.key === "Escape") setMenuOpen(false);
+        return;
+      }
       if (["ArrowRight", "PageDown", " "].includes(event.key)) {
         event.preventDefault();
         setSlide(current => Math.min(SLIDE_COUNT - 1, current + 1));
@@ -52,12 +57,17 @@ export default function PitchPage() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [menuOpen]);
+
+  function openSlide(nextSlide: number) {
+    setSlide(nextSlide);
+    setMenuOpen(false);
+  }
 
   return (
     <main className="proposalDeck">
       <header className="proposalTopbar">
-        <button className="proposalBrand" type="button" onClick={() => setSlide(0)}>
+        <button className="proposalBrand" type="button" onClick={() => openSlide(0)}>
           <span className="brandDisc" aria-hidden="true" />
           <span>
             <strong>Follow Taste</strong>
@@ -70,12 +80,55 @@ export default function PitchPage() {
             <button className={language === "en" ? "active" : ""} type="button" onClick={() => setLanguage("en")}>EN</button>
             <button className={language === "ru" ? "active" : ""} type="button" onClick={() => setLanguage("ru")}>RU</button>
           </div>
-          <Link href="/demo">
-            {ru ? "Смотреть демо" : "Watch demo"}
-            <Icon name="play" size={15} />
-          </Link>
+          <Link className="proposalDesktopLink" href="/demo">{ru ? "Видео" : "Video"}</Link>
+          <Link className="proposalDesktopLink proposalDesktopLinkPrimary" href="/tastemaker/travis-scott">{ru ? "Продукт" : "Live product"}</Link>
+          <a className="proposalDesktopLink" href="mailto:safonov47@gmail.com">{ru ? "Контакты" : "Contact"}</a>
+          <button
+            className="proposalMenuButton"
+            type="button"
+            aria-expanded={menuOpen}
+            aria-controls="proposal-mobile-menu"
+            aria-label={menuOpen ? (ru ? "Закрыть меню" : "Close menu") : (ru ? "Открыть меню" : "Open menu")}
+            onClick={() => setMenuOpen(current => !current)}
+          >
+            <Icon name={menuOpen ? "close" : "menu"} size={20} />
+          </button>
         </div>
       </header>
+
+      {menuOpen ? (
+        <aside className="proposalMobileMenu" id="proposal-mobile-menu" aria-label={ru ? "Навигация презентации" : "Proposal navigation"}>
+          <div className="proposalMobileMenuSection">
+            <span>{ru ? "Презентация" : "Presentation"}</span>
+            <button type="button" onClick={() => openSlide(0)}>
+              <strong>{ru ? "Описание концепции" : "Concept overview"}</strong>
+              <small>{ru ? "Проблема, идея и ключевой сценарий" : "Problem, insight and core experience"}</small>
+            </button>
+            <button type="button" onClick={() => openSlide(2)}>
+              <strong>{ru ? "Как работает продукт" : "How the product works"}</strong>
+              <small>{ru ? "Профиль артиста, подписка и очередь Taste" : "Artist profile, following and the Taste queue"}</small>
+            </button>
+            <button type="button" onClick={() => openSlide(7)}>
+              <strong>{ru ? "План пилота" : "Pilot plan"}</strong>
+              <small>{ru ? "Восемь недель и критерии успеха" : "Eight weeks and success criteria"}</small>
+            </button>
+          </div>
+
+          <div className="proposalMobileMenuSection proposalMobileMenuResources">
+            <span>{ru ? "Материалы" : "Resources"}</span>
+            <Link href="/demo" onClick={() => setMenuOpen(false)}><strong>{ru ? "Демо-видео" : "Product video"}</strong><Icon name="play" size={18} /></Link>
+            <Link href="/tastemaker/travis-scott" onClick={() => setMenuOpen(false)}><strong>{ru ? "Рабочий продукт" : "Live product"}</strong><Icon name="external" size={17} /></Link>
+            <a href="https://github.com/vaka47/spotify-taste-prototype" target="_blank" rel="noreferrer"><strong>GitHub</strong><Icon name="external" size={17} /></a>
+          </div>
+
+          <address className="proposalMobileContact">
+            <span>{ru ? "Контакты" : "Contact"}</span>
+            <strong>Ivan Safonov</strong>
+            <a href="mailto:safonov47@gmail.com">safonov47@gmail.com</a>
+            <a href="https://www.linkedin.com/in/safonovivan/" target="_blank" rel="noreferrer">LinkedIn</a>
+          </address>
+        </aside>
+      ) : null}
 
       <div className="proposalViewport">
         {slide === 0 ? (

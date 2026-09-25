@@ -30,6 +30,7 @@ type IconName =
   | "queue"
   | "logout"
   | "heart"
+  | "menu"
   | "chevronLeft"
   | "chevronRight";
 
@@ -73,6 +74,7 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
     queue: <><path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /><path d="M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></>,
     logout: <><path d="M14 8V5H5v14h9v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /><path d="M10 12h10m-3-3 3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></>,
     heart: <path d="M12 20.5 4.8 13.7C1.1 10.2 3 4.5 7.6 4.5c1.8 0 3.4.9 4.4 2.3 1-1.4 2.6-2.3 4.4-2.3 4.6 0 6.5 5.7 2.8 9.2L12 20.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="currentColor" fillOpacity=".08" />,
+    menu: <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />,
     chevronLeft: <path d="m15 5-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
     chevronRight: <path d="m9 5 7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />,
   };
