@@ -69,6 +69,7 @@ export default function HubPage() {
         <Link href="/privacy"><span><Icon name="clock" /></span><span><strong>{ru ? "Публиковать с задержкой" : "Delay by 24h"}</strong><small>{ru ? "Новые сигналы появятся через 24 часа" : "Delay the visibility of new listening signals"}</small></span><Icon name="chevronRight" /></Link>
         <Link href="/privacy"><span><Icon name="check" /></span><span><strong>{ru ? "Публиковать только выбранное" : "Share selected only"}</strong><small>{ru ? "Показывайте только подтверждённые вами треки" : "Show only listening you approve"}</small></span><Icon name="chevronRight" /></Link>
         <Link href="/my-taste"><span><Icon name="user" /></span><span><strong>{ru ? "Открыть свой профиль" : "Open your Taste profile"}</strong><small>{ru ? "История, комментарии и публичная ссылка" : "History, comments and your public link"}</small></span><Icon name="chevronRight" /></Link>
+        <Link href="/artist-onboarding"><span><Icon name="taste" /></span><span><strong>{ru ? "Подключить профиль артиста" : "Activate an artist profile"}</strong><small>{ru ? "Подтвердите доступ через Spotify for Artists" : "Verify access through Spotify for Artists"}</small></span><Icon name="chevronRight" /></Link>
         <p><Icon name="privacy" size={14} />{ru ? "Рекламные рекомендации всегда маркируются" : "Sponsored recommendations must always be labeled"}</p>
       </section>
 

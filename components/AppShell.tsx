@@ -3,6 +3,7 @@
 import type React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icons";
 import { ToastProvider } from "@/components/ToastProvider";
 import { TastePlaybackProvider } from "@/components/TasteQueuePlayer";
@@ -21,9 +22,11 @@ const tasteItems = [
 ] as const;
 
 const mobileItems = [
-  { href: "/", labelKey: "nav.home", icon: "home" },
-  { href: "/search", labelKey: "nav.search", icon: "search" },
-  { href: "/my-taste", labelKey: "nav.my", icon: "library" },
+  { href: "/", labelKey: "nav.home", icon: "home", en: "Home", ru: "Главная" },
+  { href: "/search", labelKey: "nav.search", icon: "search", en: "Search", ru: "Поиск" },
+  { href: "/feed", labelKey: "nav.feed", icon: "feed", en: "Feed", ru: "Лента" },
+  { href: "/notifications", labelKey: "nav.inbox", icon: "bell", en: "Inbox", ru: "Входящие" },
+  { href: "/my-taste", labelKey: "nav.my", icon: "library", en: "Your Taste", ru: "Мой Taste" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -36,6 +39,7 @@ function isActive(pathname: string, href: string) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { locale, setLocale, t } = useI18n();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const current = [...primaryItems, ...tasteItems].find(item => isActive(pathname, item.href)) ?? primaryItems[0];
   const currentLabelKey = pathname.startsWith("/player/") ? "nav.player"
     : pathname.startsWith("/taste/") ? "nav.public"
@@ -46,6 +50,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     : pathname === "/feed" ? "nav.feed"
     : current.labelKey;
   const immersivePlayer = pathname.startsWith("/player/");
+
+  useEffect(() => setMobileMenuOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [mobileMenuOpen]);
 
   if (pathname === "/pitch" || pathname === "/demo") return <ToastProvider>{children}</ToastProvider>;
 
@@ -112,19 +132,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {children}
           <footer className="footerNote spxFooter">{t("shell.disclaimer")}</footer>
         </div>
-        {!immersivePlayer ? <button className="spxMobileLanguage" type="button" onClick={() => setLocale(locale === "en" ? "ru" : "en")} aria-label={locale === "en" ? "Switch to Russian" : "Переключить на английский"}>{locale === "en" ? "RU" : "EN"}</button> : null}
+        {!immersivePlayer ? (
+          <button
+            className="spxMobileMoreButton"
+            type="button"
+            aria-expanded={mobileMenuOpen}
+            aria-controls="spx-mobile-menu"
+            aria-label={mobileMenuOpen ? (locale === "ru" ? "Закрыть меню" : "Close menu") : (locale === "ru" ? "Открыть меню" : "Open menu")}
+            onClick={() => setMobileMenuOpen(current => !current)}
+          >
+            <Icon name={mobileMenuOpen ? "close" : "more"} size={20} />
+          </button>
+        ) : null}
+        {!immersivePlayer && mobileMenuOpen ? (
+          <>
+            <button className="spxMobileMenuBackdrop" type="button" onClick={() => setMobileMenuOpen(false)} aria-label={locale === "ru" ? "Закрыть меню" : "Close menu"} />
+            <aside className="spxMobileMenuSheet" id="spx-mobile-menu" role="dialog" aria-modal="true" aria-labelledby="spx-mobile-menu-title">
+              <header>
+                <span><span className="spxSpotifyMark" aria-hidden="true"><i /><i /><i /></span><strong id="spx-mobile-menu-title">Spotify Taste</strong></span>
+                <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label={locale === "ru" ? "Закрыть меню" : "Close menu"}><Icon name="close" /></button>
+              </header>
+              <nav aria-label={locale === "ru" ? "Дополнительная навигация" : "More navigation"}>
+                <span>{locale === "ru" ? "Инструменты Taste" : "Taste tools"}</span>
+                <Link href="/hub"><i><Icon name="hub" size={19} /></i><strong>{locale === "ru" ? "Кабинет автора" : "Tastemaker Hub"}</strong><Icon name="chevronRight" size={18} /></Link>
+                <Link href="/privacy"><i><Icon name="privacy" size={19} /></i><strong>{locale === "ru" ? "Приватность и публикация" : "Privacy and sharing"}</strong><Icon name="chevronRight" size={18} /></Link>
+                <Link href="/artist-onboarding"><i><Icon name="user" size={19} /></i><strong>{locale === "ru" ? "Подключение артиста" : "Artist activation"}</strong><Icon name="chevronRight" size={18} /></Link>
+                <span>{locale === "ru" ? "О проекте" : "Project"}</span>
+                <Link href="/pitch"><i><Icon name="info" size={19} /></i><strong>{locale === "ru" ? "Питч продукта" : "Product proposal"}</strong><Icon name="chevronRight" size={18} /></Link>
+                <Link href="/demo"><i><Icon name="player" size={19} /></i><strong>{locale === "ru" ? "Демо-видео" : "Product video"}</strong><Icon name="chevronRight" size={18} /></Link>
+              </nav>
+              <div className="spxMobileMenuLanguage">
+                <span>{locale === "ru" ? "Язык" : "Language"}</span>
+                <div aria-label={locale === "ru" ? "Язык интерфейса" : "Interface language"}>
+                  <button type="button" className={locale === "en" ? "active" : ""} onClick={() => setLocale("en")} aria-pressed={locale === "en"}>English</button>
+                  <button type="button" className={locale === "ru" ? "active" : ""} onClick={() => setLocale("ru")} aria-pressed={locale === "ru"}>Русский</button>
+                </div>
+              </div>
+            </aside>
+          </>
+        ) : null}
         {!immersivePlayer ? (
           <nav className="mobileNav spxMobileNav" aria-label={locale === "ru" ? "Мобильная навигация" : "Mobile navigation"}>
             {mobileItems.map((item, index) => (
               <Link key={`${item.href}-${index}`} href={item.href} className={isActive(pathname, item.href) ? "active" : ""}>
                 <Icon name={item.icon} size={22} />
-                <span>{t(item.labelKey)}</span>
+                <span>{locale === "ru" ? item.ru : item.en}</span>
               </Link>
             ))}
-            <Link href="/pitch">
-              <Icon name="info" size={22} />
-              <span>{locale === "ru" ? "Питч" : "Pitch"}</span>
-            </Link>
           </nav>
         ) : null}
       </div>

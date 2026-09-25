@@ -188,7 +188,9 @@ body { background: var(--spx-bg); }
 .spxTopBar .accountButton { border: 0; background: #000; color: #fff; }
 .spxFooter { opacity: .62; }
 .spxMobileNav { display: none; }
-.spxMobileLanguage { display: none; }
+.spxMobileMoreButton,
+.spxMobileMenuBackdrop,
+.spxMobileMenuSheet { display: none; }
 
 /* Taste Feed */
 
@@ -948,7 +950,7 @@ button.spxInlinePlayControl:hover,
 .spxOwnerForm textarea { min-width: 0; border: 1px solid #444; border-radius: 6px; outline: 0; background: #181818; padding: 11px; color: #fff; }
 .spxOwnerForm textarea { min-height: 92px; resize: vertical; }
 .spxOwnerForm > button { justify-self: start; min-height: 40px; border: 0; border-radius: 999px; background: var(--spx-green); padding-inline: 18px; color: #000; font-weight: 800; }
-.spxOwnerSettingsLinks { display: flex; align-items: center; gap: 18px; margin-top: 16px; }
+.spxOwnerSettingsLinks { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 16px; }
 .spxOwnerSettingsLinks a { display: inline-flex; align-items: center; gap: 7px; color: #fff; font-size: 12px; font-weight: 700; }
 .spxOwnerSettingsLinks button { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: #aaa; font-size: 12px; }
 .spxOwnerSettingsLinks button:hover { color: #fff; }
@@ -1312,7 +1314,7 @@ button.spxInlinePlayControl:hover,
     inset: auto 0 0;
     z-index: 80;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     min-height: 72px;
     border: 0;
     background: linear-gradient(180deg, rgba(8, 8, 8, .7), #070707 28%);
@@ -1320,8 +1322,131 @@ button.spxInlinePlayControl:hover,
     backdrop-filter: blur(14px);
   }
 
-  .spxMobileLanguage { position: fixed; top: max(12px, env(safe-area-inset-top)); right: 12px; z-index: 91; display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(255, 255, 255, .18); border-radius: 50%; background: rgba(18, 18, 18, .88); color: #fff; font-size: 9px; font-weight: 800; backdrop-filter: blur(12px); }
-  .spxMobileLanguage:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .spxMobileMoreButton {
+    position: fixed;
+    z-index: 97;
+    top: max(12px, env(safe-area-inset-top));
+    right: 12px;
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 50%;
+    background: rgba(18, 18, 18, .92);
+    color: #fff;
+    backdrop-filter: blur(14px);
+  }
+
+  .spxMobileMoreButton[aria-expanded="true"] { display: none; }
+  .spxMobileMoreButton:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  .spxMobileMenuBackdrop {
+    position: fixed;
+    z-index: 94;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: rgba(0, 0, 0, .72);
+    padding: 0;
+    backdrop-filter: blur(4px);
+  }
+
+  .spxMobileMenuSheet {
+    position: fixed;
+    z-index: 96;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    max-height: calc(100svh - 28px);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    background: #181818;
+    padding: 14px 18px calc(22px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    box-shadow: 0 -24px 70px rgba(0, 0, 0, .55);
+  }
+
+  .spxMobileMenuSheet > header {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--spx-line);
+    padding-bottom: 12px;
+  }
+
+  .spxMobileMenuSheet > header > span {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .spxMobileMenuSheet > header .spxSpotifyMark { width: 26px; height: 26px; flex-basis: 26px; }
+  .spxMobileMenuSheet > header strong { font-size: 17px; }
+  .spxMobileMenuSheet > header button { display: grid; width: 40px; height: 40px; place-items: center; border: 0; border-radius: 50%; background: #282828; color: #fff; }
+
+  .spxMobileMenuSheet nav { display: grid; }
+
+  .spxMobileMenuSheet nav > span,
+  .spxMobileMenuLanguage > span {
+    margin-top: 18px;
+    color: var(--spx-subtext);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .spxMobileMenuSheet nav > a {
+    display: grid;
+    min-height: 54px;
+    align-items: center;
+    grid-template-columns: 36px minmax(0, 1fr) 22px;
+    gap: 10px;
+    border-bottom: 1px solid var(--spx-line);
+    color: #fff;
+  }
+
+  .spxMobileMenuSheet nav > a > i {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    border-radius: 4px;
+    background: #282828;
+    color: var(--spx-green);
+    font-style: normal;
+  }
+
+  .spxMobileMenuSheet nav > a > strong { min-width: 0; font-size: 14px; line-height: 1.25; }
+  .spxMobileMenuSheet nav > a > svg { color: #8f8f8f; }
+
+  .spxMobileMenuLanguage { display: grid; gap: 10px; }
+
+  .spxMobileMenuLanguage > div {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    border-radius: 6px;
+    background: #282828;
+    padding: 4px;
+  }
+
+  .spxMobileMenuLanguage button {
+    min-height: 38px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--spx-subtext);
+    font-size: 12px;
+    font-weight: 750;
+  }
+
+  .spxMobileMenuLanguage button.active { background: #fff; color: #000; }
   .spxFeedHeader h1,
   .spxHubHeader h1,
   .spxMyTasteHeader h1,
@@ -1336,9 +1461,10 @@ button.spxInlinePlayControl:hover,
     justify-items: center;
     gap: 4px;
     color: #9a9a9a;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 600;
   }
+  .spxMobileNav a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .spxMobileNav a.active { color: #fff; }
   .spxShellPlayer .spxMainColumn { background: #070a08; }
 
